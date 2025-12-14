@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'admin_education_screen.dart';
 import 'admin_tenaga_kerja_screen.dart';
+import 'admin_idg_screen.dart';
+import 'admin_penduduk_screen.dart';
+import 'admin_ipm_screen.dart'; 
 
 class AdminHomeScreen extends StatefulWidget {
   const AdminHomeScreen({Key? key}) : super(key: key);
@@ -216,7 +219,19 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                             Icons.trending_up,
                             Colors.green,
                             () {
-                              _showComingSoon();
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => AdminIpmScreen(
+                                    onDataChanged: () {
+                                      // Callback ketika data berubah (opsional)
+                                      if (mounted) {
+                                        setState(() {});
+                                      }
+                                    },
+                                  ),
+                                ),
+                              );
                             },
                           ),
                           _buildMenuCard(
@@ -232,15 +247,27 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                             Icons.bar_chart,
                             Colors.orange,
                             () {
-                              _showComingSoon();
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const AdminIDGScreen(),
+                                ),
+                              );
                             },
                           ),
                           _buildMenuCard(
-                            'Sosial',
-                            Icons.pie_chart,
+                            'Penduduk',
+                            Icons.people,
                             Colors.teal,
                             () {
-                              _showComingSoon();
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const AdminPendudukScreen(),
+                                ),
+                              );
                             },
                           ),
                           _buildMenuCard(

@@ -17,22 +17,22 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       title: "Data Statistik Terlengkap",
       description:
           "Akses data statistik Indonesia yang komprehensif dan terpercaya dari berbagai sektor",
-      image: Icons.analytics,
-      color: const Color(0xFF1976D2),
+      image: Icons.analytics_rounded,
+      color: const Color(0xFF42A5F5), // Biru cerah
     ),
     OnboardingData(
       title: "Visualisasi Interaktif",
       description:
           "Jelajahi data dengan grafik, chart, dan peta interaktif yang mudah dipahami",
-      image: Icons.show_chart,
-      color: const Color(0xFF388E3C),
+      image: Icons.show_chart_rounded,
+      color: const Color(0xFF2196F3), // Biru medium cerah
     ),
     OnboardingData(
       title: "Export & Download",
       description:
           "Unduh data dalam berbagai format seperti PDF, Excel, dan gambar untuk kebutuhan Anda",
-      image: Icons.file_download,
-      color: const Color(0xFFF57C00),
+      image: Icons.file_download_rounded,
+      color: const Color(0xFF1E88E5), // Biru cerah gelap
     ),
   ];
 
@@ -45,6 +45,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF8F9FA),
       body: Stack(
         children: [
           PageView.builder(
@@ -72,7 +73,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     (index) => AnimatedContainer(
                       duration: const Duration(milliseconds: 300),
                       margin: const EdgeInsets.symmetric(horizontal: 4),
-                      width: _currentPage == index ? 12 : 8,
+                      width: _currentPage == index ? 24 : 8,
                       height: 8,
                       decoration: BoxDecoration(
                         color: _currentPage == index
@@ -100,6 +101,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                 ? Colors.transparent
                                 : Colors.grey[600],
                             fontSize: 16,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ),
@@ -114,15 +116,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             borderRadius: BorderRadius.circular(25),
                           ),
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 30,
-                            vertical: 12,
+                            horizontal: 32,
+                            vertical: 14,
                           ),
+                          elevation: 2,
                         ),
                         child: Text(
                           _currentPage == onboardingPages.length - 1
                               ? 'Mulai'
                               : 'Lanjut',
-                          style: const TextStyle(fontSize: 16),
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ],
@@ -152,6 +158,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       context: context,
       isDismissible: false,
       enableDrag: false,
+      backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
       ),
@@ -171,17 +178,24 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
             ),
 
-            // Icon
+            // Icon dengan gradient background
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: const Color(0xFF1976D2).withOpacity(0.1),
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    const Color(0xFF42A5F5).withOpacity(0.15),
+                    const Color(0xFF2196F3).withOpacity(0.1),
+                  ],
+                ),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
-                Icons.person_outline,
+                Icons.person_outline_rounded,
                 size: 48,
-                color: Color(0xFF1976D2),
+                color: Color(0xFF2196F3),
               ),
             ),
             const SizedBox(height: 20),
@@ -192,7 +206,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: Colors.black87,
+                color: Color(0xFF1E3A5F),
               ),
             ),
             const SizedBox(height: 12),
@@ -213,7 +227,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               height: 56,
               child: ElevatedButton.icon(
                 onPressed: () => _finishAsUser(),
-                icon: const Icon(Icons.person, size: 24),
+                icon: const Icon(Icons.person_rounded, size: 24),
                 label: const Text(
                   'Masuk sebagai User',
                   style: TextStyle(
@@ -222,7 +236,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   ),
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF1976D2),
+                  backgroundColor: const Color(0xFF2196F3),
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
@@ -239,7 +253,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               height: 56,
               child: OutlinedButton.icon(
                 onPressed: () => _finishAsAdmin(),
-                icon: const Icon(Icons.admin_panel_settings, size: 24),
+                icon: const Icon(Icons.admin_panel_settings_rounded, size: 24),
                 label: const Text(
                   'Masuk sebagai Admin',
                   style: TextStyle(
@@ -248,9 +262,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   ),
                 ),
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: const Color(0xFF1976D2),
+                  foregroundColor: const Color(0xFF2196F3),
                   side: const BorderSide(
-                    color: Color(0xFF1976D2),
+                    color: Color(0xFF2196F3),
                     width: 2,
                   ),
                   shape: RoundedRectangleBorder(
@@ -320,10 +334,11 @@ class OnboardingPage extends StatelessWidget {
       padding: const EdgeInsets.all(40),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
           colors: [
-            data.color.withOpacity(0.1),
+            data.color.withOpacity(0.08),
+            const Color(0xFFF8F9FA),
             Colors.white,
           ],
         ),
@@ -331,38 +346,74 @@ class OnboardingPage extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          // Icon container dengan efek glassmorphism
           Container(
-            width: 200,
-            height: 200,
+            width: 220,
+            height: 220,
             decoration: BoxDecoration(
-              color: data.color.withOpacity(0.1),
               shape: BoxShape.circle,
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  data.color.withOpacity(0.15),
+                  data.color.withOpacity(0.05),
+                ],
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: data.color.withOpacity(0.2),
+                  blurRadius: 30,
+                  offset: const Offset(0, 10),
+                ),
+              ],
             ),
-            child: Icon(
-              data.image,
-              size: 100,
-              color: data.color,
+            child: Center(
+              child: Container(
+                width: 180,
+                height: 180,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 20,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
+                ),
+                child: Icon(
+                  data.image,
+                  size: 90,
+                  color: data.color,
+                ),
+              ),
             ),
           ),
           const SizedBox(height: 60),
           Text(
             data.title,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.bold,
-              color: Colors.grey[800],
+              color: Color(0xFF1E3A5F),
+              letterSpacing: 0.5,
             ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 20),
-          Text(
-            data.description,
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.grey[600],
-              height: 1.5,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Text(
+              data.description,
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.grey[700],
+                height: 1.6,
+              ),
+              textAlign: TextAlign.center,
             ),
-            textAlign: TextAlign.center,
           ),
         ],
       ),

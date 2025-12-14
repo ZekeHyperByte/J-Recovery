@@ -46,7 +46,6 @@ class _SplashScreenState extends State<SplashScreen>
     try {
       if (_isDisposed) return;
 
-      // Set timeout untuk video loading (5 detik)
       _timeoutTimer = Timer(const Duration(seconds: 5), () {
         if (!_isVideoInitialized && !_isDisposed) {
           print('Video loading timeout, using fallback');
@@ -74,17 +73,10 @@ class _SplashScreenState extends State<SplashScreen>
         });
       }
 
-      // Start fade in animation
       _fadeController.forward();
-
-      // Set video properties
       await _videoController!.setLooping(false);
       await _videoController!.setVolume(0.0);
-
-      // Mulai video
       await _videoController!.play();
-
-      // Listen untuk video selesai
       _videoController!.addListener(_checkVideoCompletion);
     } catch (error) {
       print('Error initializing video: $error');
@@ -113,7 +105,6 @@ class _SplashScreenState extends State<SplashScreen>
     }
     _fadeController.forward();
 
-    // Jika menggunakan fallback, tunggu 3 detik lalu navigate
     Timer(const Duration(seconds: 3), () {
       if (!_hasNavigated) {
         _navigateToLogin();
@@ -122,7 +113,6 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   void _setNavigationTimeout() {
-    // Jika video tidak dimulai dalam 6 detik, langsung navigate
     Timer(const Duration(seconds: 6), () {
       if (!_hasNavigated) {
         _navigateToLogin();
@@ -136,17 +126,11 @@ class _SplashScreenState extends State<SplashScreen>
 
     try {
       if (!mounted) return;
-
-      // Fade out animation sebelum navigate
       await _fadeController.reverse();
-
       if (!mounted) return;
-
-      // SELALU ke Login Screen
       Navigator.of(context).pushReplacementNamed('/login');
     } catch (e) {
       print('Error navigating: $e');
-      // Fallback ke login jika ada error
       if (mounted) {
         Navigator.of(context).pushReplacementNamed('/login');
       }
@@ -173,261 +157,285 @@ class _SplashScreenState extends State<SplashScreen>
     final screenSize = MediaQuery.of(context).size;
 
     return Scaffold(
-      backgroundColor: Colors.black,
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          // Background gradient sebagai fallback
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Color(0xFF667eea),
-                  Color(0xFF764ba2),
-                  Color(0xFFF093FB),
-                ],
-              ),
-            ),
+      backgroundColor: Colors.white,
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFFEFF6FF), // Blue-50
+              Color(0xFFDBEAFE), // Blue-100
+              Color(0xFFBFDBFE), // Blue-200
+            ],
           ),
-
-          // Video player di bagian tengah
-          if (_isVideoInitialized && _videoController != null)
-            Center(
-              child: FadeTransition(
-                opacity: _fadeAnimation,
-                child: Container(
-                  width: screenSize.width * 0.5,
-                  height: screenSize.width * 0.5,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.4),
-                        blurRadius: 20,
-                        offset: const Offset(0, 10),
-                      ),
-                    ],
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(20),
-                    child: FittedBox(
-                      fit: BoxFit.cover,
-                      child: SizedBox(
-                        width: _videoController!.value.size.width,
-                        height: _videoController!.value.size.height,
-                        child: VideoPlayer(_videoController!),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-
-          // Overlay gelap untuk readability
-          if (_isVideoInitialized)
-            Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.black.withOpacity(0.3),
-                    Colors.transparent,
-                    Colors.black.withOpacity(0.4),
-                  ],
-                ),
-              ),
-            ),
-
-          // Loading state atau fallback content
-          if (!_isVideoInitialized)
-            FadeTransition(
-              opacity: _fadeAnimation,
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // Logo container
-                    Container(
-                      width: 120,
-                      height: 120,
+        ),
+        child: SafeArea(
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              // Video player di bagian tengah
+              if (_isVideoInitialized && _videoController != null)
+                Center(
+                  child: FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: Container(
+                      width: screenSize.width * 0.6,
+                      height: screenSize.width * 0.6,
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(30),
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            Colors.white.withOpacity(0.2),
-                            Colors.white.withOpacity(0.1),
-                          ],
-                        ),
-                        border: Border.all(
-                          color: Colors.white.withOpacity(0.3),
-                          width: 2,
-                        ),
+                        borderRadius: BorderRadius.circular(20),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.2),
+                            color: const Color(0xFF1E40AF).withOpacity(0.15),
                             blurRadius: 20,
+                            spreadRadius: 1,
                             offset: const Offset(0, 10),
                           ),
                         ],
                       ),
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(30),
-                        child: BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                          child: const Icon(
-                            Icons.analytics_outlined,
-                            size: 60,
-                            color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        child: FittedBox(
+                          fit: BoxFit.cover,
+                          child: SizedBox(
+                            width: _videoController!.value.size.width,
+                            height: _videoController!.value.size.height,
+                            child: VideoPlayer(_videoController!),
                           ),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 40),
-
-                    // App title
-                    const Text(
-                      'STATISTIK',
-                      style: TextStyle(
-                        fontSize: 36,
-                        fontWeight: FontWeight.w900,
-                        color: Colors.white,
-                        letterSpacing: 4,
-                        shadows: [
-                          Shadow(
-                            offset: Offset(0, 3),
-                            blurRadius: 10,
-                            color: Colors.black54,
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Subtitle
-                    const Text(
-                      'Data Indonesia Terpercaya',
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: Colors.white70,
-                        fontWeight: FontWeight.w300,
-                        letterSpacing: 1,
-                        shadows: [
-                          Shadow(
-                            offset: Offset(0, 2),
-                            blurRadius: 4,
-                            color: Colors.black45,
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 50),
-
-                    // Loading indicator
-                    const SizedBox(
-                      width: 50,
-                      height: 50,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 3,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    const Text(
-                      'Memuat aplikasi...',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.white60,
-                        letterSpacing: 1,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-          // Text branding di bawah video
-          if (_isVideoInitialized)
-            Positioned(
-              bottom: 120,
-              left: 0,
-              right: 0,
-              child: FadeTransition(
-                opacity: _fadeAnimation,
-                child: Column(
-                  children: [
-                    const Text(
-                      'STATISTIK',
-                      style: TextStyle(
-                        fontSize: 42,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                        letterSpacing: 4,
-                        shadows: [
-                          Shadow(
-                            offset: Offset(0, 2),
-                            blurRadius: 8,
-                            color: Colors.black54,
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    const Text(
-                      'Data Indonesia Terpercaya',
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: Colors.white70,
-                        fontWeight: FontWeight.w300,
-                        letterSpacing: 1,
-                        shadows: [
-                          Shadow(
-                            offset: Offset(0, 2),
-                            blurRadius: 4,
-                            color: Colors.black54,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-          // Progress indicator untuk video
-          if (_isVideoInitialized && _videoController != null)
-            Positioned(
-              bottom: 80,
-              left: 40,
-              right: 40,
-              child: FadeTransition(
-                opacity: _fadeAnimation,
-                child: Container(
-                  height: 4,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(2),
                   ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(2),
-                    child: VideoProgressIndicator(
-                      _videoController!,
-                      allowScrubbing: false,
-                      colors: const VideoProgressColors(
-                        playedColor: Colors.white,
-                        bufferedColor: Colors.white38,
-                        backgroundColor: Colors.white24,
+                ),
+
+              // Loading state atau fallback content
+              if (!_isVideoInitialized)
+                FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: Center(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(24),
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 440),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            _buildHeader(),
+                            const SizedBox(height: 48),
+                            _buildLoadingIndicator(),
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            ),
-        ],
+
+              // Branding text untuk video state
+              if (_isVideoInitialized)
+                Positioned(
+                  bottom: 100,
+                  left: 0,
+                  right: 0,
+                  child: FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: _buildBrandingText(),
+                  ),
+                ),
+
+              // Progress indicator untuk video
+              if (_isVideoInitialized && _videoController != null)
+                Positioned(
+                  bottom: 60,
+                  left: 50,
+                  right: 50,
+                  child: FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: Container(
+                      height: 4,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(2),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF1E40AF).withOpacity(0.1),
+                            blurRadius: 5,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(2),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                          child: VideoProgressIndicator(
+                            _videoController!,
+                            allowScrubbing: false,
+                            colors: const VideoProgressColors(
+                              playedColor: Color(0xFF3B82F6),
+                              bufferedColor: Color(0xFF3B82F6),
+                              backgroundColor: Color(0xFFE5E7EB),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
       ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Column(
+      children: [
+        // Logo dengan shadow biru - sama persis dengan LoginScreen
+        Container(
+          width: 100,
+          height: 100,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(22),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF3B82F6).withOpacity(0.2),
+                blurRadius: 25,
+                offset: const Offset(0, 8),
+              ),
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 15,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Image.asset(
+              'assets/images/logo.png',
+              fit: BoxFit.contain,
+              errorBuilder: (context, error, stackTrace) {
+                return Image.network(
+                  'https://semarangkota.bps.go.id/images/logo-bps.png',
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) {
+                    return const Icon(
+                      Icons.analytics_outlined,
+                      size: 50,
+                      color: Color(0xFF2563EB),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ),
+        const SizedBox(height: 24),
+        const Text(
+          'BPS Kota Semarang',
+          style: TextStyle(
+            fontSize: 28,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF1E40AF),
+            letterSpacing: -0.5,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+          decoration: BoxDecoration(
+            color: const Color(0xFF3B82F6).withOpacity(0.1),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: const Color(0xFF3B82F6).withOpacity(0.2),
+              width: 1,
+            ),
+          ),
+          child: const Text(
+            'Data Statistik Terpercaya',
+            style: TextStyle(
+              fontSize: 13,
+              color: Color(0xFF1E40AF),
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBrandingText() {
+    return Column(
+      children: [
+        const Text(
+          'BPS Kota Semarang',
+          style: TextStyle(
+            fontSize: 32,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF1E40AF),
+            letterSpacing: -0.5,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+          decoration: BoxDecoration(
+            color: const Color(0xFF3B82F6).withOpacity(0.1),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: const Color(0xFF3B82F6).withOpacity(0.2),
+              width: 1,
+            ),
+          ),
+          child: const Text(
+            'Data Statistik Terpercaya',
+            style: TextStyle(
+              fontSize: 16,
+              color: Color(0xFF1E40AF),
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLoadingIndicator() {
+    return Column(
+      children: [
+        Container(
+          width: 60,
+          height: 60,
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: const Color(0xFF3B82F6).withOpacity(0.1),
+            border: Border.all(
+              color: const Color(0xFF3B82F6).withOpacity(0.3),
+              width: 2,
+            ),
+          ),
+          child: CircularProgressIndicator(
+            strokeWidth: 3,
+            valueColor: AlwaysStoppedAnimation<Color>(
+              const Color(0xFF3B82F6),
+            ),
+          ),
+        ),
+        const SizedBox(height: 24),
+        const Text(
+          'Memuat aplikasi...',
+          style: TextStyle(
+            fontSize: 16,
+            color: Color(0xFF1E40AF),
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
     );
   }
 }

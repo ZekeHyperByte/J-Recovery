@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 
 class TenagaKerjaScreen extends StatefulWidget {
   const TenagaKerjaScreen({super.key});
@@ -10,9 +12,16 @@ class TenagaKerjaScreen extends StatefulWidget {
 
 class _TenagaKerjaScreenState extends State<TenagaKerjaScreen> with SingleTickerProviderStateMixin {
   int selectedYear = 2024;
-  final List<int> availableYears = [2020, 2021, 2022, 2023, 2024];
+  List<int> availableYears = [2020, 2021, 2022, 2023, 2024];
   late AnimationController _animationController;
   int touchedIndex = -1;
+  bool isLoading = true;
+
+  // Data yang akan dimuat dari SharedPreferences
+  Map<int, Map<String, dynamic>> yearData = {};
+  Map<int, Map<String, dynamic>> indikatorData = {};
+  Map<int, Map<String, double>> distribusiData = {};
+  Map<int, Map<String, dynamic>> jatengData = {};
 
   @override
   void initState() {
@@ -21,6 +30,7 @@ class _TenagaKerjaScreenState extends State<TenagaKerjaScreen> with SingleTicker
       vsync: this,
       duration: const Duration(milliseconds: 1500),
     )..repeat(reverse: true);
+    _loadData();
   }
 
   @override
@@ -29,142 +39,120 @@ class _TenagaKerjaScreenState extends State<TenagaKerjaScreen> with SingleTicker
     super.dispose();
   }
 
-  // Data dari BPS Kota Semarang
-  final Map<int, Map<String, dynamic>> yearData = {
-    2020: {
-      'angkatanKerja': 1023964,
-      'bekerja': 925963,
-      'pengangguran': 98001,
-      'bukanAngkatanKerja': 441157,
-      'tpt': 9.57,
-      'tkk': 90.43,
-      'tpak': 69.89,
-    },
-    2021: {
-      'angkatanKerja': 1034794,
-      'bekerja': 936076,
-      'pengangguran': 98718,
-      'bukanAngkatanKerja': 455948,
-      'tpt': 9.54,
-      'tkk': 90.46,
-      'tpak': 69.41,
-    },
-    2022: {
-      'angkatanKerja': 1075827,
-      'bekerja': 994091,
-      'pengangguran': 81736,
-      'bukanAngkatanKerja': 440370,
-      'tpt': 7.60,
-      'tkk': 92.40,
-      'tpak': 70.96,
-    },
-    2023: {
-      'angkatanKerja': 929014,
-      'bekerja': 873358,
-      'pengangguran': 55656,
-      'bukanAngkatanKerja': 409201,
-      'tpt': 5.99,
-      'tkk': 94.01,
-      'tpak': 69.42,
-    },
-    2024: {
-      'angkatanKerja': 946618,
-      'bekerja': 891497,
-      'pengangguran': 55121,
-      'bukanAngkatanKerja': 407975,
-      'tpt': 5.82,
-      'tkk': 94.18,
-      'tpak': 69.88,
-    },
-  };
+  // ============= LOAD DATA FROM SHARED PREFERENCES =============
+  
+  Future<void> _loadData() async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      
+      // Load Year Data
+      String? savedYearData = prefs.getString('tenaga_kerja_year_data');
+      if (savedYearData != null) {
+        Map<String, dynamic> decoded = json.decode(savedYearData);
+        yearData = decoded.map((key, value) => 
+          MapEntry(int.parse(key), Map<String, dynamic>.from(value as Map))
+        );
+      } else {
+        _initializeDefaultYearData();
+      }
 
-  // Indikator Ketenagakerjaan Kota Semarang dari PDF (Gender Breakdown)
-  final Map<int, Map<String, dynamic>> indikatorData = {
-    2020: {
-      'tptLaki': 10.08,
-      'tptPerempuan': 8.94,
-      'tptTotal': 9.57,
-      'tkkLaki': 89.92,
-      'tkkPerempuan': 91.06,
-      'tkkTotal': 90.43,
-      'tpakLaki': 79.86,
-      'tpakPerempuan': 60.48,
-      'tpakTotal': 69.89,
-    },
-    2021: {
-      'tptLaki': 10.01,
-      'tptPerempuan': 8.94,
-      'tptTotal': 9.54,
-      'tkkLaki': 89.99,
-      'tkkPerempuan': 91.06,
-      'tkkTotal': 90.46,
-      'tpakLaki': 79.99,
-      'tpakPerempuan': 59.42,
-      'tpakTotal': 69.41,
-    },
-    2022: {
-      'tptLaki': 9.91,
-      'tptPerempuan': 4.46,
-      'tptTotal': 7.60,
-      'tkkLaki': 90.09,
-      'tkkPerempuan': 95.54,
-      'tkkTotal': 92.40,
-      'tpakLaki': 84.03,
-      'tpakPerempuan': 58.59,
-      'tpakTotal': 70.96,
-    },
-    2023: {
-      'tptLaki': 4.91,
-      'tptPerempuan': 7.33,
-      'tptTotal': 5.99,
-      'tkkLaki': 95.09,
-      'tkkPerempuan': 92.67,
-      'tkkTotal': 94.01,
-      'tpakLaki': 78.56,
-      'tpakPerempuan': 60.64,
-      'tpakTotal': 69.42,
-    },
-    2024: {
-      'tptLaki': 3.58,
-      'tptPerempuan': 8.68,
-      'tptTotal': 5.82,
-      'tkkLaki': 96.42,
-      'tkkPerempuan': 91.32,
-      'tkkTotal': 94.18,
-      'tpakLaki': 79.92,
-      'tpakPerempuan': 60.24,
-      'tpakTotal': 69.88,
-    },
-  };
+      // Load Indikator Data
+      String? savedIndikatorData = prefs.getString('tenaga_kerja_indikator_data');
+      if (savedIndikatorData != null) {
+        Map<String, dynamic> decoded = json.decode(savedIndikatorData);
+        indikatorData = decoded.map((key, value) => 
+          MapEntry(int.parse(key), Map<String, dynamic>.from(value as Map))
+        );
+      } else {
+        _initializeDefaultIndikatorData();
+      }
 
-  // Data Jawa Tengah dari PDF BPS
-  final Map<int, Map<String, dynamic>> jatengData = {
-    2020: {
-      'bekerja': 17536935,
-      'pengangguran': 1214342,
-      'bukanAngkatanKerja': 8258019,
-    },
-    2021: {
-      'bekerja': 17835770,
-      'pengangguran': 1128223,
-      'bukanAngkatanKerja': 8289921,
-    },
-    2022: {
-      'bekerja': 18390459,
-      'pengangguran': 1084475,
-      'bukanAngkatanKerja': 8015925,
-    },
-    2023: {
-      'bekerja': 19988875,
-      'pengangguran': 1080260,
-      'bukanAngkatanKerja': 8308494,
-    },
-    2024: {
-      'bekerja': 20861393,
-      'pengangguran': 1047451,
-      'bukanAngkatanKerja': 7803338,
-    },
-  };
+      // Load Distribusi Data
+      String? savedDistribusiData = prefs.getString('tenaga_kerja_distribusi_data');
+      if (savedDistribusiData != null) {
+        Map<String, dynamic> decoded = json.decode(savedDistribusiData);
+        distribusiData = decoded.map((key, value) => 
+          MapEntry(int.parse(key), Map<String, double>.from(value as Map))
+        );
+      } else {
+        _initializeDefaultDistribusiData();
+      }
+
+      // Load Jateng Data
+      String? savedJatengData = prefs.getString('tenaga_kerja_jateng_data');
+      if (savedJatengData != null) {
+        Map<String, dynamic> decoded = json.decode(savedJatengData);
+        jatengData = decoded.map((key, value) => 
+          MapEntry(int.parse(key), Map<String, dynamic>.from(value as Map))
+        );
+      } else {
+        _initializeDefaultJatengData();
+      }
+      
+      setState(() {
+        availableYears = yearData.keys.toList()..sort();
+        if (availableYears.isNotEmpty && !availableYears.contains(selectedYear)) {
+          selectedYear = availableYears.last;
+        }
+        isLoading = false;
+      });
+    } catch (e) {
+      debugPrint('Error loading data: $e');
+      _initializeDefaultYearData();
+      _initializeDefaultIndikatorData();
+      _initializeDefaultDistribusiData();
+      _initializeDefaultJatengData();
+      setState(() {
+        availableYears = yearData.keys.toList()..sort();
+        if (availableYears.isNotEmpty) {
+          selectedYear = availableYears.last;
+        }
+        isLoading = false;
+      });
+    }
+  }
+
+  // ============= DEFAULT DATA INITIALIZATION =============
+  
+  void _initializeDefaultYearData() {
+    yearData = {
+      2020: {'angkatanKerja': 1023964, 'bekerja': 925963, 'pengangguran': 98001, 'bukanAngkatanKerja': 441157, 'tpt': 9.57, 'tkk': 90.43, 'tpak': 69.89},
+      2021: {'angkatanKerja': 1034794, 'bekerja': 936076, 'pengangguran': 98718, 'bukanAngkatanKerja': 455948, 'tpt': 9.54, 'tkk': 90.46, 'tpak': 69.41},
+      2022: {'angkatanKerja': 1075827, 'bekerja': 994091, 'pengangguran': 81736, 'bukanAngkatanKerja': 440370, 'tpt': 7.60, 'tkk': 92.40, 'tpak': 70.96},
+      2023: {'angkatanKerja': 929014, 'bekerja': 873358, 'pengangguran': 55656, 'bukanAngkatanKerja': 409201, 'tpt': 5.99, 'tkk': 94.01, 'tpak': 69.42},
+      2024: {'angkatanKerja': 946618, 'bekerja': 891497, 'pengangguran': 55121, 'bukanAngkatanKerja': 407975, 'tpt': 5.82, 'tkk': 94.18, 'tpak': 69.88},
+    };
+  }
+
+  void _initializeDefaultIndikatorData() {
+    indikatorData = {
+      2020: {'tptLaki': 10.08, 'tptPerempuan': 8.94, 'tptTotal': 9.57, 'tkkLaki': 89.92, 'tkkPerempuan': 91.06, 'tkkTotal': 90.43, 'tpakLaki': 79.86, 'tpakPerempuan': 60.48, 'tpakTotal': 69.89},
+      2021: {'tptLaki': 10.01, 'tptPerempuan': 8.94, 'tptTotal': 9.54, 'tkkLaki': 89.99, 'tkkPerempuan': 91.06, 'tkkTotal': 90.46, 'tpakLaki': 79.99, 'tpakPerempuan': 59.42, 'tpakTotal': 69.41},
+      2022: {'tptLaki': 9.91, 'tptPerempuan': 4.46, 'tptTotal': 7.60, 'tkkLaki': 90.09, 'tkkPerempuan': 95.54, 'tkkTotal': 92.40, 'tpakLaki': 84.03, 'tpakPerempuan': 58.59, 'tpakTotal': 70.96},
+      2023: {'tptLaki': 4.91, 'tptPerempuan': 7.33, 'tptTotal': 5.99, 'tkkLaki': 95.09, 'tkkPerempuan': 92.67, 'tkkTotal': 94.01, 'tpakLaki': 78.56, 'tpakPerempuan': 60.64, 'tpakTotal': 69.42},
+      2024: {'tptLaki': 3.58, 'tptPerempuan': 8.68, 'tptTotal': 5.82, 'tkkLaki': 96.42, 'tkkPerempuan': 91.32, 'tkkTotal': 94.18, 'tpakLaki': 79.92, 'tpakPerempuan': 60.24, 'tpakTotal': 69.88},
+    };
+  }
+
+  void _initializeDefaultDistribusiData() {
+    distribusiData = {
+      2020: {'Pertanian': 2.00, 'Manufaktur': 26.00, 'Jasa': 73.00},
+      2021: {'Pertanian': 2.00, 'Manufaktur': 26.00, 'Jasa': 72.00},
+      2022: {'Pertanian': 1.00, 'Manufaktur': 28.00, 'Jasa': 70.00},
+      2023: {'Pertanian': 2.00, 'Manufaktur': 26.00, 'Jasa': 72.00},
+      2024: {'Pertanian': 2.00, 'Manufaktur': 28.00, 'Jasa': 70.00},
+    };
+  }
+
+  void _initializeDefaultJatengData() {
+    jatengData = {
+      2020: {'bekerja': 17536935, 'pengangguran': 1214342, 'bukanAngkatanKerja': 8258019},
+      2021: {'bekerja': 17835770, 'pengangguran': 1128223, 'bukanAngkatanKerja': 8289921},
+      2022: {'bekerja': 18390459, 'pengangguran': 1084475, 'bukanAngkatanKerja': 8015925},
+      2023: {'bekerja': 19988875, 'pengangguran': 1080260, 'bukanAngkatanKerja': 8308494},
+      2024: {'bekerja': 20861393, 'pengangguran': 1047451, 'bukanAngkatanKerja': 7803338},
+    };
+  }
 
   String _formatNumber(int number) {
     if (number >= 1000000) {
@@ -176,8 +164,12 @@ class _TenagaKerjaScreenState extends State<TenagaKerjaScreen> with SingleTicker
   }
 
   String _getChangeText(int year, String key) {
-    if (year == 2020) return '0%';
-    final prevYear = year - 1;
+    if (year == availableYears.first) return '0%';
+    
+    final currentIndex = availableYears.indexOf(year);
+    if (currentIndex <= 0) return '0%';
+    
+    final prevYear = availableYears[currentIndex - 1];
     if (!yearData.containsKey(prevYear)) return '0%';
     
     final currentValue = yearData[year]![key] as num;
@@ -189,6 +181,42 @@ class _TenagaKerjaScreenState extends State<TenagaKerjaScreen> with SingleTicker
 
   @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Tenaga Kerja'),
+          backgroundColor: const Color(0xFF1976D2),
+          foregroundColor: Colors.white,
+        ),
+        body: const Center(
+          child: CircularProgressIndicator(color: Color(0xFF1976D2)),
+        ),
+      );
+    }
+
+    if (availableYears.isEmpty || !yearData.containsKey(selectedYear)) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Tenaga Kerja'),
+          backgroundColor: const Color(0xFF1976D2),
+          foregroundColor: Colors.white,
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.error_outline, size: 64, color: Colors.grey[400]),
+              const SizedBox(height: 16),
+              Text(
+                'Data tidak tersedia',
+                style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     final currentData = yearData[selectedYear]!;
     
     return Scaffold(
@@ -198,23 +226,27 @@ class _TenagaKerjaScreenState extends State<TenagaKerjaScreen> with SingleTicker
         foregroundColor: Colors.white,
         elevation: 1,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildHeaderCard(),
-            const SizedBox(height: 20),
-            _buildYearSelector(),
-            const SizedBox(height: 20),
-            _buildStatisticsCards(currentData),
-            const SizedBox(height: 20),
-            _buildUnemploymentChart(),
-            const SizedBox(height: 20),
-            _buildWorkforceChart(),
-            const SizedBox(height: 20),
-            _buildSectorAnalysis(selectedYear),
-          ],
+      body: RefreshIndicator(
+        onRefresh: _loadData,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildHeaderCard(),
+              const SizedBox(height: 20),
+              _buildYearSelector(),
+              const SizedBox(height: 20),
+              _buildStatisticsCards(currentData),
+              const SizedBox(height: 20),
+              _buildUnemploymentChart(),
+              const SizedBox(height: 20),
+              _buildWorkforceChart(),
+              const SizedBox(height: 20),
+              _buildSectorAnalysis(selectedYear),
+            ],
+          ),
         ),
       ),
     );
@@ -470,13 +502,13 @@ class _TenagaKerjaScreenState extends State<TenagaKerjaScreen> with SingleTicker
     for (int i = 0; i < availableYears.length; i++) {
       final year = availableYears[i];
       
-      // Hitung TPT Kota Semarang
+      if (!yearData.containsKey(year) || !jatengData.containsKey(year)) continue;
+      
       final semarangData = yearData[year]!;
       final semarangAK = semarangData['angkatanKerja'] as int;
       final semarangPengangguran = semarangData['pengangguran'] as int;
       final semarangTPT = (semarangPengangguran / semarangAK) * 100;
       
-      // Hitung TPT Jawa Tengah dari data PDF
       final jatengDataYear = jatengData[year]!;
       final jatengBekerja = jatengDataYear['bekerja'] as int;
       final jatengPengangguran = jatengDataYear['pengangguran'] as int;
@@ -486,6 +518,19 @@ class _TenagaKerjaScreenState extends State<TenagaKerjaScreen> with SingleTicker
       semarangSpots.add(FlSpot(i.toDouble(), semarangTPT));
       jatengSpots.add(FlSpot(i.toDouble(), jatengTPT));
       yearLabels.add(year.toString());
+    }
+
+    if (semarangSpots.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const Center(
+          child: Text('Data chart tidak tersedia'),
+        ),
+      );
     }
 
     return Container(
@@ -738,14 +783,18 @@ class _TenagaKerjaScreenState extends State<TenagaKerjaScreen> with SingleTicker
   }
 
   Widget _buildWorkforceChart() {
-    // Data dari tabel gambar - Distribusi Karakteristik Penduduk Bekerja
-    final Map<int, Map<String, double>> distribusiData = {
-      2020: {'Pertanian': 2.00, 'Manufaktur': 26.00, 'Jasa': 73.00},
-      2021: {'Pertanian': 2.00, 'Manufaktur': 26.00, 'Jasa': 72.00},
-      2022: {'Pertanian': 1.00, 'Manufaktur': 28.00, 'Jasa': 70.00},
-      2023: {'Pertanian': 2.00, 'Manufaktur': 26.00, 'Jasa': 72.00},
-      2024: {'Pertanian': 2.00, 'Manufaktur': 28.00, 'Jasa': 70.00},
-    };
+    if (!distribusiData.containsKey(selectedYear)) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const Center(
+          child: Text('Data distribusi tidak tersedia'),
+        ),
+      );
+    }
 
     final currentDistribusi = distribusiData[selectedYear]!;
     
@@ -837,7 +886,7 @@ class _TenagaKerjaScreenState extends State<TenagaKerjaScreen> with SingleTicker
 
   List<PieChartSectionData> _buildPieChartSections(Map<String, double> currentDistribusi) {
     final animation = _animationController.value;
-    final pulseScale = 1.0 + (animation * 0.05); // Pulse effect 5%
+    final pulseScale = 1.0 + (animation * 0.05);
     
     return [
       PieChartSectionData(
@@ -974,9 +1023,21 @@ class _TenagaKerjaScreenState extends State<TenagaKerjaScreen> with SingleTicker
   }
 
   Widget _buildSectorAnalysis(int year) {
+    if (!indikatorData.containsKey(year)) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const Center(
+          child: Text('Data indikator tidak tersedia'),
+        ),
+      );
+    }
+
     final indikator = indikatorData[year]!;
     
-    // Data Angka Dependency Ratio dari tabel gambar
     final Map<int, double> dependencyRatio = {
       2020: 28.52,
       2021: 28.59,
@@ -1033,14 +1094,16 @@ class _TenagaKerjaScreenState extends State<TenagaKerjaScreen> with SingleTicker
             Icons.work_outline,
             const Color(0xFF388E3C),
           ),
-          const SizedBox(height: 10),
-          _buildAnalysisItem(
-            'Angka Ketergantungan',
-            '${dependencyRatio[year]!.toStringAsFixed(2)}',
-            'Rasio ketergantungan penduduk Kota Semarang',
-            Icons.info_outline,
-            const Color(0xFF7B1FA2),
-          ),
+          if (dependencyRatio.containsKey(year)) ...[
+            const SizedBox(height: 10),
+            _buildAnalysisItem(
+              'Angka Ketergantungan',
+              '${dependencyRatio[year]!.toStringAsFixed(2)}',
+              'Rasio ketergantungan penduduk Kota Semarang',
+              Icons.info_outline,
+              const Color(0xFF7B1FA2),
+            ),
+          ],
         ],
       ),
     );

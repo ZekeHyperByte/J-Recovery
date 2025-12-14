@@ -75,12 +75,12 @@ class _AppInitializerState extends State<AppInitializer> {
       });
     } catch (e, s) {
       print("❌ Error saat inisialisasi: $e");
-      print(s);
+      print(s); 
       // Fallback ke login jika terjadi error
       if (mounted) {
         Navigator.pushReplacementNamed(context, '/login');
       }
-    }
+    }//nice
   }
 
   @override
