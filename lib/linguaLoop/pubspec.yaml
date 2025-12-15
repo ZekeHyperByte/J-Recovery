@@ -1,7 +1,6 @@
-name: statistik_indonesia
+name: STARA
 description: Aplikasi Statistik Indonesia - Data terpercaya dan komprehensif.
 publish_to: 'none' # Mencegah publikasi yang tidak disengaja
-
 version: 1.0.0+1
 
 environment:
@@ -13,7 +12,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-
   cached_network_image: ^3.3.0
   collection: ^1.17.2
   connectivity_plus: ^5.0.1
@@ -35,20 +33,20 @@ dependencies:
   image: ^4.1.3
   intl: ^0.18.1
   lottie: ^2.7.0
-  open_file: ^3.3.2 # CATATAN: di kode Anda namanya 'open_file', bukan 'open_file_plus'
+  open_file: ^3.3.2
   package_info_plus: ^4.2.0
   path: ^1.8.3
   path_provider: ^2.1.1
   pdf: ^3.10.7
   permission_handler: ^11.0.1
-  printing: ^5.12.0 # VERSI DIPERBARUI
+  printing: ^5.12.0
   provider: ^6.0.5
   pull_to_refresh: ^2.0.0
   share_plus: ^7.2.1
   shared_preferences: ^2.2.2
   shimmer: ^3.0.0
   syncfusion_flutter_charts: ^23.1.36
-  url_launcher: ^6.2.4 # VERSI DIPERBARUI
+  url_launcher: ^6.2.4
   video_player: ^2.8.13
 
 # =================== DEV DEPENDENCIES ===================
@@ -56,25 +54,25 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
   build_runner: ^2.4.7
   flutter_lints: ^3.0.0
   hive_generator: ^2.0.1
   json_annotation: ^4.8.1
   json_serializable: ^6.7.1
-
+  flutter_launcher_icons: ^0.13.1
 
 # =================== FLUTTER CONFIGURATION ===================
 flutter:
   uses-material-design: true
-
+  
   # Aset gambar, video, dan animasi
   assets:
     - assets/images/Statistik.png
     - assets/icons/Sad man walking in rain.mp4
     - assets/animations/ringan.mp4
     - assets/maps/wired-outline-18-location-pin-hover-jump.mp4
-
+    - assets/images/logo.png
+  
   # Konfigurasi Font
   fonts:
     - family: Poppins
@@ -86,7 +84,6 @@ flutter:
           weight: 600
         - asset: assets/fonts/Poppins-Bold.ttf
           weight: 700
-
     - family: Montserrat
       fonts:
         - asset: assets/fonts/Montserrat-Regular.ttf
@@ -96,3 +93,12 @@ flutter:
           weight: 600
         - asset: assets/fonts/Montserrat-Bold.ttf
           weight: 700
+
+# =================== LAUNCHER ICON CONFIGURATION ===================
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/logo.png"
+  adaptive_icon_background: "#1976D2"
+  adaptive_icon_foreground: "assets/images/logo.png"
+  min_sdk_android: 21

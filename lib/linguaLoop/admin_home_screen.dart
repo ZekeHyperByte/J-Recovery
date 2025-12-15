@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'admin_education_screen.dart';
 import 'admin_tenaga_kerja_screen.dart';
-import 'admin_pertumbuhan_ekonomi_screen.dart';
-import 'admin_kemiskinan_screen.dart';
-import 'admin_inflasi_screen.dart'; // Tambahkan import ini
+import 'admin_idg_screen.dart';
+import 'admin_penduduk_screen.dart';
+import 'admin_ipm_screen.dart'; 
 
 class AdminHomeScreen extends StatefulWidget {
   const AdminHomeScreen({Key? key}) : super(key: key);
@@ -194,7 +194,8 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => const AdminEducationScreen(),
+                                  builder: (context) =>
+                                      const AdminEducationScreen(),
                                 ),
                               );
                             },
@@ -207,7 +208,8 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => const AdminTenagaKerjaScreen(),
+                                  builder: (context) =>
+                                      const AdminTenagaKerjaScreen(),
                                 ),
                               );
                             },
@@ -217,7 +219,19 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                             Icons.trending_up,
                             Colors.green,
                             () {
-                              _showComingSoon();
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => AdminIpmScreen(
+                                    onDataChanged: () {
+                                      // Callback ketika data berubah (opsional)
+                                      if (mounted) {
+                                        setState(() {});
+                                      }
+                                    },
+                                  ),
+                                ),
+                              );
                             },
                           ),
                           _buildMenuCard(
@@ -233,15 +247,27 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                             Icons.bar_chart,
                             Colors.orange,
                             () {
-                              _showComingSoon();
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const AdminIDGScreen(),
+                                ),
+                              );
                             },
                           ),
                           _buildMenuCard(
-                            'Sosial',
-                            Icons.pie_chart,
+                            'Penduduk',
+                            Icons.people,
                             Colors.teal,
                             () {
-                              _showComingSoon();
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const AdminPendudukScreen(),
+                                ),
+                              );
                             },
                           ),
                           _buildMenuCard(
@@ -249,12 +275,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                             Icons.show_chart,
                             Colors.red,
                             () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const AdminKemiskinanScreen(),
-                                ),
-                              );
+                              _showComingSoon();
                             },
                           ),
                           _buildMenuCard(
@@ -262,12 +283,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                             Icons.attach_money,
                             Colors.indigo,
                             () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const AdminInflasiScreen(),
-                                ),
-                              );
+                              _showComingSoon();
                             },
                           ),
                           _buildMenuCard(
@@ -275,12 +291,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                             Icons.timeline,
                             Colors.cyan,
                             () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const AdminPertumbuhanEkonomiScreen(),
-                                ),
-                              );
+                              _showComingSoon();
                             },
                           ),
                         ],

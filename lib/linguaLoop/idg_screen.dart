@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 
 class IDGData {
   final int year;
@@ -123,41 +125,69 @@ class _IDGScreenState extends State<IDGScreen> with TickerProviderStateMixin {
     _loadIDGData();
   }
 
-  void _loadIDGData() {
-    final List<Map<String, dynamic>> rawData = [
-      {"Tahun": 2020, "SUMBANGAN": 37.13, "TENAGA": 51.15, "PARLEMEN": 20.41, "IDG": 74.67, "IKG": 0.157},
-      {"Tahun": 2021, "SUMBANGAN": 37.46, "TENAGA": 51.30, "PARLEMEN": 18.75, "IDG": 73.64, "IKG": 0.142},
-      {"Tahun": 2022, "SUMBANGAN": 38.05, "TENAGA": 49.78, "PARLEMEN": 18.00, "IDG": 73.93, "IKG": 0.266},
-      {"Tahun": 2023, "SUMBANGAN": 37.93, "TENAGA": 48.76, "PARLEMEN": 18.00, "IDG": 73.86, "IKG": 0.168},
-      {"Tahun": 2024, "SUMBANGAN": 37.68, "TENAGA": 50.42, "PARLEMEN": 24.00, "IDG": 78.71, "IKG": 0.14},
-    ];
-
-    Map<int, IDGData> processedData = {};
-
-    for (var row in rawData) {
-      final int year = row["Tahun"] as int;
-      processedData[year] = IDGData(
-        year: year,
-        sumbangan: row["SUMBANGAN"] as double?,
-        tenaga: row["TENAGA"] as double?,
-        parlemen: row["PARLEMEN"] as double?,
-        idg: row["IDG"] as double?,
-        ikg: row["IKG"] as double?,
-      );
-    }
-
-    Future.delayed(const Duration(milliseconds: 500), () {
-      if (mounted) {
-        setState(() {
-          idgDataByYear = processedData;
-          availableYears = processedData.keys.toList()..sort();
-          if (availableYears.isNotEmpty) {
-            selectedYear = availableYears.last;
-          }
-          isLoading = false;
+  Future<void> _loadIDGData() async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? savedData = prefs.getString('idg_data');
+      
+      Map<int, IDGData> processedData = {};
+      
+      if (savedData != null) {
+        // Load from SharedPreferences
+        Map<String, dynamic> decoded = json.decode(savedData);
+        decoded.forEach((key, value) {
+          final int year = int.parse(key);
+          final Map<String, dynamic> data = value as Map<String, dynamic>;
+          processedData[year] = IDGData(
+            year: year,
+            sumbangan: data['sumbangan'] as double?,
+            tenaga: data['tenaga'] as double?,
+            parlemen: data['parlemen'] as double?,
+            idg: data['idg'] as double?,
+            ikg: data['ikg'] as double?,
+          );
         });
+      } else {
+        // Load default data
+        final List<Map<String, dynamic>> rawData = [
+          {"Tahun": 2020, "SUMBANGAN": 37.13, "TENAGA": 51.15, "PARLEMEN": 20.41, "IDG": 74.67, "IKG": 0.157},
+          {"Tahun": 2021, "SUMBANGAN": 37.46, "TENAGA": 51.30, "PARLEMEN": 18.75, "IDG": 73.64, "IKG": 0.142},
+          {"Tahun": 2022, "SUMBANGAN": 38.05, "TENAGA": 49.78, "PARLEMEN": 18.00, "IDG": 73.93, "IKG": 0.266},
+          {"Tahun": 2023, "SUMBANGAN": 37.93, "TENAGA": 48.76, "PARLEMEN": 18.00, "IDG": 73.86, "IKG": 0.168},
+          {"Tahun": 2024, "SUMBANGAN": 37.68, "TENAGA": 50.42, "PARLEMEN": 24.00, "IDG": 78.71, "IKG": 0.14},
+        ];
+
+        for (var row in rawData) {
+          final int year = row["Tahun"] as int;
+          processedData[year] = IDGData(
+            year: year,
+            sumbangan: row["SUMBANGAN"] as double?,
+            tenaga: row["TENAGA"] as double?,
+            parlemen: row["PARLEMEN"] as double?,
+            idg: row["IDG"] as double?,
+            ikg: row["IKG"] as double?,
+          );
+        }
       }
-    });
+
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (mounted) {
+          setState(() {
+            idgDataByYear = processedData;
+            availableYears = processedData.keys.toList()..sort();
+            if (availableYears.isNotEmpty) {
+              selectedYear = availableYears.last;
+            }
+            isLoading = false;
+          });
+        }
+      });
+    } catch (e) {
+      debugPrint('Error loading IDG data: $e');
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
   IDGData get currentIDGData {
@@ -829,7 +859,7 @@ class _IDGScreenState extends State<IDGScreen> with TickerProviderStateMixin {
                 style: TextStyle(fontSize: 13, color: Colors.grey[700], height: 1.5),
                 children: const [
                   TextSpan(
-                    text: '1.Sumbangan Pendapatan Perempuan ',
+                    text: '1. Sumbangan Pendapatan Perempuan ',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   TextSpan(
@@ -847,7 +877,7 @@ class _IDGScreenState extends State<IDGScreen> with TickerProviderStateMixin {
                 style: TextStyle(fontSize: 13, color: Colors.grey[700], height: 1.5),
                 children: const [
                   TextSpan(
-                    text: '2.Perempuan Sebagai Tenaga Profesional ',
+                    text: '2. Perempuan Sebagai Tenaga Profesional ',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   TextSpan(
@@ -865,7 +895,7 @@ class _IDGScreenState extends State<IDGScreen> with TickerProviderStateMixin {
                 style: TextStyle(fontSize: 13, color: Colors.grey[700], height: 1.5),
                 children: const [
                   TextSpan(
-                    text: '3.Keterlibatan Perempuan di Parlemen ',
+                    text: '3. Keterlibatan Perempuan di Parlemen ',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   TextSpan(
@@ -877,7 +907,7 @@ class _IDGScreenState extends State<IDGScreen> with TickerProviderStateMixin {
           ),
           const SizedBox(height: 8),
           Text(
-            'Nilai IDG yang meningkat menunjukkan ketimpangan antara laki-laki terhadap perempuan dalam peran dan kekuatan perempuan dalam hal akses sumberdaya ekonomi dan partisipasi pengambilan keputusan. Sedangkan IPG lebih menunjukkan tingkat kesetaraan perempuan terhadap laki-laki dan hal kesenjangan akses dan kapabilitas dalam hal pembangunan dasar manusia.',
+            'Nilai IDG yang meningkat menunjukkan ketimpangan antara laki-laki terhadap perempuan dalam peran dan kekuatan perempuan dalam hal akses sumberdaya ekonomi dan partisipasi pengambilan keputusan. Sedangkan IKG lebih menunjukkan tingkat kesetaraan perempuan terhadap laki-laki dan hal kesenjangan akses dan kapabilitas dalam hal pembangunan dasar manusia.',
             textAlign: TextAlign.justify,
             style: TextStyle(fontSize: 13, color: Colors.grey[700], height: 1.5),
           ),
@@ -934,6 +964,8 @@ class _IDGScreenState extends State<IDGScreen> with TickerProviderStateMixin {
     );
   }
 }
+
+// ============= ANIMATED IDG CARD CLASS =============
 
 class _AnimatedIDGCard extends StatefulWidget {
   final IDGData data;

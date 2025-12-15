@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'dart:math';
-import 'data_list_screen.dart';
-import 'idg_screen.dart';
 import 'profile_screen.dart';
-import 'map_screen.dart';
 // Import screens for statistics categories
 import 'tenaga_kerja_screen.dart';
 import 'ipm_screen.dart';
@@ -15,12 +12,13 @@ import 'pertumbuhan_ekonomi_screen.dart';
 import 'ipg_screen.dart';
 import 'pendidikan_screen.dart';
 import 'sdgs_screen.dart';
+import 'idg_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  _HomeScreenState createState() => _HomeScreenState();
+  State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
@@ -33,8 +31,6 @@ class _HomeScreenState extends State<HomeScreen> {
         index: _selectedIndex,
         children: [
           _buildHomeContent(),
-          const DataListScreen(),
-          const MapScreen(),
           const ProfileScreen(),
         ],
       ),
@@ -46,20 +42,12 @@ class _HomeScreenState extends State<HomeScreen> {
             _selectedIndex = index;
           });
         },
-        selectedItemColor: const Color(0xFF1976D2),
+        selectedItemColor: const Color(0xFF3B82F6),
         unselectedItemColor: Colors.grey,
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: 'Beranda',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.bar_chart),
-            label: 'Data',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.map),
-            label: 'Peta',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
@@ -77,7 +65,7 @@ class _HomeScreenState extends State<HomeScreen> {
           expandedHeight: 120,
           floating: false,
           pinned: true,
-          backgroundColor: const Color(0xFF1976D2),
+          backgroundColor: const Color(0xFF3B82F6),
           flexibleSpace: const FlexibleSpaceBar(
             title: Text(
               'STATISTIK',
@@ -91,8 +79,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           actions: [
             IconButton(
-              icon:
-                  const Icon(Icons.notifications_outlined, color: Colors.white),
+              icon: const Icon(Icons.notifications_outlined, color: Colors.white),
               onPressed: () {},
             ),
           ],
@@ -105,7 +92,7 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 30),
               _buildStatisticsSection(),
               const SizedBox(height: 20),
-              _buildRecentPublications(),
+              _buildAppDescription(),
               const SizedBox(height: 20),
             ]),
           ),
@@ -217,10 +204,10 @@ class _HomeScreenState extends State<HomeScreen> {
             itemBuilder: (context, index) {
               final item = statisticsItems[index];
               return _buildStatisticIcon(
-                item['icon'],
-                item['title'],
-                item['color'],
-                item['screen'],
+                item['icon'] as IconData,
+                item['title'] as String,
+                item['color'] as Color,
+                item['screen'] as Widget,
               );
             },
           ),
@@ -295,8 +282,16 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildPopulationChart() {
+    final List<int> years = [2020, 2021, 2022, 2023, 2024];
+    final List<FlSpot> growthSpots = [
+      const FlSpot(0, 0.0000),
+      const FlSpot(1, 0.0018),
+      const FlSpot(2, 0.0021),
+      const FlSpot(3, 0.0209),
+      const FlSpot(4, 0.0083),
+    ];
+
     return Container(
-      height: 200,
       padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -313,28 +308,46 @@ class _HomeScreenState extends State<HomeScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Pertumbuhan Penduduk',
+            'Pertumbuhan Penduduk Kota Semarang (%)',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
               color: Colors.grey[800],
             ),
           ),
-          const SizedBox(height: 10),
-          Expanded(
+          const SizedBox(height: 20),
+          SizedBox(
+            height: 200,
             child: LineChart(
               LineChartData(
-                gridData: const FlGridData(show: false),
+                minY: 0,
+                maxY: 0.03,
+                minX: 0,
+                maxX: (growthSpots.length - 1).toDouble(),
+                gridData: FlGridData(
+                  show: true,
+                  drawVerticalLine: false,
+                  horizontalInterval: 0.005,
+                  getDrawingHorizontalLine: (value) {
+                    return FlLine(
+                      color: Colors.grey.withOpacity(0.15),
+                      strokeWidth: 0.5,
+                    );
+                  },
+                ),
                 titlesData: FlTitlesData(
                   leftTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
-                      reservedSize: 35,
+                      reservedSize: 45,
+                      interval: 0.005,
                       getTitlesWidget: (value, meta) {
                         return Text(
-                          '${value.toInt()}M',
-                          style:
-                              const TextStyle(fontSize: 10, color: Colors.grey),
+                          '${(value * 100).toStringAsFixed(1)}%',
+                          style: TextStyle(
+                            fontSize: 9,
+                            color: Colors.grey[600],
+                          ),
                         );
                       },
                     ),
@@ -342,13 +355,20 @@ class _HomeScreenState extends State<HomeScreen> {
                   bottomTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
+                      reservedSize: 30,
+                      interval: 1,
                       getTitlesWidget: (value, meta) {
-                        const years = ['2018', '2019', '2020', '2021', '2022'];
-                        if (value.toInt() < years.length) {
-                          return Text(
-                            years[value.toInt()],
-                            style: const TextStyle(
-                                fontSize: 10, color: Colors.grey),
+                        int index = value.toInt();
+                        if (index >= 0 && index < years.length) {
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: Text(
+                              years[index].toString(),
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: Colors.grey[600],
+                              ),
+                            ),
                           );
                         }
                         return const Text('');
@@ -360,180 +380,131 @@ class _HomeScreenState extends State<HomeScreen> {
                   topTitles: const AxisTitles(
                       sideTitles: SideTitles(showTitles: false)),
                 ),
-                borderData: FlBorderData(show: false),
+                borderData: FlBorderData(
+                  show: true,
+                  border: Border(
+                    left: BorderSide(color: Colors.grey.withOpacity(0.3), width: 1),
+                    bottom: BorderSide(color: Colors.grey.withOpacity(0.3), width: 1),
+                  ),
+                ),
                 lineBarsData: [
                   LineChartBarData(
-                    spots: [
-                      const FlSpot(0, 264),
-                      const FlSpot(1, 266),
-                      const FlSpot(2, 267),
-                      const FlSpot(3, 270),
-                      const FlSpot(4, 272),
-                    ],
+                    spots: growthSpots,
                     isCurved: true,
-                    color: const Color(0xFF1976D2),
+                    color: const Color(0xFF3B82F6),
                     barWidth: 3,
                     dotData: const FlDotData(show: true),
                     belowBarData: BarAreaData(
                       show: true,
-                      color: const Color(0xFF1976D2).withOpacity(0.1),
+                      color: const Color(0xFF3B82F6).withOpacity(0.1),
                     ),
                   ),
                 ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+                lineTouchData: LineTouchData(
+                  enabled: true,
+                  touchTooltipData: LineTouchTooltipData(
+                    getTooltipColor: (touchedSpot) => const Color(0xFF3B82F6),
+                    tooltipRoundedRadius: 8,
+                    tooltipPadding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 8),
+                    getTooltipItems: (List<LineBarSpot> touchedBarSpots) {
+                      return touchedBarSpots.map((barSpot) {
+                        final int index = barSpot.x.toInt();
+                        if (index < 0 || index >= years.length) return null;
 
-  Widget _buildRecentPublications() {
-    final List<Map<String, dynamic>> staticPublications = [
-      {
-        'title': 'Statistik Indonesia 2024',
-        'category': 'Publikasi Tahunan',
-        'date': DateTime(2024, 1, 15),
-      },
-      {
-        'title': 'Indikator Ekonomi Januari 2024',
-        'category': 'Berita Resmi Statistik',
-        'date': DateTime(2024, 1, 10),
-      },
-      {
-        'title': 'Survei Angkatan Kerja Nasional',
-        'category': 'Publikasi',
-        'date': DateTime(2024, 1, 5),
-      },
-      {
-        'title': 'Tingkat Kemiskinan Semester II 2023',
-        'category': 'Berita Resmi Statistik',
-        'date': DateTime(2024, 1, 2),
-      },
-      {
-        'title': 'Inflasi Desember 2023',
-        'category': 'Publikasi',
-        'date': DateTime(2023, 12, 28),
-      },
-    ];
+                        final year = years[index];
+                        final growthPercent =
+                            (barSpot.y * 100).toStringAsFixed(2);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Rilis Terbaru',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey[800],
-              ),
-            ),
-            TextButton(
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Fitur lihat semua publikasi'),
-                    duration: Duration(seconds: 2),
+                        return LineTooltipItem(
+                          '$year\n$growthPercent %',
+                          const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 11,
+                          ),
+                        );
+                      }).toList();
+                    },
                   ),
-                );
-              },
-              child: const Text(
-                'Lihat Semua',
-                style: TextStyle(
-                  color: Color(0xFF1976D2),
-                  fontWeight: FontWeight.w600,
                 ),
               ),
             ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        SizedBox(
-          height: 180,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.only(left: 0),
-            itemCount: staticPublications.length,
-            itemBuilder: (context, index) {
-              final publication = staticPublications[index];
-              return _buildPublicationCard(
-                publication['title'],
-                publication['category'],
-                publication['date'],
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPublicationCard(String title, String category, DateTime date) {
-    return Container(
-      width: 280,
-      margin: const EdgeInsets.only(right: 15),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            blurRadius: 5,
-            offset: const Offset(0, 2),
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    );
+  }
+
+  Widget _buildAppDescription() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            const Color(0xFF3B82F6).withOpacity(0.08),
+            const Color(0xFF60A5FA).withOpacity(0.05),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
         children: [
           Container(
-            height: 80,
+            padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: const Color(0xFF1976D2).withOpacity(0.1),
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(12)),
-            ),
-            child: const Center(
-              child: Icon(
-                Icons.description,
-                size: 40,
-                color: Color(0xFF1976D2),
+              gradient: const LinearGradient(
+                colors: [Color(0xFF3B82F6), Color(0xFF2563EB)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF3B82F6).withOpacity(0.3),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: const Icon(
+              Icons.analytics_outlined,
+              color: Colors.white,
+              size: 32,
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(15),
+          const SizedBox(width: 16),
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey[800],
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+                Row(
+                  children: [
+                    const Text(
+                      '📊 ',
+                      style: TextStyle(fontSize: 18),
+                    ),
+                    Text(
+                      'Statistik Kota Semarang',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey[800],
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  category,
+                  'Aplikasi resmi BPS Kota Semarang! Akses data statistik terlengkap dan terkini untuk mendukung keputusan berbasis data. Mari wujudkan Semarang yang lebih maju! 🚀',
                   style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
+                    fontSize: 13,
+                    color: Colors.grey[700],
+                    height: 1.6,
                   ),
-                ),
-                const SizedBox(height: 5),
-                Text(
-                  '${date.day}/${date.month}/${date.year}',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: Colors.grey[500],
-                  ),
+                  textAlign: TextAlign.justify,
                 ),
               ],
             ),
@@ -544,7 +515,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-// 0====================8 INDIKATOR BUBBLE 8====================D
+// BUBBLE STATISTICS WIDGET
 class BubbleStatistics extends StatefulWidget {
   const BubbleStatistics({super.key});
 
@@ -555,7 +526,7 @@ class BubbleStatistics extends StatefulWidget {
 class _BubbleStatisticsState extends State<BubbleStatistics>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
-  final List<BubbleData> bubbles = [];
+  List<BubbleData> bubbles = [];
   double containerWidth = 0;
   double containerHeight = 0;
 
@@ -569,14 +540,18 @@ class _BubbleStatisticsState extends State<BubbleStatistics>
     )..repeat();
 
     _controller.addListener(() {
-      setState(() {
-        _updateBubbles();
-      });
+      if (mounted) {
+        setState(() {
+          _updateBubbles();
+        });
+      }
     });
   }
 
   void _initializeBubbles() {
-    if (bubbles.isEmpty && containerWidth > 0 && containerHeight > 0) {
+    bubbles.clear(); // Clear dulu untuk reset
+    
+    if (containerWidth > 0 && containerHeight > 0) {
       double bubbleRadius = 45;
       double margin = 20;
       double effectiveWidth = containerWidth - (margin * 2);
@@ -585,9 +560,9 @@ class _BubbleStatisticsState extends State<BubbleStatistics>
       bubbles.addAll([
         BubbleData(
           icon: Icons.people,
-          value: '272M',
+          value: '1.709M',
           label: 'Jumlah Penduduk',
-          color: Colors.blue,
+          color: const Color(0xFF3B82F6),
           radius: bubbleRadius,
           x: margin + effectiveWidth * 0.15,
           y: margin + effectiveHeight * 0.30,
@@ -598,9 +573,9 @@ class _BubbleStatisticsState extends State<BubbleStatistics>
         ),
         BubbleData(
           icon: Icons.trending_down,
-          value: '9.54%',
+          value: '4.03%',
           label: 'Tingkat Kemiskinan',
-          color: Colors.orange,
+          color: const Color(0xFFF59E0B),
           radius: bubbleRadius,
           x: margin + effectiveWidth * 0.70,
           y: margin + effectiveHeight * 0.30,
@@ -611,9 +586,9 @@ class _BubbleStatisticsState extends State<BubbleStatistics>
         ),
         BubbleData(
           icon: Icons.location_city,
-          value: '149/km²',
+          value: '4,573/km²',
           label: 'Kepadatan',
-          color: Colors.green,
+          color: const Color(0xFF10B981),
           radius: bubbleRadius,
           x: margin + effectiveWidth * 0.30,
           y: margin + effectiveHeight * 0.70,
@@ -624,9 +599,9 @@ class _BubbleStatisticsState extends State<BubbleStatistics>
         ),
         BubbleData(
           icon: Icons.trending_up,
-          value: '5.31%',
+          value: '0.83%',
           label: 'Pertumbuhan',
-          color: Colors.purple,
+          color: const Color(0xFF8B5CF6),
           radius: bubbleRadius,
           x: margin + effectiveWidth * 0.80,
           y: margin + effectiveHeight * 0.70,
@@ -738,104 +713,160 @@ class _BubbleStatisticsState extends State<BubbleStatistics>
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 280,
-      padding: const EdgeInsets.all(15),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            blurRadius: 5,
+            color: Colors.grey.withOpacity(0.08),
+            blurRadius: 10,
             offset: const Offset(0, 2),
           ),
         ],
       ),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          containerWidth = constraints.maxWidth;
-          containerHeight = constraints.maxHeight;
-          
-          if (bubbles.isEmpty) {
-            _initializeBubbles();
-          }
-          
-          return Stack(
-            children: bubbles.map((bubble) {
-              return Positioned(
-                left: bubble.x - bubble.radius,
-                top: bubble.y - bubble.radius,
-                child: GestureDetector(
-                  onPanUpdate: (details) {
-                    setState(() {
-                      bubble.x += details.delta.dx;
-                      bubble.y += details.delta.dy;
-                      bubble.vx = details.delta.dx * 0.3;
-                      bubble.vy = details.delta.dy * 0.3;
-                    });
-                  },
-                  child: Container(
-                    width: bubble.radius * 2,
-                    height: bubble.radius * 2,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: RadialGradient(
-                        colors: [
-                          bubble.color.withOpacity(0.25),
-                          bubble.color.withOpacity(0.15),
-                        ],
-                      ),
-                      border: Border.all(
-                        color: bubble.color.withOpacity(0.6),
-                        width: 2,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: bubble.color.withOpacity(0.3),
-                          blurRadius: 10,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          bubble.icon,
-                          color: bubble.color,
-                          size: 20,
-                        ),
-                        const SizedBox(height: 3),
-                        Text(
-                          bubble.value,
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey[800],
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 5),
-                          child: Text(
-                            bubble.label,
-                            style: TextStyle(
-                              fontSize: 8,
-                              color: Colors.grey[600],
-                            ),
-                            textAlign: TextAlign.center,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF3B82F6), Color(0xFF2563EB)],
                   ),
+                  borderRadius: BorderRadius.circular(10),
                 ),
-              );
-            }).toList(),
-          );
-        },
+                child: const Icon(
+                  Icons.bubble_chart,
+                  color: Colors.white,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Indikator Utama Kota Semarang',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey[800],
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Tap dan geser bubble untuk berinteraksi',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            height: 230,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                containerWidth = constraints.maxWidth;
+                containerHeight = constraints.maxHeight;
+                
+                if (bubbles.isEmpty) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (mounted) {
+                      setState(() {
+                        _initializeBubbles();
+                      });
+                    }
+                  });
+                }
+                
+                return Stack(
+                  children: bubbles.map((bubble) {
+                    return Positioned(
+                      left: bubble.x - bubble.radius,
+                      top: bubble.y - bubble.radius,
+                      child: GestureDetector(
+                        onPanUpdate: (details) {
+                          setState(() {
+                            bubble.x += details.delta.dx;
+                            bubble.y += details.delta.dy;
+                            bubble.vx = details.delta.dx * 0.3;
+                            bubble.vy = details.delta.dy * 0.3;
+                          });
+                        },
+                        child: Container(
+                          width: bubble.radius * 2,
+                          height: bubble.radius * 2,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: RadialGradient(
+                              colors: [
+                                bubble.color.withOpacity(0.2),
+                                bubble.color.withOpacity(0.1),
+                              ],
+                            ),
+                            border: Border.all(
+                              color: bubble.color.withOpacity(0.5),
+                              width: 2,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: bubble.color.withOpacity(0.25),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                bubble.icon,
+                                color: bubble.color,
+                                size: 22,
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                bubble.value,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.grey[800],
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 6),
+                                child: Text(
+                                  bubble.label,
+                                  style: TextStyle(
+                                    fontSize: 8.5,
+                                    color: Colors.grey[600],
+                                  ),
+                                  textAlign: TextAlign.center,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
