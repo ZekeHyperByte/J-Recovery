@@ -613,7 +613,7 @@ class _InflasiScreenState extends State<InflasiScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            selectedMonth == null 
+            selectedMonth == null
                 ? 'Inflasi Bulanan $selectedYear'
                 : 'Inflasi $currentMonthLabel $selectedYear',
             style: const TextStyle(
