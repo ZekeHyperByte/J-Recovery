@@ -15,7 +15,6 @@ import 'pertumbuhan_ekonomi_screen.dart';
 import 'ipg_screen.dart';
 import 'pendidikan_screen.dart';
 import 'sdgs_screen.dart';
-import 'iph_screen.dart'; // Import halaman IPH yang baru
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -176,12 +175,6 @@ class _HomeScreenState extends State<HomeScreen> {
         'title': 'Penduduk',
         'color': Colors.brown,
         'screen': const PendudukScreen()
-      },
-      {
-        'icon': Icons.price_change,
-        'title': 'IPH',
-        'color': const Color(0xFF3B82F6),
-        'screen': const IphScreen()
       },
     ];
 

@@ -4,6 +4,7 @@ import 'onboarding_screen.dart';
 import 'home_screen.dart';
 import 'login_admin.dart';
 import 'admin_home_screen.dart' as admin_home_screen;
+import 'admin_kemiskinan_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -34,6 +35,7 @@ class MyApp extends StatelessWidget {
         '/login': (context) => const LoginScreen(),
         '/admin-home': (context) => const admin_home_screen.AdminHomeScreen(),
         '/admin': (context) => const admin_home_screen.AdminHomeScreen(),
+        '/admin/kemiskinan': (context) => const AdminKemiskinanScreen(),
       },
     );
   }
