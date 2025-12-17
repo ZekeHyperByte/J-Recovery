@@ -285,7 +285,6 @@ class _IDGScreenState extends State<IDGScreen> with TickerProviderStateMixin {
               const SizedBox(height: 20),
               _buildIDGDescription(),
               const SizedBox(height: 20),
-              _buildDownloadSection(),
             ],
           ),
         ),
@@ -910,54 +909,6 @@ class _IDGScreenState extends State<IDGScreen> with TickerProviderStateMixin {
             'Nilai IDG yang meningkat menunjukkan ketimpangan antara laki-laki terhadap perempuan dalam peran dan kekuatan perempuan dalam hal akses sumberdaya ekonomi dan partisipasi pengambilan keputusan. Sedangkan IKG lebih menunjukkan tingkat kesetaraan perempuan terhadap laki-laki dan hal kesenjangan akses dan kapabilitas dalam hal pembangunan dasar manusia.',
             textAlign: TextAlign.justify,
             style: TextStyle(fontSize: 13, color: Colors.grey[700], height: 1.5),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDownloadSection() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Download Laporan',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey[800],
-            ),
-          ),
-          const SizedBox(height: 15),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: _downloadPDFFromGoogleSheets,
-              icon: const Icon(Icons.picture_as_pdf),
-              label: const Text('Download PDF dari Google Sheets'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red[700],
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                elevation: 2,
-              ),
-            ),
           ),
         ],
       ),

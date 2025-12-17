@@ -68,19 +68,18 @@ class _AppInitializerState extends State<AppInitializer> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
 
-        // SELALU ke Login Screen setelah splash
-        // User harus pilih setiap kali buka app
-        print("➡️ Navigasi ke LoginScreen");
-        Navigator.pushReplacementNamed(context, '/login');
+        // LANGSUNG ke Home Screen setelah splash
+        print("➡️ Navigasi ke HomeScreen");
+        Navigator.pushReplacementNamed(context, '/home');
       });
     } catch (e, s) {
       print("❌ Error saat inisialisasi: $e");
       print(s); 
-      // Fallback ke login jika terjadi error
+      // Fallback ke home jika terjadi error
       if (mounted) {
-        Navigator.pushReplacementNamed(context, '/login');
+        Navigator.pushReplacementNamed(context, '/home');
       }
-    }//nice
+    }
   }
 
   @override

@@ -13,7 +13,7 @@ class _SDGSStatisticsPageState extends State<SDGSStatisticsPage> {
   final List<String> years = ['2020', '2021', '2022', '2023', '2024'];
 
   // Data untuk grafik
-  final Map<String, Map<String, dynamic>> yearlyData = {
+  final Map<String, Map<String, double>> yearlyData = {
     '2020': {
       'goal4': 85.2,
       'goal6': 78.5,
@@ -75,10 +75,10 @@ class _SDGSStatisticsPageState extends State<SDGSStatisticsPage> {
               margin: const EdgeInsets.all(16),
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                gradient: LinearGradient(
+                gradient: const LinearGradient(
                   colors: [
-                    const Color(0xFF4CAF50),
-                    const Color(0xFF66BB6A),
+                    Color(0xFF4CAF50),
+                    Color(0xFF66BB6A),
                   ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
@@ -140,12 +140,12 @@ class _SDGSStatisticsPageState extends State<SDGSStatisticsPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
+                  const Row(
                     children: [
-                      const Icon(Icons.calendar_today, 
+                      Icon(Icons.calendar_today, 
                         color: Color(0xFF4CAF50), size: 20),
-                      const SizedBox(width: 8),
-                      const Text(
+                      SizedBox(width: 8),
+                      Text(
                         'Pilih Tahun Data',
                         style: TextStyle(
                           fontSize: 16,
@@ -266,7 +266,7 @@ class _SDGSStatisticsPageState extends State<SDGSStatisticsPage> {
                           barTouchData: BarTouchData(
                             enabled: true,
                             touchTooltipData: BarTouchTooltipData(
-                              tooltipBgColor: const Color(0xFF37474F),
+                              getTooltipColor: (group) => const Color(0xFF37474F),
                               tooltipPadding: const EdgeInsets.all(8),
                               tooltipMargin: 8,
                               getTooltipItem: (group, groupIndex, rod, rodIndex) {
@@ -332,18 +332,18 @@ class _SDGSStatisticsPageState extends State<SDGSStatisticsPage> {
                             drawVerticalLine: false,
                             horizontalInterval: 20,
                             getDrawingHorizontalLine: (value) {
-                              return FlLine(
-                                color: const Color(0xFFE8F5E9),
+                              return const FlLine(
+                                color: Color(0xFFE8F5E9),
                                 strokeWidth: 1,
                               );
                             },
                           ),
                           borderData: FlBorderData(show: false),
                           barGroups: [
-                            _buildBarGroup(0, yearlyData[selectedYear]!['goal4']),
-                            _buildBarGroup(1, yearlyData[selectedYear]!['goal6']),
-                            _buildBarGroup(2, yearlyData[selectedYear]!['goal16']),
-                            _buildBarGroup(3, yearlyData[selectedYear]!['goal17']),
+                            _buildBarGroup(0, yearlyData[selectedYear]!['goal4']!),
+                            _buildBarGroup(1, yearlyData[selectedYear]!['goal6']!),
+                            _buildBarGroup(2, yearlyData[selectedYear]!['goal16']!),
+                            _buildBarGroup(3, yearlyData[selectedYear]!['goal17']!),
                           ],
                         ),
                       ),
@@ -380,7 +380,7 @@ class _SDGSStatisticsPageState extends State<SDGSStatisticsPage> {
                     'Goal 4',
                     'Pendidikan Berkualitas',
                     'Rasio APM SD/sederajat dan APK SMP/sederajat Kuintil terbawah/teratas',
-                    yearlyData[selectedYear]!['goal4'],
+                    yearlyData[selectedYear]!['goal4']!,
                     Icons.school_rounded,
                     const Color(0xFF4CAF50),
                   ),
@@ -389,7 +389,7 @@ class _SDGSStatisticsPageState extends State<SDGSStatisticsPage> {
                     'Goal 6',
                     'Air Bersih dan Sanitasi Layak',
                     'Rumah tangga dengan akses pada layanan fasilitas kesehatan dasar dan fasilitas cuci tangan',
-                    yearlyData[selectedYear]!['goal6'],
+                    yearlyData[selectedYear]!['goal6']!,
                     Icons.water_drop_rounded,
                     const Color(0xFF2196F3),
                   ),
@@ -398,7 +398,7 @@ class _SDGSStatisticsPageState extends State<SDGSStatisticsPage> {
                     'Goal 16',
                     'Perdamaian, Keadilan dan Kelembagaan',
                     'Kepemilikan akta lahir untuk penduduk 0-17 tahun pada 40% berpendapatan bawah',
-                    yearlyData[selectedYear]!['goal16'],
+                    yearlyData[selectedYear]!['goal16']!,
                     Icons.balance_rounded,
                     const Color(0xFF9C27B0),
                   ),
@@ -407,7 +407,7 @@ class _SDGSStatisticsPageState extends State<SDGSStatisticsPage> {
                     'Goal 17',
                     'Inklusi Digital',
                     'Keterampilan teknologi informasi dan komunikasi (TIK)',
-                    yearlyData[selectedYear]!['goal17'],
+                    yearlyData[selectedYear]!['goal17']!,
                     Icons.devices_rounded,
                     const Color(0xFFFF9800),
                   ),
@@ -549,10 +549,10 @@ class _SDGSStatisticsPageState extends State<SDGSStatisticsPage> {
       barRods: [
         BarChartRodData(
           toY: value,
-          gradient: LinearGradient(
+          gradient: const LinearGradient(
             colors: [
-              const Color(0xFF4CAF50),
-              const Color(0xFF81C784),
+              Color(0xFF4CAF50),
+              Color(0xFF81C784),
             ],
             begin: Alignment.bottomCenter,
             end: Alignment.topCenter,

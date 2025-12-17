@@ -878,53 +878,53 @@ class _PendudukScreenState extends State<PendudukScreen> with AutomaticKeepAlive
   }
 
   Widget _buildPopulationStats() {
-    final data = currentSemarangData;
-    return Column(
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: _buildStatCard(
-                'Total Penduduk',
-                '${data.populationInMillions} Juta jiwa',
-                '${data.populationFormatted} jiwa',
-                Icons.groups,
-                Colors.brown,
-              ),
+  final data = currentSemarangData;
+  return Column(
+    children: [
+      Row(
+        children: [
+          Expanded(
+            child: _buildStatCard(
+              'Total Penduduk',
+              '${data.populationInMillions} Juta jiwa',
+              '${data.populationFormatted} jiwa',
+              Icons.groups,
+              Colors.brown,
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildDensityCard(data),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: _buildDensityCard(data),
+          ),
+        ],
+      ),
+      const SizedBox(height: 12),
+      Row(
+        children: [
+          Expanded(
+            child: _buildGenderCard(
+              'Laki-laki',
+              '${data.malePopulationInMillions} Juta jiwa',
+              '${data.malePercentage.toStringAsFixed(2)}%',  // ← INI YANG PERLU DIPASTIKAN
+              Icons.male,
+              Colors.indigo,
             ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: _buildGenderCard(
-                'Laki-laki',
-                '${data.malePopulationInMillions} Juta jiwa',
-                '${data.malePercentage.toStringAsFixed(1)}%',
-                Icons.male,
-                Colors.indigo,
-              ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: _buildGenderCard(
+              'Perempuan',
+              '${data.femalePopulationInMillions} Juta jiwa',
+              '${data.femalePercentage.toStringAsFixed(2)}%',  // ← INI YANG PERLU DIPASTIKAN
+              Icons.female,
+              Colors.pink,
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildGenderCard(
-                'Perempuan',
-                '${data.femalePopulationInMillions} Juta jiwa',
-                '${data.femalePercentage.toStringAsFixed(1)}%',
-                Icons.female,
-                Colors.pink,
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
+          ),
+        ],
+      ),
+    ],
+  );
+}
 
   Widget _buildStatCard(String title, String value, String subtitle, IconData icon, Color color) {
     return Card(

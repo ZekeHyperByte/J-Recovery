@@ -13,6 +13,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
   String appVersion = '1.0.0';
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
+  int _tapCount = 0;
 
   @override
   void initState() {
@@ -43,6 +44,27 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
       });
     } catch (e) {
       // Keep default version if package info fails
+    }
+  }
+
+  void _handleLogoTap() {
+    setState(() {
+      _tapCount++;
+    });
+
+    // Reset counter setelah 3 detik
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted) {
+        setState(() {
+          _tapCount = 0;
+        });
+      }
+    });
+
+    // Jika tap 7 kali dalam 3 detik, buka admin login
+    if (_tapCount >= 7) {
+      _tapCount = 0;
+      Navigator.pushNamed(context, '/login');
     }
   }
 
@@ -167,50 +189,54 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                     children: [
                       const SizedBox(height: 40),
                       // Logo simetris dengan shadow dan glassmorphism
-                      Container(
-                        width: isTablet ? 120 : 100,
-                        height: isTablet ? 120 : 100,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.2),
-                              blurRadius: 25,
-                              offset: const Offset(0, 10),
+                      // Tap 7 kali untuk membuka admin login (tersembunyi)
+                      GestureDetector(
+                        onTap: _handleLogoTap,
+                        child: Container(
+                          width: isTablet ? 120 : 100,
+                          height: isTablet ? 120 : 100,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.2),
+                                blurRadius: 25,
+                                offset: const Offset(0, 10),
+                              ),
+                              BoxShadow(
+                                color: const Color(0xFF1976D2).withOpacity(0.3),
+                                blurRadius: 40,
+                                offset: const Offset(0, 15),
+                              ),
+                            ],
+                          ),
+                          padding: const EdgeInsets.all(16),
+                          child: Center(
+                            child: Image.asset(
+                              'assets/images/logo.png',
+                              width: isTablet ? 88 : 68,
+                              height: isTablet ? 88 : 68,
+                              fit: BoxFit.contain,
+                              errorBuilder: (context, error, stackTrace) {
+                                // Debug: Print error
+                                print('Error loading logo: $error');
+                                // Fallback - coba load dari network dulu
+                                return Image.network(
+                                  'https://semarangkota.bps.go.id/images/logo-bps.png',
+                                  width: isTablet ? 76 : 56,
+                                  height: isTablet ? 76 : 56,
+                                  fit: BoxFit.contain,
+                                  errorBuilder: (_, __, ___) {
+                                    return const Icon(
+                                      Icons.account_balance_rounded,
+                                      size: 45,
+                                      color: Color(0xFF1976D2),
+                                    );
+                                  },
+                                );
+                              },
                             ),
-                            BoxShadow(
-                              color: const Color(0xFF1976D2).withOpacity(0.3),
-                              blurRadius: 40,
-                              offset: const Offset(0, 15),
-                            ),
-                          ],
-                        ),
-                        padding: const EdgeInsets.all(16),
-                        child: Center(
-                          child: Image.asset(
-                            'assets/images/logo.png',
-                            width: isTablet ? 88 : 68,
-                            height: isTablet ? 88 : 68,
-                            fit: BoxFit.contain,
-                            errorBuilder: (context, error, stackTrace) {
-                              // Debug: Print error
-                              print('Error loading logo: $error');
-                              // Fallback - coba load dari network dulu
-                              return Image.network(
-                                'https://semarangkota.bps.go.id/images/logo-bps.png',
-                                width: isTablet ? 76 : 56,
-                                height: isTablet ? 76 : 56,
-                                fit: BoxFit.contain,
-                                errorBuilder: (_, __, ___) {
-                                  return const Icon(
-                                    Icons.account_balance_rounded,
-                                    size: 45,
-                                    color: Color(0xFF1976D2),
-                                  );
-                                },
-                              );
-                            },
                           ),
                         ),
                       ),

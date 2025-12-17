@@ -309,8 +309,6 @@ class _IPGScreenState extends State<IPGScreen> {
             _buildIPGChart(),
             const SizedBox(height: 20),
             _buildIPGDescription(),
-            const SizedBox(height: 20),
-            _buildDownloadSection(),
           ],
         ),
       ),
@@ -928,98 +926,6 @@ class _IPGScreenState extends State<IPGScreen> {
                       '\n\n• Dimensi Kesehatan: Diukur melalui Angka Harapan Hidup (UHH) saat lahir '
                       '\n• Dimensi Pendidikan: Diukur melalui Harapan Lama Sekolah (HLS) dan Rata-rata Lama Sekolah (RLS) '
                       '\n• Dimensi Standar Hidup Layak: Diukur melalui Pendapatan per Kapita yang disesuaikan.'
-                      '\n\nData menunjukkan tren peningkatan IPG dari 95.49 (2020) menjadi 95.63 (2024), '
-                      'menandakan kesenjangan gender yang semakin mengecil dari tahun ke tahun.',
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDownloadSection() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            blurRadius: 5,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Download Laporan',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey[800],
-            ),
-          ),
-          const SizedBox(height: 15),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: _downloadPDFFromGoogleSheets,
-              icon: const Icon(Icons.picture_as_pdf),
-              label: const Text('Download PDF dari Google Sheets'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red[700],
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 15),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.blue[50],
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.blue[200]!),
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(Icons.info_outline, color: Colors.blue[700], size: 20),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Data IPG 2020-2024',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue[700],
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '• Data manual lengkap 5 tahun terakhir\n'
-                        '• Analisis tren peningkatan IPG dan IKG\n'
-                        '• Perbandingan gender per indikator\n'
-                        '• Grafik interaktif dengan tooltip',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: Colors.blue[600],
-                          height: 1.3,
-                        ),
-                      ),
-                    ],
-                  ),
                 ),
               ],
             ),

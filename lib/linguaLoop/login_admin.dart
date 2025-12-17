@@ -194,18 +194,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Widget _buildChoiceButtons() {
     return Column(
-      key: const ValueKey('choice'),
       children: [
-        _buildButton(
-          label: 'Masuk sebagai User',
-          subtitle: 'Lihat data statistik',
-          icon: Icons.explore_outlined,
-          gradient: const LinearGradient(
-            colors: [Color(0xFF3B82F6), Color(0xFF2563EB)],
-          ),
-          onTap: _handleUserAccess,
-          isPrimary: true,
-        ),
         const SizedBox(height: 16),
         _buildButton(
           label: 'Login Admin',
@@ -220,7 +209,6 @@ class _LoginScreenState extends State<LoginScreen> {
       ],
     );
   }
-
   Widget _buildButton({
     required String label,
     required String subtitle,
@@ -487,36 +475,6 @@ class _LoginScreenState extends State<LoginScreen> {
                           color: Colors.white,
                         ),
                       ),
-              ),
-            ),
-            const SizedBox(height: 18),
-
-            // Demo Info
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: const Color(0xFF3B82F6).withOpacity(0.08),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: const Color(0xFF3B82F6).withOpacity(0.2),
-                  width: 1,
-                ),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.info_outline, size: 18, color: Color(0xFF2563EB)),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      'Demo: admin / admin123',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.blue[800],
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ],
               ),
             ),
           ],

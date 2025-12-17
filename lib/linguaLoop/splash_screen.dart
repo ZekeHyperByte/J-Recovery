@@ -91,7 +91,7 @@ class _SplashScreenState extends State<SplashScreen>
     if (_videoController != null &&
         _videoController!.value.position >= _videoController!.value.duration &&
         !_hasNavigated) {
-      _navigateToLogin();
+      _navigateToHome();
     }
   }
 
@@ -107,7 +107,7 @@ class _SplashScreenState extends State<SplashScreen>
 
     Timer(const Duration(seconds: 3), () {
       if (!_hasNavigated) {
-        _navigateToLogin();
+        _navigateToHome();
       }
     });
   }
@@ -115,12 +115,12 @@ class _SplashScreenState extends State<SplashScreen>
   void _setNavigationTimeout() {
     Timer(const Duration(seconds: 6), () {
       if (!_hasNavigated) {
-        _navigateToLogin();
+        _navigateToHome();
       }
     });
   }
 
-  Future<void> _navigateToLogin() async {
+  Future<void> _navigateToHome() async {
     if (_hasNavigated || _isDisposed) return;
     _hasNavigated = true;
 
@@ -128,11 +128,11 @@ class _SplashScreenState extends State<SplashScreen>
       if (!mounted) return;
       await _fadeController.reverse();
       if (!mounted) return;
-      Navigator.of(context).pushReplacementNamed('/login');
+      Navigator.of(context).pushReplacementNamed('/home');
     } catch (e) {
       print('Error navigating: $e');
       if (mounted) {
-        Navigator.of(context).pushReplacementNamed('/login');
+        Navigator.of(context).pushReplacementNamed('/home');
       }
     }
   }
@@ -293,7 +293,7 @@ class _SplashScreenState extends State<SplashScreen>
   Widget _buildHeader() {
     return Column(
       children: [
-        // Logo dengan shadow biru - sama persis dengan LoginScreen
+        // Logo dengan shadow biru
         Container(
           width: 100,
           height: 100,
