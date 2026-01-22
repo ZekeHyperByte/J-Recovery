@@ -8,6 +8,7 @@ import 'admin_ipm_screen.dart';
 import 'admin_kemiskinan_screen.dart';
 import 'admin_inflasi_screen.dart';
 import 'admin_pertumbuhan_ekonomi_screen.dart';
+import 'admin_sdgs_dashboard_screen.dart';
 
 class AdminHomeScreen extends StatefulWidget {
   const AdminHomeScreen({Key? key}) : super(key: key);
@@ -227,7 +228,6 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                                 MaterialPageRoute(
                                   builder: (context) => AdminIpmScreen(
                                     onDataChanged: () {
-                                      // Callback ketika data berubah (opsional)
                                       if (mounted) {
                                         setState(() {});
                                       }
@@ -255,6 +255,20 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                                 MaterialPageRoute(
                                   builder: (context) =>
                                       const AdminIDGScreen(),
+                                ),
+                              );
+                            },
+                          ),
+                          _buildMenuCard(
+                            'SDGs', // TAMBAHAN: Menu SDGs
+                            Icons.public,
+                            const Color.fromARGB(255, 58, 183, 58),
+                            () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const AdminSDGsDashboardScreen(),
                                 ),
                               );
                             },

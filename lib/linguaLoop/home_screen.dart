@@ -2,10 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'dart:math';
 import 'profile_screen.dart';
-// Import screens for statistics categories
 import 'tenaga_kerja_screen.dart';
 import 'ipm_screen.dart';
-import 'kemiskinana_screen.dart';
+import 'kemiskinana_screen.dart'; 
 import 'inflasi_screen.dart';
 import 'penduduk_screen.dart';
 import 'pertumbuhan_ekonomi_screen.dart';
@@ -131,7 +130,7 @@ class _HomeScreenState extends State<HomeScreen> {
         'icon': Icons.domain,
         'title': 'SDGs',
         'color': const Color.fromARGB(255, 58, 183, 58),
-        'screen': const SDGSStatisticsPage(),
+        'screen': const UserSDGsScreen(), // PERBAIKAN: Nama class yang benar
       },
       {
         'icon': Icons.trending_down,
@@ -549,7 +548,7 @@ class _BubbleStatisticsState extends State<BubbleStatistics>
   }
 
   void _initializeBubbles() {
-    bubbles.clear(); // Clear dulu untuk reset
+    bubbles.clear();
     
     if (containerWidth > 0 && containerHeight > 0) {
       double bubbleRadius = 45;
