@@ -797,7 +797,7 @@ class _TenagaKerjaScreenState extends State<TenagaKerjaScreen> with SingleTicker
     }
 
     final currentDistribusi = distribusiData[selectedYear]!;
-    
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -816,7 +816,7 @@ class _TenagaKerjaScreenState extends State<TenagaKerjaScreen> with SingleTicker
         children: [
           Row(
             children: [
-              Icon(Icons.pie_chart, color: Colors.grey[700], size: 20),
+              Icon(Icons.bar_chart, color: Colors.grey[700], size: 20),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -841,145 +841,206 @@ class _TenagaKerjaScreenState extends State<TenagaKerjaScreen> with SingleTicker
           const SizedBox(height: 24),
           SizedBox(
             height: 240,
-            child: AnimatedBuilder(
-              animation: _animationController,
-              builder: (context, child) {
-                return PieChart(
-                  PieChartData(
-                    sectionsSpace: 3,
-                    centerSpaceRadius: 50,
-                    pieTouchData: PieTouchData(
-                      touchCallback: (FlTouchEvent event, pieTouchResponse) {
-                        setState(() {
-                          if (!event.isInterestedForInteractions ||
-                              pieTouchResponse == null ||
-                              pieTouchResponse.touchedSection == null) {
-                            touchedIndex = -1;
-                            return;
-                          }
-                          touchedIndex = pieTouchResponse.touchedSection!.touchedSectionIndex;
-                        });
+            child: BarChart(
+              BarChartData(
+                alignment: BarChartAlignment.spaceEvenly,
+                maxY: 80,
+                barTouchData: BarTouchData(
+                  enabled: true,
+                  touchCallback: (FlTouchEvent event, barTouchResponse) {
+                    setState(() {
+                      if (!event.isInterestedForInteractions ||
+                          barTouchResponse == null ||
+                          barTouchResponse.spot == null) {
+                        touchedIndex = -1;
+                        return;
+                      }
+                      touchedIndex = barTouchResponse.spot!.touchedBarGroupIndex;
+                    });
+                  },
+                  touchTooltipData: BarTouchTooltipData(
+                    getTooltipColor: (group) => Colors.black87,
+                    tooltipPadding: const EdgeInsets.all(8),
+                    tooltipMargin: 8,
+                    getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                      String label;
+                      switch (groupIndex) {
+                        case 0:
+                          label = 'Pertanian';
+                          break;
+                        case 1:
+                          label = 'Manufaktur';
+                          break;
+                        case 2:
+                          label = 'Jasa';
+                          break;
+                        default:
+                          label = '';
+                      }
+                      return BarTooltipItem(
+                        '$label\n${rod.toY.toStringAsFixed(0)}%',
+                        const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                titlesData: FlTitlesData(
+                  show: true,
+                  rightTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  topTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      getTitlesWidget: (double value, TitleMeta meta) {
+                        const style = TextStyle(
+                          color: Colors.black87,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 12,
+                        );
+                        Widget text;
+                        switch (value.toInt()) {
+                          case 0:
+                            text = const Text('Pertanian', style: style);
+                            break;
+                          case 1:
+                            text = const Text('Manufaktur', style: style);
+                            break;
+                          case 2:
+                            text = const Text('Jasa', style: style);
+                            break;
+                          default:
+                            text = const Text('', style: style);
+                            break;
+                        }
+                        return SideTitleWidget(
+                          axisSide: meta.axisSide,
+                          space: 8,
+                          child: text,
+                        );
+                      },
+                      reservedSize: 38,
+                    ),
+                  ),
+                  leftTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 40,
+                      interval: 20,
+                      getTitlesWidget: (value, meta) {
+                        return Text(
+                          '${value.toInt()}%',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontWeight: FontWeight.w500,
+                            fontSize: 10,
+                          ),
+                        );
                       },
                     ),
-                    sections: _buildPieChartSections(currentDistribusi),
                   ),
-                );
-              },
+                ),
+                borderData: FlBorderData(
+                  show: false,
+                ),
+                gridData: FlGridData(
+                  show: true,
+                  drawVerticalLine: false,
+                  horizontalInterval: 20,
+                  getDrawingHorizontalLine: (value) {
+                    return FlLine(
+                      color: Colors.grey.withOpacity(0.2),
+                      strokeWidth: 1,
+                    );
+                  },
+                ),
+                barGroups: [
+                  BarChartGroupData(
+                    x: 0,
+                    barRods: [
+                      BarChartRodData(
+                        toY: currentDistribusi['Pertanian']!,
+                        color: const Color(0xFF388E3C),
+                        width: touchedIndex == 0 ? 60 : 50,
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(6),
+                          topRight: Radius.circular(6),
+                        ),
+                        backDrawRodData: BackgroundBarChartRodData(
+                          show: true,
+                          toY: 80,
+                          color: Colors.grey.withOpacity(0.1),
+                        ),
+                      ),
+                    ],
+                    showingTooltipIndicators: touchedIndex == 0 ? [0] : [],
+                  ),
+                  BarChartGroupData(
+                    x: 1,
+                    barRods: [
+                      BarChartRodData(
+                        toY: currentDistribusi['Manufaktur']!,
+                        color: const Color(0xFF1976D2),
+                        width: touchedIndex == 1 ? 60 : 50,
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(6),
+                          topRight: Radius.circular(6),
+                        ),
+                        backDrawRodData: BackgroundBarChartRodData(
+                          show: true,
+                          toY: 80,
+                          color: Colors.grey.withOpacity(0.1),
+                        ),
+                      ),
+                    ],
+                    showingTooltipIndicators: touchedIndex == 1 ? [0] : [],
+                  ),
+                  BarChartGroupData(
+                    x: 2,
+                    barRods: [
+                      BarChartRodData(
+                        toY: currentDistribusi['Jasa']!,
+                        color: const Color(0xFFF57C00),
+                        width: touchedIndex == 2 ? 60 : 50,
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(6),
+                          topRight: Radius.circular(6),
+                        ),
+                        backDrawRodData: BackgroundBarChartRodData(
+                          show: true,
+                          toY: 80,
+                          color: Colors.grey.withOpacity(0.1),
+                        ),
+                      ),
+                    ],
+                    showingTooltipIndicators: touchedIndex == 2 ? [0] : [],
+                  ),
+                ],
+              ),
             ),
           ),
           const SizedBox(height: 20),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _buildLegendItem('Pertanian', const Color(0xFF388E3C), 
+              _buildLegendItem('Pertanian', const Color(0xFF388E3C),
                   currentDistribusi['Pertanian']!),
-              _buildLegendItem('Manufaktur', const Color(0xFF1976D2), 
+              _buildLegendItem('Manufaktur', const Color(0xFF1976D2),
                   currentDistribusi['Manufaktur']!),
-              _buildLegendItem('Jasa', const Color(0xFFF57C00), 
+              _buildLegendItem('Jasa', const Color(0xFFF57C00),
                   currentDistribusi['Jasa']!),
             ],
           ),
         ],
       ),
     );
-  }
-
-  List<PieChartSectionData> _buildPieChartSections(Map<String, double> currentDistribusi) {
-    final animation = _animationController.value;
-    final pulseScale = 1.0 + (animation * 0.05);
-    
-    return [
-      PieChartSectionData(
-        value: currentDistribusi['Pertanian']!,
-        title: '',
-        color: const Color(0xFF388E3C),
-        radius: touchedIndex == 0 ? 75 : 70 * pulseScale,
-        badgeWidget: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: const Color(0xFF388E3C), width: 2),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.15),
-                blurRadius: 6,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Text(
-            '${currentDistribusi['Pertanian']!.toStringAsFixed(0)}%',
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF388E3C),
-            ),
-          ),
-        ),
-        badgePositionPercentageOffset: 1.4,
-      ),
-      PieChartSectionData(
-        value: currentDistribusi['Manufaktur']!,
-        title: '',
-        color: const Color(0xFF1976D2),
-        radius: touchedIndex == 1 ? 75 : 70 * pulseScale,
-        badgeWidget: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: const Color(0xFF1976D2), width: 2),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.15),
-                blurRadius: 6,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Text(
-            '${currentDistribusi['Manufaktur']!.toStringAsFixed(0)}%',
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF1976D2),
-            ),
-          ),
-        ),
-        badgePositionPercentageOffset: 1.4,
-      ),
-      PieChartSectionData(
-        value: currentDistribusi['Jasa']!,
-        title: '',
-        color: const Color(0xFFF57C00),
-        radius: touchedIndex == 2 ? 75 : 70 * pulseScale,
-        badgeWidget: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: const Color(0xFFF57C00), width: 2),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.15),
-                blurRadius: 6,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Text(
-            '${currentDistribusi['Jasa']!.toStringAsFixed(0)}%',
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFFF57C00),
-            ),
-          ),
-        ),
-        badgePositionPercentageOffset: 1.4,
-      ),
-    ];
   }
 
   Widget _buildLegendItem(String label, Color color, double percentage) {

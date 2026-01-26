@@ -361,6 +361,25 @@ class _KemiskinanScreenState extends State<KemiskinanScreen> {
   }
 
   Widget _buildPovertyChart() {
+    return Column(
+      children: [
+        _buildAbsoluteCountChart(),
+        const SizedBox(height: 20),
+        _buildPercentageChart(),
+      ],
+    );
+  }
+
+  Widget _buildAbsoluteCountChart() {
+    final years = yearlyData.keys.toList()..sort();
+
+    if (years.isEmpty) {
+      return const SizedBox(
+        height: 280,
+        child: Center(child: Text('Tidak ada data untuk ditampilkan')),
+      );
+    }
+
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -385,7 +404,7 @@ class _KemiskinanScreenState extends State<KemiskinanScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Grafik Jumlah Penduduk Miskin dan Persentase Kemiskinan',
+                      'Jumlah Penduduk Miskin (Ribu Jiwa)',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -404,50 +423,158 @@ class _KemiskinanScreenState extends State<KemiskinanScreen> {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF4ECDC4).withOpacity(0.1),
+                  color: const Color(0xFFFF6B9D).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(6),
                 ),
-                child: const Row(
-                  children: [
-                    Icon(Icons.trending_down,
-                        color: Color(0xFF4ECDC4), size: 16),
-                    SizedBox(width: 4),
-                    Text(
-                      'Menurun',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF4ECDC4),
-                      ),
-                    ),
-                  ],
-                ),
+                child: const Icon(Icons.people_outline, color: Color(0xFFFF6B9D), size: 20),
               ),
             ],
           ),
-          const SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildLegend('Jumlah Penduduk', const Color(0xFFFF6B9D)),
-              const SizedBox(width: 24),
-              _buildLegend('Persentase', const Color(0xFF4ECDC4)),
-            ],
-          ),
           const SizedBox(height: 30),
-          _buildChart(),
-          const SizedBox(height: 24),
-          _buildDynamicIndicators(),
+          SizedBox(
+            height: 250,
+            child: LineChart(
+              LineChartData(
+                gridData: FlGridData(
+                  show: true,
+                  drawVerticalLine: false,
+                  horizontalInterval: 2,
+                  getDrawingHorizontalLine: (value) {
+                    return FlLine(
+                      color: Colors.grey.withOpacity(0.1),
+                      strokeWidth: 1,
+                    );
+                  },
+                ),
+                titlesData: FlTitlesData(
+                  leftTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 50,
+                      interval: 2,
+                      getTitlesWidget: (value, meta) {
+                        return Text(
+                          '${value.toInt()} Ribu',
+                          style: TextStyle(fontSize: 10, color: Colors.grey[600]),
+                        );
+                      },
+                    ),
+                  ),
+                  rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      interval: 1,
+                      getTitlesWidget: (value, meta) {
+                        final index = value.toInt();
+                        if (index >= 0 && index < years.length) {
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: Text(
+                              years[index].toString(),
+                              style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                            ),
+                          );
+                        }
+                        return const Text('');
+                      },
+                    ),
+                  ),
+                  topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                ),
+                borderData: FlBorderData(show: false),
+                minY: 75,
+                maxY: 87,
+                lineTouchData: LineTouchData(
+                  enabled: true,
+                  touchTooltipData: LineTouchTooltipData(
+                    getTooltipColor: (spot) => Colors.white,
+                    tooltipRoundedRadius: 8,
+                    tooltipBorder: BorderSide(color: Colors.grey[300]!, width: 1),
+                    tooltipPadding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    getTooltipItems: (touchedSpots) {
+                      return touchedSpots.map((spot) {
+                        final index = spot.x.toInt();
+                        if (index >= 0 && index < years.length) {
+                          final yearData = yearlyData[years[index]];
+                          final String value = yearData != null
+                              ? (yearData['pendudukMiskin']?.toString() ?? '-')
+                              : '-';
+                          return LineTooltipItem(
+                            '${years[index]}\n$value',
+                            const TextStyle(
+                              color: Color(0xFFFF6B9D),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          );
+                        }
+                        return null;
+                      }).toList();
+                    },
+                  ),
+                ),
+                lineBarsData: [
+                  LineChartBarData(
+                    spots: years
+                        .asMap()
+                        .entries
+                        .map((e) => FlSpot(
+                            e.key.toDouble(),
+                            (yearlyData[e.value]?['pendudukMiskinValue'] as num?)
+                                    ?.toDouble() ??
+                                0))
+                        .toList(),
+                    isCurved: false,
+                    color: const Color(0xFFFF6B9D),
+                    barWidth: 3,
+                    isStrokeCapRound: false,
+                    dotData: FlDotData(
+                      show: true,
+                      getDotPainter: (spot, percent, barData, index) {
+                        return FlDotCirclePainter(
+                          radius: 4,
+                          color: const Color(0xFFFF6B9D),
+                          strokeWidth: 2,
+                          strokeColor: Colors.white,
+                        );
+                      },
+                    ),
+                    belowBarData: BarAreaData(
+                      show: true,
+                      gradient: LinearGradient(
+                        colors: [
+                          const Color(0xFFFF6B9D).withOpacity(0.3),
+                          const Color(0xFFFF6B9D).withOpacity(0.05),
+                        ],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          _buildDynamicIndicatorSingle(
+            'Jumlah Penduduk Miskin',
+            'pendudukMiskinValue',
+            'pendudukMiskin',
+            const Color(0xFFFF6B9D),
+            ' Ribu',
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildChart() {
+  Widget _buildPercentageChart() {
     final years = yearlyData.keys.toList()..sort();
-    
+
     if (years.isEmpty) {
       return const SizedBox(
         height: 280,
@@ -455,304 +582,262 @@ class _KemiskinanScreenState extends State<KemiskinanScreen> {
       );
     }
 
-    return SizedBox(
-      height: 280,
-      child: LineChart(
-        LineChartData(
-          gridData: FlGridData(
-            show: true,
-            drawVerticalLine: false,
-            horizontalInterval: 20,
-            getDrawingHorizontalLine: (value) {
-              return FlLine(
-                color: Colors.grey.withOpacity(0.1),
-                strokeWidth: 1,
-              );
-            },
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
           ),
-          titlesData: FlTitlesData(
-            leftTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                reservedSize: 50,
-                interval: 20,
-                getTitlesWidget: (value, meta) {
-                  if (value % 20 == 0) {
-                    return Text(
-                      '${value.toInt()} Ribu',
-                      style: TextStyle(fontSize: 10, color: Colors.grey[600]),
-                    );
-                  }
-                  return const Text('');
-                },
-              ),
-            ),
-            rightTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                reservedSize: 40,
-                interval: 20,
-                getTitlesWidget: (value, meta) {
-                  final percentage = (value / 20).toStringAsFixed(1);
-                  if (value % 20 == 0) {
-                    return Text(
-                      '$percentage%',
-                      style: TextStyle(fontSize: 10, color: Colors.grey[600]),
-                    );
-                  }
-                  return const Text('');
-                },
-              ),
-            ),
-            bottomTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                interval: 1,
-                getTitlesWidget: (value, meta) {
-                  final index = value.toInt();
-                  if (index >= 0 && index < years.length) {
-                    return Padding(
-                      padding: const EdgeInsets.only(top: 8.0),
-                      child: Text(
-                        years[index].toString(),
-                        style: TextStyle(fontSize: 11, color: Colors.grey[600]),
-                      ),
-                    );
-                  }
-                  return const Text('');
-                },
-              ),
-            ),
-            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          ),
-          borderData: FlBorderData(show: false),
-          minY: 0,
-          maxY: 100,
-          lineTouchData: LineTouchData(
-            enabled: true,
-            touchTooltipData: LineTouchTooltipData(
-              getTooltipColor: (spot) => Colors.white,
-              tooltipRoundedRadius: 8,
-              tooltipBorder: BorderSide(color: Colors.grey[300]!, width: 1),
-              tooltipPadding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              getTooltipItems: (touchedSpots) {
-                return touchedSpots.map((spot) {
-                  final bool isJumlahPenduduk = (spot.barIndex == 0);
-                  final index = spot.x.toInt();
-                  if (index >= 0 && index < years.length) {
-                    final yearData = yearlyData[years[index]];
-                    final String value = isJumlahPenduduk
-                        ? (yearData != null ? (yearData['pendudukMiskin']?.toString() ?? '-') : '-')
-                        : (yearData != null ? (yearData['persentase']?.toString() ?? '-') : '-');
-                    return LineTooltipItem(
-                      value,
-                      TextStyle(
-                        color: isJumlahPenduduk
-                            ? const Color(0xFFFF6B9D)
-                            : const Color(0xFF4ECDC4),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Persentase Kemiskinan (%)',
+                      style: TextStyle(
+                        fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        fontSize: 12,
+                        color: Colors.black87,
                       ),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'Data Tren 2020 - 2024',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF4ECDC4).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: const Icon(Icons.percent, color: Color(0xFF4ECDC4), size: 20),
+              ),
+            ],
+          ),
+          const SizedBox(height: 30),
+          SizedBox(
+            height: 250,
+            child: LineChart(
+              LineChartData(
+                gridData: FlGridData(
+                  show: true,
+                  drawVerticalLine: false,
+                  horizontalInterval: 0.2,
+                  getDrawingHorizontalLine: (value) {
+                    return FlLine(
+                      color: Colors.grey.withOpacity(0.1),
+                      strokeWidth: 1,
                     );
-                  }
-                  return null;
-                }).toList();
-              },
+                  },
+                ),
+                titlesData: FlTitlesData(
+                  leftTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 45,
+                      interval: 0.2,
+                      getTitlesWidget: (value, meta) {
+                        return Text(
+                          '${value.toStringAsFixed(1)}%',
+                          style: TextStyle(fontSize: 10, color: Colors.grey[600]),
+                        );
+                      },
+                    ),
+                  ),
+                  rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      interval: 1,
+                      getTitlesWidget: (value, meta) {
+                        final index = value.toInt();
+                        if (index >= 0 && index < years.length) {
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: Text(
+                              years[index].toString(),
+                              style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                            ),
+                          );
+                        }
+                        return const Text('');
+                      },
+                    ),
+                  ),
+                  topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                ),
+                borderData: FlBorderData(show: false),
+                minY: 3.8,
+                maxY: 4.8,
+                lineTouchData: LineTouchData(
+                  enabled: true,
+                  touchTooltipData: LineTouchTooltipData(
+                    getTooltipColor: (spot) => Colors.white,
+                    tooltipRoundedRadius: 8,
+                    tooltipBorder: BorderSide(color: Colors.grey[300]!, width: 1),
+                    tooltipPadding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    getTooltipItems: (touchedSpots) {
+                      return touchedSpots.map((spot) {
+                        final index = spot.x.toInt();
+                        if (index >= 0 && index < years.length) {
+                          final yearData = yearlyData[years[index]];
+                          final String value = yearData != null
+                              ? (yearData['persentase']?.toString() ?? '-')
+                              : '-';
+                          return LineTooltipItem(
+                            '${years[index]}\n$value',
+                            const TextStyle(
+                              color: Color(0xFF4ECDC4),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          );
+                        }
+                        return null;
+                      }).toList();
+                    },
+                  ),
+                ),
+                lineBarsData: [
+                  LineChartBarData(
+                    spots: years
+                        .asMap()
+                        .entries
+                        .map((e) => FlSpot(
+                            e.key.toDouble(),
+                            (yearlyData[e.value]?['persentaseValue'] as num?)
+                                    ?.toDouble() ??
+                                0))
+                        .toList(),
+                    isCurved: false,
+                    color: const Color(0xFF4ECDC4),
+                    barWidth: 3,
+                    isStrokeCapRound: false,
+                    dotData: FlDotData(
+                      show: true,
+                      getDotPainter: (spot, percent, barData, index) {
+                        return FlDotCirclePainter(
+                          radius: 4,
+                          color: const Color(0xFF4ECDC4),
+                          strokeWidth: 2,
+                          strokeColor: Colors.white,
+                        );
+                      },
+                    ),
+                    belowBarData: BarAreaData(
+                      show: true,
+                      gradient: LinearGradient(
+                        colors: [
+                          const Color(0xFF4ECDC4).withOpacity(0.3),
+                          const Color(0xFF4ECDC4).withOpacity(0.05),
+                        ],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-          lineBarsData: [
-            LineChartBarData(
-              spots: years
-                  .asMap()
-                  .entries
-                  .map((e) => FlSpot(
-                      e.key.toDouble(),
-                      (yearlyData[e.value]?['pendudukMiskinValue'] as num?)
-                              ?.toDouble() ??
-                          0))
-                  .toList(),
-              isCurved: false,
-              color: const Color(0xFFFF6B9D),
-              barWidth: 2.5,
-              isStrokeCapRound: false,
-              dotData: const FlDotData(
-                show: true,
-              ),
-              belowBarData: BarAreaData(show: false),
-            ),
-            LineChartBarData(
-              spots: years
-                  .asMap()
-                  .entries
-                  .map((e) => FlSpot(
-                      e.key.toDouble(),
-                      ((yearlyData[e.value]?['persentaseValue'] as num?)
-                                  ?.toDouble() ??
-                              0) *
-                          20))
-                  .toList(),
-              isCurved: false,
-              color: const Color(0xFF4ECDC4),
-              barWidth: 2.5,
-              isStrokeCapRound: false,
-              dotData: const FlDotData(
-                show: true,
-              ),
-              belowBarData: BarAreaData(show: false),
-            ),
-          ],
-        ),
+          const SizedBox(height: 20),
+          _buildDynamicIndicatorSingle(
+            'Persentase Kemiskinan',
+            'persentaseValue',
+            'persentase',
+            const Color(0xFF4ECDC4),
+            '%',
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildDynamicIndicators() {
+  Widget _buildDynamicIndicatorSingle(
+    String title,
+    String valueKey,
+    String displayKey,
+    Color color,
+    String suffix,
+  ) {
     if (yearlyData.isEmpty) {
       return const SizedBox.shrink();
     }
 
     final baseYear = yearlyData.keys.reduce((a, b) => a < b ? a : b);
-    final basePenduduk =
-        (yearlyData[baseYear]?['pendudukMiskinValue'] as num?)?.toDouble() ?? 0;
-    final basePersentase =
-        (yearlyData[baseYear]?['persentaseValue'] as num?)?.toDouble() ?? 0;
+    final baseValue = (yearlyData[baseYear]?[valueKey] as num?)?.toDouble() ?? 0;
+    final currentValue = (yearlyData[selectedYear]?[valueKey] as num?)?.toDouble() ?? 0;
+    final perubahan = baseValue - currentValue;
+    final isPositive = perubahan > 0;
 
-    final currentPenduduk =
-        (yearlyData[selectedYear]?['pendudukMiskinValue'] as num?)?.toDouble() ?? 0;
-    final currentPersentase =
-        (yearlyData[selectedYear]?['persentaseValue'] as num?)?.toDouble() ?? 0;
-
-    final perubahanPenduduk = basePenduduk - currentPenduduk;
-    final perubahanPersentase = basePersentase - currentPersentase;
-
-    final isPositivePenduduk = perubahanPenduduk > 0;
-    final isPositivePersentase = perubahanPersentase > 0;
-
-    return Row(
-      children: [
-        Expanded(
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFF6B9D).withOpacity(0.08),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text(
-                  selectedYear == baseYear
-                      ? 'Jumlah Penduduk Miskin'
-                      : '${isPositivePenduduk ? "Penurunan" : "Kenaikan"} Total (dari $baseYear)',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  selectedYear == baseYear
-                      ? (yearlyData[selectedYear]?['pendudukMiskin']?.toString() ?? '-')
-                      : '${perubahanPenduduk.abs().toStringAsFixed(2)} Ribu',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFFFF6B9D),
-                  ),
-                ),
-                if (selectedYear != baseYear)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Text(
-                      isPositivePenduduk ? '↓ Menurun' : '↑ Meningkat',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: isPositivePenduduk ? Colors.green : Colors.red,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-              ],
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(
+            selectedYear == baseYear
+                ? title
+                : '${isPositive ? "Penurunan" : "Kenaikan"} (dari $baseYear)',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey[600],
             ),
           ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: const Color(0xFF4ECDC4).withOpacity(0.08),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text(
-                  selectedYear == baseYear
-                      ? 'Persentase Kemiskinan'
-                      : '${isPositivePersentase ? "Penurunan" : "Kenaikan"} Persentase (dari $baseYear)',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  selectedYear == baseYear
-                      ? (yearlyData[selectedYear]?['persentase']?.toString() ?? '-')
-                      : '${perubahanPersentase.abs().toStringAsFixed(2)}%',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF4ECDC4),
-                  ),
-                ),
-                if (selectedYear != baseYear)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Text(
-                      isPositivePersentase ? '↓ Menurun' : '↑ Meningkat',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: isPositivePersentase ? Colors.green : Colors.red,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-              ],
+          const SizedBox(height: 4),
+          Text(
+            selectedYear == baseYear
+                ? (yearlyData[selectedYear]?[displayKey]?.toString() ?? '-')
+                : '${perubahan.abs().toStringAsFixed(2)}$suffix',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: color,
             ),
           ),
-        ),
-      ],
+          if (selectedYear != baseYear)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
+                isPositive ? '↓ Menurun' : '↑ Meningkat',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: isPositive ? Colors.green : Colors.red,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 
-  Widget _buildLegend(String label, Color color) {
-    return Row(
-      children: [
-        Container(
-          width: 20,
-          height: 4,
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(2),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey[700],
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ],
-    );
-  }
 
   Widget _buildInformationPanel() {
     return Container(

@@ -1288,7 +1288,7 @@ class _LiquidGlassCard extends StatefulWidget {
                     ),
                     SizedBox(height: 2),
                     Text(
-                      'Perbandingan Semarang & Jawa Tengah',
+                      'Perbandingan Dua Wilayah (Pertumbuhan %)',
                       style: TextStyle(
                         fontSize: 11,
                         color: Color(0xFF6B7280),
@@ -1303,9 +1303,9 @@ class _LiquidGlassCard extends StatefulWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _buildLegendItem('Semarang', const Color(0xFF00BCD4)),
+              _buildLegendItem('Kota Semarang', const Color(0xFF00BCD4)),
               const SizedBox(width: 24),
-              _buildLegendItem('Jawa Tengah', const Color(0xFF4CAF50)),
+              _buildLegendItem('Provinsi Jawa Tengah', const Color(0xFF4CAF50)),
             ],
           ),
           const SizedBox(height: 24),

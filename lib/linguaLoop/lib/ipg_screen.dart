@@ -655,12 +655,20 @@ class _IPGScreenState extends State<IPGScreen> {
   }
 
   Widget _buildIPGChart() {
-    final data = currentIPGData;
-    
-    // Check if current year data exists and has both IPG and IKG values
-    bool hasValidData = ipgDataByYear.containsKey(selectedYear) && 
-                       data.ipg != null && 
-                       data.ikg != null;
+    // Prepare data for all years
+    List<FlSpot> ipgSpots = [];
+    List<FlSpot> ikgSpots = [];
+
+    for (int i = 0; i < availableYears.length; i++) {
+      final year = availableYears[i];
+      final yearData = ipgDataByYear[year];
+      if (yearData != null && yearData.ipg != null && yearData.ikg != null) {
+        ipgSpots.add(FlSpot(i.toDouble(), yearData.ipg!));
+        ikgSpots.add(FlSpot(i.toDouble(), yearData.ikg! * 100)); // Scale IKG to percentage
+      }
+    }
+
+    bool hasValidData = ipgSpots.isNotEmpty && ikgSpots.isNotEmpty;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -678,92 +686,315 @@ class _IPGScreenState extends State<IPGScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Perbandingan IPG vs IKG Tahun ${data.year}',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey[800],
-            ),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF7B1FA2), Color(0xFF9C27B0)],
+                  ),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.trending_up,
+                  color: Colors.white,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Tren IPG & IKG (2020-2024)',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey[800],
+                  ),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 16),
           if (hasValidData) ...[
             Row(
               children: [
                 Container(
-                  width: 12,
-                  height: 12,
+                  width: 14,
+                  height: 3,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF7B1FA2),
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF7B1FA2), Color(0xFF9C27B0)],
+                    ),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'IPG (Indeks Pembangunan Gender)',
-                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                  'IPG (skala kiri)',
+                  style: TextStyle(fontSize: 11, color: Colors.grey[600]),
                 ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Row(
-              children: [
+                const SizedBox(width: 16),
                 Container(
-                  width: 12,
-                  height: 12,
+                  width: 14,
+                  height: 3,
                   decoration: BoxDecoration(
-                    color: Colors.orange,
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFFFF9800), Color(0xFFFFB74D)],
+                    ),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'IKG (Indeks Ketimpangan Gender)',
-                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                  'IKG % (skala kanan)',
+                  style: TextStyle(fontSize: 11, color: Colors.grey[600]),
                 ),
               ],
             ),
             const SizedBox(height: 20),
           ],
           SizedBox(
-            height: 250,
+            height: 300,
             child: hasValidData
-                ? PieChart(
-                    PieChartData(
-                      sections: [
-                        PieChartSectionData(
-                          color: const Color(0xFF7B1FA2),
-                          value: data.ipg!,
-                          title: 'IPG\n${data.ipgFormatted}',
-                          radius: 100,
-                          titleStyle: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                ? LineChart(
+                    LineChartData(
+                      minY: 94,
+                      maxY: 97,
+                      minX: 0,
+                      maxX: (availableYears.length - 1).toDouble(),
+                      gridData: FlGridData(
+                        show: true,
+                        drawVerticalLine: true,
+                        horizontalInterval: 0.5,
+                        verticalInterval: 1,
+                        getDrawingHorizontalLine: (value) {
+                          return FlLine(
+                            color: Colors.grey.withOpacity(0.12),
+                            strokeWidth: 1,
+                            dashArray: [5, 5],
+                          );
+                        },
+                        getDrawingVerticalLine: (value) {
+                          return FlLine(
+                            color: Colors.grey.withOpacity(0.08),
+                            strokeWidth: 1,
+                          );
+                        },
+                      ),
+                      titlesData: FlTitlesData(
+                        leftTitles: AxisTitles(
+                          axisNameWidget: Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: Text(
+                              'IPG',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.purple[700],
+                              ),
+                            ),
                           ),
-                          titlePositionPercentageOffset: 0.6,
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            reservedSize: 42,
+                            interval: 0.5,
+                            getTitlesWidget: (value, meta) {
+                              return Padding(
+                                padding: const EdgeInsets.only(right: 4),
+                                child: Text(
+                                  value.toStringAsFixed(1),
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: Colors.purple[700],
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
                         ),
-                        PieChartSectionData(
-                          color: Colors.orange,
-                          value: data.ikg! * 100, // Convert to percentage for visual proportion
-                          title: 'IKG\n${data.ikgFormatted}%',
-                          radius: 80,
-                          titleStyle: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                        rightTitles: AxisTitles(
+                          axisNameWidget: Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: Text(
+                              'IKG %',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.orange[700],
+                              ),
+                            ),
                           ),
-                          titlePositionPercentageOffset: 0.6,
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            reservedSize: 42,
+                            interval: 0.5,
+                            getTitlesWidget: (value, meta) {
+                              // Map IPG scale (94-97) to IKG scale (3-6%)
+                              double ikgValue = 3.0 + ((value - 94.0) / 3.0) * 3.0;
+                              return Padding(
+                                padding: const EdgeInsets.only(left: 4),
+                                child: Text(
+                                  ikgValue.toStringAsFixed(1),
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: Colors.orange[700],
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        bottomTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            reservedSize: 32,
+                            interval: 1,
+                            getTitlesWidget: (value, meta) {
+                              int index = value.toInt();
+                              if (index >= 0 && index < availableYears.length) {
+                                bool isSelected = availableYears[index] == selectedYear;
+                                return Padding(
+                                  padding: const EdgeInsets.only(top: 8.0),
+                                  child: Text(
+                                    availableYears[index].toString(),
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: isSelected ? const Color(0xFF7B1FA2) : Colors.grey[600],
+                                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                    ),
+                                  ),
+                                );
+                              }
+                              return const Text('');
+                            },
+                          ),
+                        ),
+                        topTitles: const AxisTitles(
+                          sideTitles: SideTitles(showTitles: false),
+                        ),
+                      ),
+                      borderData: FlBorderData(
+                        show: true,
+                        border: Border(
+                          left: BorderSide(color: Colors.purple.withOpacity(0.3), width: 1.5),
+                          right: BorderSide(color: Colors.orange.withOpacity(0.3), width: 1.5),
+                          bottom: BorderSide(color: Colors.grey.withOpacity(0.3), width: 1),
+                        ),
+                      ),
+                      lineBarsData: [
+                        // IPG Line
+                        LineChartBarData(
+                          spots: ipgSpots,
+                          isCurved: true,
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF7B1FA2), Color(0xFF9C27B0)],
+                          ),
+                          barWidth: 3.5,
+                          isStrokeCapRound: true,
+                          dotData: FlDotData(
+                            show: true,
+                            getDotPainter: (spot, percent, barData, index) {
+                              bool isSelected = availableYears[index] == selectedYear;
+                              return FlDotCirclePainter(
+                                radius: isSelected ? 6 : 4,
+                                color: Colors.white,
+                                strokeWidth: isSelected ? 3 : 2,
+                                strokeColor: const Color(0xFF7B1FA2),
+                              );
+                            },
+                          ),
+                          belowBarData: BarAreaData(
+                            show: true,
+                            gradient: LinearGradient(
+                              colors: [
+                                const Color(0xFF7B1FA2).withOpacity(0.15),
+                                const Color(0xFF9C27B0).withOpacity(0.05),
+                              ],
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                            ),
+                          ),
+                        ),
+                        // IKG Line (scaled to fit IPG range)
+                        LineChartBarData(
+                          spots: ikgSpots.map((spot) {
+                            // Map IKG (3-6%) to IPG scale (94-97)
+                            double ikgPercent = spot.y; // This is already scaled to 3-6 range
+                            double scaledY = 94.0 + ((ikgPercent - 3.0) / 3.0) * 3.0;
+                            return FlSpot(spot.x, scaledY);
+                          }).toList(),
+                          isCurved: true,
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFFFF9800), Color(0xFFFFB74D)],
+                          ),
+                          barWidth: 3.5,
+                          isStrokeCapRound: true,
+                          dotData: FlDotData(
+                            show: true,
+                            getDotPainter: (spot, percent, barData, index) {
+                              bool isSelected = availableYears[index] == selectedYear;
+                              return FlDotCirclePainter(
+                                radius: isSelected ? 6 : 4,
+                                color: Colors.white,
+                                strokeWidth: isSelected ? 3 : 2,
+                                strokeColor: const Color(0xFFFF9800),
+                              );
+                            },
+                          ),
+                          belowBarData: BarAreaData(
+                            show: true,
+                            gradient: LinearGradient(
+                              colors: [
+                                const Color(0xFFFF9800).withOpacity(0.15),
+                                const Color(0xFFFFB74D).withOpacity(0.05),
+                              ],
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                            ),
+                          ),
                         ),
                       ],
-                      sectionsSpace: 4,
-                      centerSpaceRadius: 40,
-                      startDegreeOffset: -90,
-                      pieTouchData: PieTouchData(
+                      lineTouchData: LineTouchData(
                         enabled: true,
-                        touchCallback: (FlTouchEvent event, pieTouchResponse) {
-                          // Handle touch events if needed
-                        },
+                        touchTooltipData: LineTouchTooltipData(
+                          getTooltipColor: (touchedSpot) => Colors.grey[850]!,
+                          tooltipRoundedRadius: 8,
+                          tooltipPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          getTooltipItems: (List<LineBarSpot> touchedBarSpots) {
+                            return touchedBarSpots.map((barSpot) {
+                              final int index = barSpot.x.toInt();
+                              if (index < 0 || index >= availableYears.length) return null;
+
+                              final year = availableYears[index];
+                              final yearData = ipgDataByYear[year];
+
+                              if (barSpot.barIndex == 0) {
+                                // IPG
+                                return LineTooltipItem(
+                                  '${year}\nIPG: ${yearData?.ipgFormatted ?? 'N/A'}',
+                                  const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 11,
+                                  ),
+                                );
+                              } else {
+                                // IKG
+                                return LineTooltipItem(
+                                  '${year}\nIKG: ${yearData?.ikgFormatted ?? 'N/A'}%',
+                                  const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 11,
+                                  ),
+                                );
+                              }
+                            }).toList();
+                          },
+                        ),
                       ),
                     ),
                   )
@@ -771,113 +1002,146 @@ class _IPGScreenState extends State<IPGScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.pie_chart, size: 48, color: Colors.grey[400]),
+                        Icon(Icons.show_chart, size: 48, color: Colors.grey[400]),
                         const SizedBox(height: 8),
                         Text(
-                          'Data tidak tersedia untuk tahun ${data.year}',
+                          'Data tren tidak tersedia',
                           style: TextStyle(color: Colors.grey[600], fontSize: 14),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Pilih tahun lain yang memiliki data',
-                          style: TextStyle(color: Colors.grey[500], fontSize: 12),
                         ),
                       ],
                     ),
                   ),
           ),
-          const SizedBox(height: 16),
-          // Data summary below chart
-          if (hasValidData)
+          const SizedBox(height: 20),
+          // Insight summary
+          if (hasValidData && ipgDataByYear.isNotEmpty)
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.grey[50],
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.purple.withOpacity(0.05),
+                    Colors.orange.withOpacity(0.05),
+                  ],
+                ),
                 borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.purple.withOpacity(0.2)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Detail Nilai:',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey[700],
-                    ),
-                  ),
-                  const SizedBox(height: 8),
                   Row(
                     children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'IPG: ${data.ipgFormatted}',
-                              style: const TextStyle(
-                                fontSize: 11,
-                                color: Color(0xFF7B1FA2),
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            Text(
-                              'Semakin tinggi, semakin baik',
-                              style: TextStyle(
-                                fontSize: 10,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'IKG: ${data.ikgFormatted}%',
-                              style: const TextStyle(
-                                fontSize: 11,
-                                color: Colors.orange,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            Text(
-                              'Semakin rendah, semakin baik',
-                              style: TextStyle(
-                                fontSize: 10,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                          ],
+                      Icon(Icons.insights, size: 16, color: Colors.purple[700]),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Analisis Tren 5 Tahun',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey[800],
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.blue[50],
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(color: Colors.blue[200]!),
-                    ),
-                    child: Text(
-                      'Catatan: Diagram menunjukkan perbandingan nilai IPG dan IKG untuk tahun ${data.year}. '
-                      'IPG mengukur pencapaian pembangunan gender, sedangkan IKG mengukur ketimpangan gender.',
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: Colors.blue[700],
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ),
-                  ),
+                  _buildTrendInsight(),
                 ],
               ),
             ),
         ],
       ),
+    );
+  }
+
+  Widget _buildTrendInsight() {
+    if (availableYears.length < 2) {
+      return Text(
+        'Belum cukup data untuk analisis tren',
+        style: TextStyle(fontSize: 10, color: Colors.grey[600]),
+      );
+    }
+
+    final firstYear = availableYears.first;
+    final lastYear = availableYears.last;
+    final firstData = ipgDataByYear[firstYear];
+    final lastData = ipgDataByYear[lastYear];
+
+    if (firstData == null || lastData == null) {
+      return Text(
+        'Data tidak lengkap',
+        style: TextStyle(fontSize: 10, color: Colors.grey[600]),
+      );
+    }
+
+    final ipgChange = (lastData.ipg ?? 0) - (firstData.ipg ?? 0);
+    final ikgChange = ((lastData.ikg ?? 0) - (firstData.ikg ?? 0)) * 100;
+
+    String ipgTrend = ipgChange > 0 ? '↑ naik' : ipgChange < 0 ? '↓ turun' : '→ stabil';
+    String ikgTrend = ikgChange > 0 ? '↑ naik' : ikgChange < 0 ? '↓ turun' : '→ stabil';
+
+    Color ipgColor = ipgChange > 0 ? Colors.green : ipgChange < 0 ? Colors.red : Colors.grey;
+    Color ikgColor = ikgChange < 0 ? Colors.green : ikgChange > 0 ? Colors.red : Colors.grey;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: RichText(
+                text: TextSpan(
+                  style: TextStyle(fontSize: 10, color: Colors.grey[700]),
+                  children: [
+                    const TextSpan(text: 'IPG ', style: TextStyle(fontWeight: FontWeight.bold)),
+                    TextSpan(
+                      text: ipgTrend,
+                      style: TextStyle(color: ipgColor, fontWeight: FontWeight.bold),
+                    ),
+                    TextSpan(text: ' ${ipgChange.toStringAsFixed(2)} poin (${firstYear}-${lastYear})'),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Row(
+          children: [
+            Expanded(
+              child: RichText(
+                text: TextSpan(
+                  style: TextStyle(fontSize: 10, color: Colors.grey[700]),
+                  children: [
+                    const TextSpan(text: 'IKG ', style: TextStyle(fontWeight: FontWeight.bold)),
+                    TextSpan(
+                      text: ikgTrend,
+                      style: TextStyle(color: ikgColor, fontWeight: FontWeight.bold),
+                    ),
+                    TextSpan(text: ' ${ikgChange.toStringAsFixed(2)}% (${firstYear}-${lastYear})'),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        Container(
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: Colors.blue.withOpacity(0.08),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Text(
+            'Grafik menggunakan dua skala berbeda: IPG (kiri) dan IKG % (kanan) untuk memudahkan perbandingan tren.',
+            style: TextStyle(
+              fontSize: 9,
+              color: Colors.blue[800],
+              fontStyle: FontStyle.italic,
+            ),
+          ),
+        ),
+      ],
     );
   }
 

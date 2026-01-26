@@ -1,20 +1,90 @@
 import 'package:flutter/material.dart';
+import 'splash_screen.dart';
+import 'onboarding_screen.dart';
+import 'home_screen.dart';
+import 'login_admin.dart';
+import 'admin_home_screen.dart' as admin_home_screen;
 
 void main() {
-  runApp(const MainApp());
+  runApp(const MyApp());
 }
 
-class MainApp extends StatelessWidget {
-  const MainApp({super.key});
+class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: Scaffold(
-        body: Center(
-          child: Text('Hello World!'),
-        ),
+    return MaterialApp(
+      title: 'Statistik Indonesia',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        primaryColor: const Color(0xFF1976D2),
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+        fontFamily: 'Roboto',
       ),
+
+      // Halaman awal
+      home: const AppInitializer(),
+
+      // Definisi semua route
+      routes: {
+        '/onboarding': (context) => const OnboardingScreen(),
+        '/home': (context) => const HomeScreen(),
+        '/login': (context) => const LoginScreen(),
+        '/admin-home': (context) => const admin_home_screen.AdminHomeScreen(),
+        '/admin': (context) => const admin_home_screen.AdminHomeScreen(),
+      },
     );
+  }
+}
+
+class AppInitializer extends StatefulWidget {
+  const AppInitializer({Key? key}) : super(key: key);
+
+  @override
+  State<AppInitializer> createState() => _AppInitializerState();
+}
+
+class _AppInitializerState extends State<AppInitializer> {
+  @override
+  void initState() {
+    super.initState();
+    _initializeApp();
+  }
+
+  Future<void> _initializeApp() async {
+    try {
+      print("🚀 Inisialisasi aplikasi...");
+
+      // Splash minimal 3 detik
+      await Future.delayed(const Duration(seconds: 3));
+
+      if (!mounted) return;
+
+      print("✅ Aplikasi siap");
+
+      // Navigasi setelah frame pertama agar tidak crash
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+
+        // LANGSUNG ke Home Screen setelah splash
+        print("➡️ Navigasi ke HomeScreen");
+        Navigator.pushReplacementNamed(context, '/home');
+      });
+    } catch (e, s) {
+      print("❌ Error saat inisialisasi: $e");
+      print(s); 
+      // Fallback ke home jika terjadi error
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, '/home');
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Splash screen tetap tampil selama inisialisasi
+    return const SplashScreen();
   }
 }

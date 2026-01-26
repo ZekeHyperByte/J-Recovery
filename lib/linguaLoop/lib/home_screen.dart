@@ -78,6 +78,13 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           actions: [
             IconButton(
+              icon: const Icon(Icons.admin_panel_settings_outlined, color: Colors.white),
+              onPressed: () {
+                Navigator.pushNamed(context, '/login');
+              },
+              tooltip: 'Admin Login',
+            ),
+            IconButton(
               icon: const Icon(Icons.notifications_outlined, color: Colors.white),
               onPressed: () {},
             ),

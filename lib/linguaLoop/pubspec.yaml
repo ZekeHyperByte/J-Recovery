@@ -1,4 +1,4 @@
-name: STARA
+name: stara
 description: Aplikasi Statistik Indonesia - Data terpercaya dan komprehensif.
 publish_to: 'none' # Mencegah publikasi yang tidak disengaja
 version: 1.0.0+1
@@ -67,7 +67,7 @@ flutter:
   
   # Aset gambar, video, dan animasi
   assets:
-    - assets/images/Statistik.png
+    - assets/images/statistik.png
     - assets/icons/Sad man walking in rain.mp4
     - assets/animations/ringan.mp4
     - assets/maps/wired-outline-18-location-pin-hover-jump.mp4

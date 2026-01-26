@@ -531,8 +531,17 @@ class _IDGScreenState extends State<IDGScreen> with TickerProviderStateMixin {
   }
 
   Widget _buildIDGChart() {
+    return Column(
+      children: [
+        _buildIDGOnlyChart(),
+        const SizedBox(height: 20),
+        _buildIKGOnlyChart(),
+      ],
+    );
+  }
+
+  Widget _buildIDGOnlyChart() {
     List<FlSpot> idgSpots = [];
-    List<FlSpot> ikgSpots = [];
     List<String> yearLabels = [];
 
     for (int i = 0; i < availableYears.length; i++) {
@@ -541,10 +550,6 @@ class _IDGScreenState extends State<IDGScreen> with TickerProviderStateMixin {
       if (data != null) {
         if (data.idg != null) {
           idgSpots.add(FlSpot(i.toDouble(), data.idg!));
-        }
-        if (data.ikg != null) {
-          double scaledIkg = 64 + (data.ikg! * 53.33);
-          ikgSpots.add(FlSpot(i.toDouble(), scaledIkg));
         }
         yearLabels.add(year.toString());
       }
@@ -568,22 +573,45 @@ class _IDGScreenState extends State<IDGScreen> with TickerProviderStateMixin {
         children: [
           Row(
             children: [
-              Icon(Icons.show_chart, color: Colors.grey[700], size: 20),
-              const SizedBox(width: 8),
-              Text(
-                'Tren IDG VS IKG',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey[800],
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF4472C4).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.trending_up, color: Color(0xFF4472C4), size: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Indeks Pemberdayaan Gender (IDG)',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey[800],
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    const Text(
+                      'Nilai lebih tinggi = lebih baik',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Color(0xFF4472C4),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           SizedBox(
             height: 250,
-            child: idgSpots.isNotEmpty || ikgSpots.isNotEmpty
+            child: idgSpots.isNotEmpty
                 ? LineChart(
                     LineChartData(
                       minY: 64,
@@ -617,24 +645,7 @@ class _IDGScreenState extends State<IDGScreen> with TickerProviderStateMixin {
                             },
                           ),
                         ),
-                        rightTitles: AxisTitles(
-                          sideTitles: SideTitles(
-                            showTitles: true,
-                            reservedSize: 35,
-                            interval: 2,
-                            getTitlesWidget: (value, meta) {
-                              double ikgValue = (value - 64) / 53.33;
-                              return Text(
-                                ikgValue.toStringAsFixed(2),
-                                style: const TextStyle(
-                                  fontSize: 10,
-                                  color: Color(0xFFED7D31),
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              );
-                            },
-                          ),
-                        ),
+                        rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
                         bottomTitles: AxisTitles(
                           sideTitles: SideTitles(
                             showTitles: true,
@@ -665,7 +676,6 @@ class _IDGScreenState extends State<IDGScreen> with TickerProviderStateMixin {
                         show: true,
                         border: Border(
                           left: BorderSide(color: Colors.grey.withOpacity(0.3), width: 1),
-                          right: BorderSide(color: Colors.grey.withOpacity(0.3), width: 1),
                           bottom: BorderSide(color: Colors.grey.withOpacity(0.3), width: 1),
                         ),
                       ),
@@ -686,25 +696,17 @@ class _IDGScreenState extends State<IDGScreen> with TickerProviderStateMixin {
                               );
                             },
                           ),
-                          belowBarData: BarAreaData(show: false),
-                        ),
-                        LineChartBarData(
-                          spots: ikgSpots,
-                          isCurved: true,
-                          color: const Color(0xFFED7D31),
-                          barWidth: 3,
-                          dotData: FlDotData(
+                          belowBarData: BarAreaData(
                             show: true,
-                            getDotPainter: (spot, percent, barData, index) {
-                              return FlDotCirclePainter(
-                                radius: 4,
-                                color: const Color(0xFFED7D31),
-                                strokeWidth: 2,
-                                strokeColor: Colors.white,
-                              );
-                            },
+                            gradient: LinearGradient(
+                              colors: [
+                                const Color(0xFF4472C4).withOpacity(0.3),
+                                const Color(0xFF4472C4).withOpacity(0.05),
+                              ],
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                            ),
                           ),
-                          belowBarData: BarAreaData(show: false),
                         ),
                       ],
                       lineTouchData: LineTouchData(
@@ -716,19 +718,10 @@ class _IDGScreenState extends State<IDGScreen> with TickerProviderStateMixin {
                               if (index >= 0 && index < availableYears.length) {
                                 final year = yearLabels[index];
                                 final data = idgDataByYear[availableYears[index]];
-                                
-                                if (barSpot.barIndex == 0 && data?.idg != null) {
+
+                                if (data?.idg != null) {
                                   return LineTooltipItem(
                                     '$year\nIDG: ${data!.idg!.toStringAsFixed(2)}',
-                                    const TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 11,
-                                    ),
-                                  );
-                                } else if (barSpot.barIndex == 1 && data?.ikg != null) {
-                                  return LineTooltipItem(
-                                    '$year\nIKG: ${data!.ikg!.toStringAsFixed(2)}',
                                     const TextStyle(
                                       color: Colors.white,
                                       fontWeight: FontWeight.bold,
@@ -758,46 +751,221 @@ class _IDGScreenState extends State<IDGScreen> with TickerProviderStateMixin {
                     ),
                   ),
           ),
-          const SizedBox(height: 16),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildIKGOnlyChart() {
+    List<FlSpot> ikgSpots = [];
+    List<String> yearLabels = [];
+
+    for (int i = 0; i < availableYears.length; i++) {
+      final year = availableYears[i];
+      final data = idgDataByYear[year];
+      if (data != null) {
+        if (data.ikg != null) {
+          ikgSpots.add(FlSpot(i.toDouble(), data.ikg!));
+        }
+        yearLabels.add(year.toString());
+      }
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Column(
-                children: [
-                  Container(
-                    width: 16,
-                    height: 16,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Color(0xFF4472C4),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    'IDG',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
-                  ),
-                ],
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFED7D31).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.trending_down, color: Color(0xFFED7D31), size: 20),
               ),
-              const SizedBox(width: 24),
-              Column(
-                children: [
-                  Container(
-                    width: 16,
-                    height: 16,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Color(0xFFED7D31),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Indeks Ketidaksetaraan Gender (IKG)',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey[800],
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    'IKG',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
-                  ),
-                ],
+                    const SizedBox(height: 2),
+                    const Text(
+                      'Nilai lebih rendah = lebih baik',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Color(0xFF4CAF50),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            height: 250,
+            child: ikgSpots.isNotEmpty
+                ? LineChart(
+                    LineChartData(
+                      minY: 0.1,
+                      maxY: 0.3,
+                      gridData: FlGridData(
+                        show: true,
+                        drawVerticalLine: false,
+                        horizontalInterval: 0.05,
+                        getDrawingHorizontalLine: (value) {
+                          return FlLine(
+                            color: Colors.grey.withOpacity(0.2),
+                            strokeWidth: 0.5,
+                          );
+                        },
+                      ),
+                      titlesData: FlTitlesData(
+                        leftTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            reservedSize: 35,
+                            interval: 0.05,
+                            getTitlesWidget: (value, meta) {
+                              return Text(
+                                value.toStringAsFixed(2),
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  color: Color(0xFFED7D31),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                        bottomTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            reservedSize: 30,
+                            interval: 1,
+                            getTitlesWidget: (value, meta) {
+                              final index = value.toInt();
+                              if (index >= 0 && index < yearLabels.length) {
+                                return Padding(
+                                  padding: const EdgeInsets.only(top: 8),
+                                  child: Text(
+                                    yearLabels[index],
+                                    style: const TextStyle(
+                                      fontSize: 10,
+                                      color: Colors.grey,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                );
+                              }
+                              return const Text('');
+                            },
+                          ),
+                        ),
+                        topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                      ),
+                      borderData: FlBorderData(
+                        show: true,
+                        border: Border(
+                          left: BorderSide(color: Colors.grey.withOpacity(0.3), width: 1),
+                          bottom: BorderSide(color: Colors.grey.withOpacity(0.3), width: 1),
+                        ),
+                      ),
+                      lineBarsData: [
+                        LineChartBarData(
+                          spots: ikgSpots,
+                          isCurved: true,
+                          color: const Color(0xFFED7D31),
+                          barWidth: 3,
+                          dotData: FlDotData(
+                            show: true,
+                            getDotPainter: (spot, percent, barData, index) {
+                              return FlDotCirclePainter(
+                                radius: 4,
+                                color: const Color(0xFFED7D31),
+                                strokeWidth: 2,
+                                strokeColor: Colors.white,
+                              );
+                            },
+                          ),
+                          belowBarData: BarAreaData(
+                            show: true,
+                            gradient: LinearGradient(
+                              colors: [
+                                const Color(0xFFED7D31).withOpacity(0.3),
+                                const Color(0xFFED7D31).withOpacity(0.05),
+                              ],
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                            ),
+                          ),
+                        ),
+                      ],
+                      lineTouchData: LineTouchData(
+                        enabled: true,
+                        touchTooltipData: LineTouchTooltipData(
+                          getTooltipItems: (touchedSpots) {
+                            return touchedSpots.map((barSpot) {
+                              final index = barSpot.x.toInt();
+                              if (index >= 0 && index < availableYears.length) {
+                                final year = yearLabels[index];
+                                final data = idgDataByYear[availableYears[index]];
+
+                                if (data?.ikg != null) {
+                                  return LineTooltipItem(
+                                    '$year\nIKG: ${data!.ikg!.toStringAsFixed(3)}',
+                                    const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 11,
+                                    ),
+                                  );
+                                }
+                              }
+                              return null;
+                            }).toList();
+                          },
+                        ),
+                      ),
+                    ),
+                  )
+                : Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.bar_chart, size: 48, color: Colors.grey[400]),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Data tidak tersedia',
+                          style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                        ),
+                      ],
+                    ),
+                  ),
           ),
         ],
       ),
