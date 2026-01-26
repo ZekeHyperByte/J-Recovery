@@ -56,25 +56,11 @@ class _AppInitializerState extends State<AppInitializer> {
   Future<void> _initializeApp() async {
     try {
       print("🚀 Inisialisasi aplikasi...");
-
-      // Splash minimal 3 detik
-      await Future.delayed(const Duration(seconds: 3));
-
-      if (!mounted) return;
-
-      print("✅ Aplikasi siap");
-
-      // Navigasi setelah frame pertama agar tidak crash
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-
-        // LANGSUNG ke Home Screen setelah splash
-        print("➡️ Navigasi ke HomeScreen");
-        Navigator.pushReplacementNamed(context, '/home');
-      });
+      // Let splash screen handle its own navigation timing
+      // No forced timeout - video will play to completion
     } catch (e, s) {
       print("❌ Error saat inisialisasi: $e");
-      print(s); 
+      print(s);
       // Fallback ke home jika terjadi error
       if (mounted) {
         Navigator.pushReplacementNamed(context, '/home');

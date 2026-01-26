@@ -25,7 +25,7 @@ class _SplashScreenState extends State<SplashScreen>
     super.initState();
     _initializeAnimations();
     _initializeVideo();
-    _setNavigationTimeout();
+    // Remove timeout - let video play to completion
   }
 
   void _initializeAnimations() {
@@ -76,6 +76,9 @@ class _SplashScreenState extends State<SplashScreen>
       _fadeController.forward();
       await _videoController!.setLooping(false);
       await _videoController!.setVolume(0.0);
+
+      print('Video duration: ${_videoController!.value.duration}');
+
       await _videoController!.play();
       _videoController!.addListener(_checkVideoCompletion);
     } catch (error) {
@@ -88,9 +91,19 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   void _checkVideoCompletion() {
-    if (_videoController != null &&
-        _videoController!.value.position >= _videoController!.value.duration &&
-        !_hasNavigated) {
+    if (_videoController == null || !mounted) return;
+
+    // Force UI update to show progress
+    setState(() {});
+
+    final position = _videoController!.value.position;
+    final duration = _videoController!.value.duration;
+
+    print('Video position: $position / $duration');
+
+    // Check if video completed
+    if (position >= duration && !_hasNavigated) {
+      print('Video completed, navigating to home');
       _navigateToHome();
     }
   }
@@ -157,19 +170,9 @@ class _SplashScreenState extends State<SplashScreen>
     final screenSize = MediaQuery.of(context).size;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF4F4F4),
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0xFFEFF6FF), // Blue-50
-              Color(0xFFDBEAFE), // Blue-100
-              Color(0xFFBFDBFE), // Blue-200
-            ],
-          ),
-        ),
+        color: const Color(0xFFF4F4F4),
         child: SafeArea(
           child: Stack(
             fit: StackFit.expand,
@@ -182,26 +185,12 @@ class _SplashScreenState extends State<SplashScreen>
                     child: Container(
                       width: screenSize.width * 0.6,
                       height: screenSize.width * 0.6,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFF1E40AF).withOpacity(0.15),
-                            blurRadius: 20,
-                            spreadRadius: 1,
-                            offset: const Offset(0, 10),
-                          ),
-                        ],
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(20),
-                        child: FittedBox(
-                          fit: BoxFit.cover,
-                          child: SizedBox(
-                            width: _videoController!.value.size.width,
-                            height: _videoController!.value.size.height,
-                            child: VideoPlayer(_videoController!),
-                          ),
+                      child: FittedBox(
+                        fit: BoxFit.cover,
+                        child: SizedBox(
+                          width: _videoController!.value.size.width,
+                          height: _videoController!.value.size.height,
+                          child: VideoPlayer(_videoController!),
                         ),
                       ),
                     ),
@@ -210,35 +199,15 @@ class _SplashScreenState extends State<SplashScreen>
 
               // Loading state atau fallback content
               if (!_isVideoInitialized)
-                FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: Center(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(24),
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 440),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            _buildHeader(),
-                            const SizedBox(height: 48),
-                            _buildLoadingIndicator(),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-
-              // Branding text untuk video state
-              if (_isVideoInitialized)
-                Positioned(
-                  bottom: 100,
-                  left: 0,
-                  right: 0,
+                Center(
                   child: FadeTransition(
                     opacity: _fadeAnimation,
-                    child: _buildBrandingText(),
+                    child: CircularProgressIndicator(
+                      strokeWidth: 3,
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        const Color(0xFF84CC16), // Lime green
+                      ),
+                    ),
                   ),
                 ),
 
@@ -250,36 +219,31 @@ class _SplashScreenState extends State<SplashScreen>
                   right: 50,
                   child: FadeTransition(
                     opacity: _fadeAnimation,
-                    child: Container(
-                      height: 4,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(2),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFF1E40AF).withOpacity(0.1),
-                            blurRadius: 5,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(2),
-                        child: Container(
+                    child: ValueListenableBuilder(
+                      valueListenable: _videoController!,
+                      builder: (context, VideoPlayerValue value, child) {
+                        final progress = value.duration.inMilliseconds > 0
+                            ? value.position.inMilliseconds / value.duration.inMilliseconds
+                            : 0.0;
+                        return Container(
+                          height: 6,
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(2),
+                            color: const Color(0xFFD1D5DB), // Darker gray background
+                            borderRadius: BorderRadius.circular(3),
                           ),
-                          child: VideoProgressIndicator(
-                            _videoController!,
-                            allowScrubbing: false,
-                            colors: const VideoProgressColors(
-                              playedColor: Color(0xFF3B82F6),
-                              bufferedColor: Color(0xFF3B82F6),
-                              backgroundColor: Color(0xFFE5E7EB),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(3),
+                            child: LinearProgressIndicator(
+                              value: progress,
+                              backgroundColor: Colors.transparent,
+                              valueColor: const AlwaysStoppedAnimation<Color>(
+                                Color(0xFF84CC16), // Lime green
+                              ),
+                              minHeight: 6,
                             ),
                           ),
-                        ),
-                      ),
+                        );
+                      },
                     ),
                   ),
                 ),
