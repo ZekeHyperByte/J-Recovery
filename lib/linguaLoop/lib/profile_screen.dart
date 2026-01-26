@@ -10,7 +10,7 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProviderStateMixin {
-  String appVersion = '1.0.0';
+  String appVersion = '1.1.0';
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   int _tapCount = 0;
