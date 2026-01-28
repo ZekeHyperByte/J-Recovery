@@ -1,17 +1,155 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'dart:math';
 import 'profile_screen.dart';
-import 'tenaga_kerja_screen.dart';
 import 'ipm_screen.dart';
-import 'kemiskinana_screen.dart'; 
+import 'kemiskinana_screen.dart';
 import 'inflasi_screen.dart';
 import 'penduduk_screen.dart';
+import 'pendidikan_screen.dart';
+import 'tenaga_kerja_screen.dart';
 import 'pertumbuhan_ekonomi_screen.dart';
 import 'ipg_screen.dart';
-import 'pendidikan_screen.dart';
-import 'sdgs_screen.dart';
 import 'idg_screen.dart';
+import 'sdgs_screen.dart';
+import 'responsive_sizing.dart';
+
+// BPS Logo Color Palette - Moved outside class for compile-time constants
+const Color _bpsBlue = Color(0xFF2E99D6);
+const Color _bpsOrange = Color(0xFFE88D34);
+const Color _bpsGreen = Color(0xFF7DBD42);
+const Color _bpsRed = Color(0xFFEF4444);
+const Color _bpsBackground = Color(0xFFF5F5F5);
+const Color _bpsCardBg = Color(0xFFFFFFFF);
+const Color _bpsTextPrimary = Color(0xFF333333);
+const Color _bpsTextSecondary = Color(0xFF808080);
+const Color _bpsTextLabel = Color(0xFFA0A0A0);
+const Color _bpsBorder = Color(0xFFE0E0E0);
+
+// Category data model - Made immutable for better performance
+@immutable
+class CategoryItem {
+  final String label;
+  final String shortLabel;
+  final IconData icon;
+  final Widget screen;
+  final String group;
+
+  const CategoryItem({
+    required this.label,
+    required this.shortLabel,
+    required this.icon,
+    required this.screen,
+    required this.group,
+  });
+
+  CategoryItem copyWith({
+    String? label,
+    String? shortLabel,
+    IconData? icon,
+    Widget? screen,
+    String? group,
+  }) {
+    return CategoryItem(
+      label: label ?? this.label,
+      shortLabel: shortLabel ?? this.shortLabel,
+      icon: icon ?? this.icon,
+      screen: screen ?? this.screen,
+      group: group ?? this.group,
+    );
+  }
+}
+
+// Cache frequently used values
+class _HomeScreenCache {
+  static final List<CategoryItem> _allCategories = [
+    // Economic Indicators Group
+    const CategoryItem(
+      label: 'Pertumbuhan Ekonomi',
+      shortLabel: 'Ekonomi',
+      icon: Icons.show_chart_rounded,
+      screen: PertumbuhanEkonomiScreen(),
+      group: 'Economic',
+    ),
+    const CategoryItem(
+      label: 'Inflasi',
+      shortLabel: 'Inflasi',
+      icon: Icons.payments_rounded,
+      screen: InflasiScreen(),
+      group: 'Economic',
+    ),
+    const CategoryItem(
+      label: 'Tenaga Kerja',
+      shortLabel: 'Ketenagakerjaan',
+      icon: Icons.work_rounded,
+      screen: TenagaKerjaScreen(),
+      group: 'Economic',
+    ),
+    const CategoryItem(
+      label: 'Kemiskinan',
+      shortLabel: 'Kemiskinan',
+      icon: Icons.volunteer_activism_rounded,
+      screen: KemiskinanScreen(),
+      group: 'Economic',
+    ),
+
+    // Social Indicators Group
+    const CategoryItem(
+      label: 'Penduduk',
+      shortLabel: 'Penduduk',
+      icon: Icons.people_rounded,
+      screen: PendudukScreen(),
+      group: 'Social',
+    ),
+    const CategoryItem(
+      label: 'Pendidikan',
+      shortLabel: 'Pendidikan',
+      icon: Icons.school_rounded,
+      screen: PendidikanScreen(),
+      group: 'Social',
+    ),
+
+    // Development Indices Group
+    const CategoryItem(
+      label: 'Indeks Pembangunan Manusia',
+      shortLabel: 'IPM',
+      icon: Icons.trending_up_rounded,
+      screen: IpmScreen(),
+      group: 'Development',
+    ),
+    const CategoryItem(
+      label: 'Indeks Pembangunan Gender',
+      shortLabel: 'IPG',
+      icon: Icons.balance_rounded,
+      screen: IPGScreen(),
+      group: 'Development',
+    ),
+    const CategoryItem(
+      label: 'Indeks Ketimpangan Gender',
+      shortLabel: 'IDG',
+      icon: Icons.bar_chart_rounded,
+      screen: IDGScreen(),
+      group: 'Development',
+    ),
+    const CategoryItem(
+      label: 'Sustainable Development Goals',
+      shortLabel: 'SDGs',
+      icon: Icons.public_rounded,
+      screen: UserSDGsScreen(),
+      group: 'Development',
+    ),
+  ];
+
+  static List<CategoryItem> get allCategories => _allCategories;
+
+  static final Map<String, Map<String, dynamic>> _groupInfo = {
+    'Economic': {'title': 'Indikator Ekonomi', 'icon': Icons.monetization_on_rounded},
+    'Social': {'title': 'Indikator Sosial', 'icon': Icons.groups_rounded},
+    'Development': {'title': 'Indeks Pembangunan', 'icon': Icons.rocket_launch_rounded},
+  };
+
+  static Map<String, Map<String, dynamic>> get groupInfo => _groupInfo;
+}
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -20,893 +158,1043 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
-  int _selectedIndex = 0;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: [
-          _buildHomeContent(),
-          const ProfileScreen(),
-        ],
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        currentIndex: _selectedIndex,
-        onTap: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
-        selectedItemColor: const Color(0xFF3B82F6),
-        unselectedItemColor: Colors.grey,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Beranda',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profil',
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHomeContent() {
-    return CustomScrollView(
-      slivers: [
-        SliverAppBar(
-          expandedHeight: 120,
-          floating: false,
-          pinned: true,
-          backgroundColor: const Color(0xFF3B82F6),
-          flexibleSpace: const FlexibleSpaceBar(
-            title: Text(
-              'STATISTIK',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
-              ),
-            ),
-            centerTitle: true,
-          ),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.admin_panel_settings_outlined, color: Colors.white),
-              onPressed: () {
-                Navigator.pushNamed(context, '/login');
-              },
-              tooltip: 'Admin Login',
-            ),
-            IconButton(
-              icon: const Icon(Icons.notifications_outlined, color: Colors.white),
-              onPressed: () {},
-            ),
-          ],
-        ),
-        SliverPadding(
-          padding: const EdgeInsets.all(16),
-          sliver: SliverList(
-            delegate: SliverChildListDelegate([
-              _buildStatisticsIconsGrid(),
-              const SizedBox(height: 30),
-              _buildStatisticsSection(),
-              const SizedBox(height: 20),
-              _buildAppDescription(),
-              const SizedBox(height: 20),
-            ]),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildStatisticsIconsGrid() {
-    final List<Map<String, dynamic>> statisticsItems = [
-      {
-        'icon': Icons.work,
-        'title': 'Tenaga Kerja',
-        'color': Colors.blue,
-        'screen': const TenagaKerjaScreen()
-      },
-      {
-        'icon': Icons.trending_up,
-        'title': 'IPM',
-        'color': Colors.green,
-        'screen': const IpmScreen()
-      },
-      {
-        'icon': Icons.balance,
-        'title': 'IPG',
-        'color': Colors.purple,
-        'screen': const IPGScreen(),
-      },
-      {
-        'icon': Icons.equalizer,
-        'title': 'IDG',
-        'color': Colors.orange,
-        'screen': const IDGScreen(),
-      },
-      {
-        'icon': Icons.domain,
-        'title': 'SDGs',
-        'color': const Color.fromARGB(255, 58, 183, 58),
-        'screen': const UserSDGsScreen(), // PERBAIKAN: Nama class yang benar
-      },
-      {
-        'icon': Icons.trending_down,
-        'title': 'Kemiskinan',
-        'color': Colors.red,
-        'screen': const KemiskinanScreen()
-      },
-      {
-        'icon': Icons.attach_money,
-        'title': 'Inflasi',
-        'color': Colors.indigo,
-        'screen': const InflasiScreen()
-      },
-      {
-        'icon': Icons.show_chart,
-        'title': 'Pertumbuhan Ekonomi',
-        'color': Colors.cyan,
-        'screen': const PertumbuhanEkonomiScreen()
-      },
-      {
-        'icon': Icons.school,
-        'title': 'Pendidikan',
-        'color': Colors.deepPurple,
-        'screen': const PendidikanScreen()
-      },
-      {
-        'icon': Icons.people,
-        'title': 'Penduduk',
-        'color': Colors.brown,
-        'screen': const PendudukScreen()
-      },
-    ];
-
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: Colors.grey[200]!),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            blurRadius: 5,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Kategori Statistik',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey[800],
-            ),
-          ),
-          const SizedBox(height: 15),
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 5,
-              mainAxisSpacing: 20,
-              crossAxisSpacing: 12,
-              childAspectRatio: 0.75,
-            ),
-            itemCount: statisticsItems.length,
-            itemBuilder: (context, index) {
-              final item = statisticsItems[index];
-              return _buildStatisticIcon(
-                item['icon'] as IconData,
-                item['title'] as String,
-                item['color'] as Color,
-                item['screen'] as Widget,
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatisticIcon(
-      IconData icon, String title, Color color, Widget screen) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => screen),
-        );
-      },
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: color.withOpacity(0.3)),
-            ),
-            child: Icon(
-              icon,
-              color: color,
-              size: 24,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Flexible(
-            child: Text(
-              title,
-              style: TextStyle(
-                fontSize: 9,
-                fontWeight: FontWeight.w500,
-                color: Colors.grey[700],
-                height: 1.2,
-              ),
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatisticsSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Statistik Terbaru',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Colors.grey[800],
-          ),
-        ),
-        const SizedBox(height: 15),
-        _buildPopulationChart(),
-        const SizedBox(height: 15),
-        const BubbleStatistics(),
-      ],
-    );
-  }
-
-  Widget _buildPopulationChart() {
-    final List<int> years = [2020, 2021, 2022, 2023, 2024];
-    final List<FlSpot> growthSpots = [
-      const FlSpot(0, 0.0000),
-      const FlSpot(1, 0.0018),
-      const FlSpot(2, 0.0021),
-      const FlSpot(3, 0.0209),
-      const FlSpot(4, 0.0083),
-    ];
-
-    return Container(
-      padding: const EdgeInsets.all(15),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            blurRadius: 5,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Pertumbuhan Penduduk Kota Semarang (%)',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey[800],
-            ),
-          ),
-          const SizedBox(height: 20),
-          SizedBox(
-            height: 200,
-            child: LineChart(
-              LineChartData(
-                minY: 0,
-                maxY: 0.03,
-                minX: 0,
-                maxX: (growthSpots.length - 1).toDouble(),
-                gridData: FlGridData(
-                  show: true,
-                  drawVerticalLine: false,
-                  horizontalInterval: 0.005,
-                  getDrawingHorizontalLine: (value) {
-                    return FlLine(
-                      color: Colors.grey.withOpacity(0.15),
-                      strokeWidth: 0.5,
-                    );
-                  },
-                ),
-                titlesData: FlTitlesData(
-                  leftTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      reservedSize: 45,
-                      interval: 0.005,
-                      getTitlesWidget: (value, meta) {
-                        return Text(
-                          '${(value * 100).toStringAsFixed(1)}%',
-                          style: TextStyle(
-                            fontSize: 9,
-                            color: Colors.grey[600],
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  bottomTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      reservedSize: 30,
-                      interval: 1,
-                      getTitlesWidget: (value, meta) {
-                        int index = value.toInt();
-                        if (index >= 0 && index < years.length) {
-                          return Padding(
-                            padding: const EdgeInsets.only(top: 8.0),
-                            child: Text(
-                              years[index].toString(),
-                              style: TextStyle(
-                                fontSize: 10,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                          );
-                        }
-                        return const Text('');
-                      },
-                    ),
-                  ),
-                  rightTitles: const AxisTitles(
-                      sideTitles: SideTitles(showTitles: false)),
-                  topTitles: const AxisTitles(
-                      sideTitles: SideTitles(showTitles: false)),
-                ),
-                borderData: FlBorderData(
-                  show: true,
-                  border: Border(
-                    left: BorderSide(color: Colors.grey.withOpacity(0.3), width: 1),
-                    bottom: BorderSide(color: Colors.grey.withOpacity(0.3), width: 1),
-                  ),
-                ),
-                lineBarsData: [
-                  LineChartBarData(
-                    spots: growthSpots,
-                    isCurved: true,
-                    color: const Color(0xFF3B82F6),
-                    barWidth: 3,
-                    dotData: const FlDotData(show: true),
-                    belowBarData: BarAreaData(
-                      show: true,
-                      color: const Color(0xFF3B82F6).withOpacity(0.1),
-                    ),
-                  ),
-                ],
-                lineTouchData: LineTouchData(
-                  enabled: true,
-                  touchTooltipData: LineTouchTooltipData(
-                    getTooltipColor: (touchedSpot) => const Color(0xFF3B82F6),
-                    tooltipRoundedRadius: 8,
-                    tooltipPadding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 8),
-                    getTooltipItems: (List<LineBarSpot> touchedBarSpots) {
-                      return touchedBarSpots.map((barSpot) {
-                        final int index = barSpot.x.toInt();
-                        if (index < 0 || index >= years.length) return null;
-
-                        final year = years[index];
-                        final growthPercent =
-                            (barSpot.y * 100).toStringAsFixed(2);
-
-                        return LineTooltipItem(
-                          '$year\n$growthPercent %',
-                          const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 11,
-                          ),
-                        );
-                      }).toList();
-                    },
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAppDescription() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            const Color(0xFF3B82F6).withOpacity(0.08),
-            const Color(0xFF60A5FA).withOpacity(0.05),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF3B82F6), Color(0xFF2563EB)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF3B82F6).withOpacity(0.3),
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: const Icon(
-              Icons.analytics_outlined,
-              color: Colors.white,
-              size: 32,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    const Text(
-                      '📊 ',
-                      style: TextStyle(fontSize: 18),
-                    ),
-                    Text(
-                      'Statistik Kota Semarang',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey[800],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Aplikasi resmi BPS Kota Semarang! Akses data statistik terlengkap dan terkini untuk mendukung keputusan berbasis data. Mari wujudkan Semarang yang lebih maju! 🚀',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.grey[700],
-                    height: 1.6,
-                  ),
-                  textAlign: TextAlign.justify,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// BUBBLE STATISTICS WIDGET
-class BubbleStatistics extends StatefulWidget {
-  const BubbleStatistics({super.key});
-
-  @override
-  State<BubbleStatistics> createState() => _BubbleStatisticsState();
-}
-
-class _BubbleStatisticsState extends State<BubbleStatistics>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  List<BubbleData> bubbles = [];
-  double containerWidth = 0;
-  double containerHeight = 0;
+class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
+  late final AnimationController _animationController;
+  late final PageController _statsPageController;
+  int _currentStatsPage = 0;
+  String _searchQuery = '';
+  final TextEditingController _searchController = TextEditingController();
+  
+  // Debounce for search
+  Timer? _searchDebounce;
 
   @override
   void initState() {
     super.initState();
-
-    _controller = AnimationController(
+    _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 16),
-    )..repeat();
-
-    _controller.addListener(() {
-      if (mounted) {
-        setState(() {
-          _updateBubbles();
-        });
-      }
-    });
+      duration: const Duration(milliseconds: 800), // Reduced duration
+    )..forward();
+    
+    _statsPageController = PageController(viewportFraction: 0.9);
+    
+    // Use a more efficient listener
+    _statsPageController.addListener(_handlePageChange);
   }
 
-  void _initializeBubbles() {
-    bubbles.clear();
-    
-    if (containerWidth > 0 && containerHeight > 0) {
-      double bubbleRadius = 45;
-      double margin = 20;
-      double effectiveWidth = containerWidth - (margin * 2);
-      double effectiveHeight = containerHeight - (margin * 2);
-      
-      bubbles.addAll([
-        BubbleData(
-          icon: Icons.people,
-          value: '1.709M',
-          label: 'Jumlah Penduduk',
-          color: const Color(0xFF3B82F6),
-          radius: bubbleRadius,
-          x: margin + effectiveWidth * 0.15,
-          y: margin + effectiveHeight * 0.30,
-          minX: margin,
-          maxX: containerWidth - margin,
-          minY: margin,
-          maxY: containerHeight - margin,
-        ),
-        BubbleData(
-          icon: Icons.trending_down,
-          value: '4.03%',
-          label: 'Tingkat Kemiskinan',
-          color: const Color(0xFFF59E0B),
-          radius: bubbleRadius,
-          x: margin + effectiveWidth * 0.70,
-          y: margin + effectiveHeight * 0.30,
-          minX: margin,
-          maxX: containerWidth - margin,
-          minY: margin,
-          maxY: containerHeight - margin,
-        ),
-        BubbleData(
-          icon: Icons.location_city,
-          value: '4,573/km²',
-          label: 'Kepadatan',
-          color: const Color(0xFF10B981),
-          radius: bubbleRadius,
-          x: margin + effectiveWidth * 0.30,
-          y: margin + effectiveHeight * 0.70,
-          minX: margin,
-          maxX: containerWidth - margin,
-          minY: margin,
-          maxY: containerHeight - margin,
-        ),
-        BubbleData(
-          icon: Icons.trending_up,
-          value: '0.83%',
-          label: 'Pertumbuhan',
-          color: const Color(0xFF8B5CF6),
-          radius: bubbleRadius,
-          x: margin + effectiveWidth * 0.80,
-          y: margin + effectiveHeight * 0.70,
-          minX: margin,
-          maxX: containerWidth - margin,
-          minY: margin,
-          maxY: containerHeight - margin,
-        ),
-      ]);
+  void _handlePageChange() {
+    final page = _statsPageController.page?.round() ?? 0;
+    if (_currentStatsPage != page) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          setState(() {
+            _currentStatsPage = page;
+          });
+        }
+      });
     }
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _animationController.dispose();
+    _statsPageController.removeListener(_handlePageChange);
+    _statsPageController.dispose();
+    _searchController.dispose();
+    _searchDebounce?.cancel();
     super.dispose();
   }
 
-  void _updateBubbles() {
-    if (containerWidth == 0 || containerHeight == 0) return;
-
-    for (var bubble in bubbles) {
-      bubble.x += bubble.vx;
-      bubble.y += bubble.vy;
-
-      if (bubble.x - bubble.radius < bubble.minX) {
-        bubble.x = bubble.minX + bubble.radius;
-        bubble.vx = -bubble.vx * 0.7;
-      } else if (bubble.x + bubble.radius > bubble.maxX) {
-        bubble.x = bubble.maxX - bubble.radius;
-        bubble.vx = -bubble.vx * 0.7;
+  // Optimized search handler with debouncing
+  void _handleSearch(String value) {
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 300), () {
+      if (mounted) {
+        setState(() {
+          _searchQuery = value;
+        });
       }
+    });
+  }
 
-      if (bubble.y - bubble.radius < bubble.minY) {
-        bubble.y = bubble.minY + bubble.radius;
-        bubble.vy = -bubble.vy * 0.7;
-      } else if (bubble.y + bubble.radius > bubble.maxY) {
-        bubble.y = bubble.maxY - bubble.radius;
-        bubble.vy = -bubble.vy * 0.7;
-      }
-
-      bubble.vx += (Random().nextDouble() - 0.5) * 0.05;
-      bubble.vy += (Random().nextDouble() - 0.5) * 0.05;
-
-      bubble.vx *= 0.985;
-      bubble.vy *= 0.985;
-
-      const minVelocity = 0.15;
-      if (bubble.vx.abs() < minVelocity) {
-        bubble.vx = (bubble.vx >= 0 ? 1 : -1) * (minVelocity + Random().nextDouble() * 0.1);
-      }
-      if (bubble.vy.abs() < minVelocity) {
-        bubble.vy = (bubble.vy >= 0 ? 1 : -1) * (minVelocity + Random().nextDouble() * 0.1);
-      }
-
-      const maxVelocity = 1.2;
-      bubble.vx = bubble.vx.clamp(-maxVelocity, maxVelocity);
-      bubble.vy = bubble.vy.clamp(-maxVelocity, maxVelocity);
-    }
-
-    for (int i = 0; i < bubbles.length; i++) {
-      for (int j = i + 1; j < bubbles.length; j++) {
-        _checkBubbleCollision(bubbles[i], bubbles[j]);
-      }
+  void _clearSearch() {
+    _searchController.clear();
+    if (mounted) {
+      setState(() {
+        _searchQuery = '';
+      });
     }
   }
 
-  void _checkBubbleCollision(BubbleData b1, BubbleData b2) {
-    double dx = b2.x - b1.x;
-    double dy = b2.y - b1.y;
-    double distance = sqrt(dx * dx + dy * dy);
-    double minDist = b1.radius + b2.radius;
+  // Optimized filtered categories getter
+  List<CategoryItem> get _filteredCategories {
+    if (_searchQuery.isEmpty) return _HomeScreenCache.allCategories;
+    
+    final query = _searchQuery.toLowerCase();
+    return _HomeScreenCache.allCategories.where((cat) {
+      return cat.label.toLowerCase().contains(query) ||
+             cat.shortLabel.toLowerCase().contains(query);
+    }).toList();
+  }
 
-    if (distance < minDist && distance > 0) {
-      double angle = atan2(dy, dx);
-      double overlap = minDist - distance;
-      double separateX = cos(angle) * overlap * 0.6;
-      double separateY = sin(angle) * overlap * 0.6;
-      
-      b1.x -= separateX;
-      b1.y -= separateY;
-      b2.x += separateX;
-      b2.y += separateY;
-      
-      double dvx = b2.vx - b1.vx;
-      double dvy = b2.vy - b1.vy;
-      double dvn = dvx * cos(angle) + dvy * sin(angle);
-      
-      if (dvn < 0) {
-        double restitution = 0.6;
-        double impulse = dvn * restitution;
-        double impulseX = impulse * cos(angle);
-        double impulseY = impulse * sin(angle);
-        
-        b1.vx += impulseX;
-        b1.vy += impulseY;
-        b2.vx -= impulseX;
-        b2.vy -= impulseY;
-        
-        double kickStrength = 0.1;
-        b1.vx += (Random().nextDouble() - 0.5) * kickStrength;
-        b1.vy += (Random().nextDouble() - 0.5) * kickStrength;
-        b2.vx += (Random().nextDouble() - 0.5) * kickStrength;
-        b2.vy += (Random().nextDouble() - 0.5) * kickStrength;
-      }
+  // Optimized grouped categories with caching
+  Map<String, List<CategoryItem>> get _groupedCategories {
+    final result = <String, List<CategoryItem>>{
+      'Economic': [],
+      'Social': [],
+      'Development': [],
+    };
+
+    for (final cat in _filteredCategories) {
+      result[cat.group]!.add(cat);
     }
+
+    return result;
   }
 
   @override
   Widget build(BuildContext context) {
+    // Cache the sizing object
+    final sizing = ResponsiveSizing(context);
+    
+    return Scaffold(
+      backgroundColor: _bpsBackground,
+      body: _HomeScreenContent(
+        animationController: _animationController,
+        statsPageController: _statsPageController,
+        currentStatsPage: _currentStatsPage,
+        searchController: _searchController,
+        searchQuery: _searchQuery,
+        onSearchChanged: _handleSearch,
+        onClearSearch: _clearSearch,
+        filteredCategories: _filteredCategories,
+        groupedCategories: _groupedCategories,
+        sizing: sizing,
+      ),
+      bottomNavigationBar: _buildModernBottomNav(sizing),
+    );
+  }
+
+  void _navigateToProfile() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const ProfileScreen()),
+    );
+  }
+
+  Widget _buildModernBottomNav(ResponsiveSizing sizing) {
     return Container(
-      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        color: _bpsCardBg,
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.08),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 20,
+            offset: const Offset(0, -4),
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+      child: SafeArea(
+        top: false,
+        child: Container(
+          height: sizing.bottomNavHeight,
+          padding: EdgeInsets.symmetric(
+            horizontal: sizing.bottomNavPadding,
+            vertical: 8,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF3B82F6), Color(0xFF2563EB)],
-                  ),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(
-                  Icons.bubble_chart,
-                  color: Colors.white,
-                  size: 22,
-                ),
+              _buildNavItem(
+                icon: Icons.home_rounded,
+                label: 'Home',
+                isSelected: true,
+                sizing: sizing,
               ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Indikator Utama Kota Semarang',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey[800],
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'Tap dan geser bubble untuk berinteraksi',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                  ],
+              _buildNavItem(
+                icon: Icons.person_rounded,
+                label: 'Profile',
+                isSelected: false,
+                sizing: sizing,
+                onTap: _navigateToProfile,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNavItem({
+    required IconData icon,
+    required String label,
+    required bool isSelected,
+    required ResponsiveSizing sizing,
+    VoidCallback? onTap,
+  }) {
+    return Expanded(
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          highlightColor: _bpsBlue.withOpacity(0.1),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                color: isSelected ? _bpsBlue : _bpsTextLabel,
+                size: sizing.bottomNavIconSize,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: sizing.bottomNavLabelSize,
+                  color: isSelected ? _bpsBlue : _bpsTextLabel,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 20),
-          SizedBox(
-            height: 230,
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                containerWidth = constraints.maxWidth;
-                containerHeight = constraints.maxHeight;
-                
-                if (bubbles.isEmpty) {
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    if (mounted) {
-                      setState(() {
-                        _initializeBubbles();
-                      });
-                    }
-                  });
-                }
-                
-                return Stack(
-                  children: bubbles.map((bubble) {
-                    return Positioned(
-                      left: bubble.x - bubble.radius,
-                      top: bubble.y - bubble.radius,
-                      child: GestureDetector(
-                        onPanUpdate: (details) {
-                          setState(() {
-                            bubble.x += details.delta.dx;
-                            bubble.y += details.delta.dy;
-                            bubble.vx = details.delta.dx * 0.3;
-                            bubble.vy = details.delta.dy * 0.3;
-                          });
-                        },
-                        child: Container(
-                          width: bubble.radius * 2,
-                          height: bubble.radius * 2,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: RadialGradient(
-                              colors: [
-                                bubble.color.withOpacity(0.2),
-                                bubble.color.withOpacity(0.1),
-                              ],
-                            ),
-                            border: Border.all(
-                              color: bubble.color.withOpacity(0.5),
-                              width: 2,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: bubble.color.withOpacity(0.25),
-                                blurRadius: 12,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                bubble.icon,
-                                color: bubble.color,
-                                size: 22,
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                bubble.value,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.grey[800],
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 6),
-                                child: Text(
-                                  bubble.label,
-                                  style: TextStyle(
-                                    fontSize: 8.5,
-                                    color: Colors.grey[600],
-                                  ),
-                                  textAlign: TextAlign.center,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                );
-              },
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
 }
 
-class BubbleData {
-  final IconData icon;
-  final String value;
-  final String label;
-  final Color color;
-  final double radius;
-  double x;
-  double y;
-  double vx;
-  double vy;
-  final double minX;
-  final double maxX;
-  final double minY;
-  final double maxY;
+// Extract heavy content to a separate widget to minimize rebuilds
+class _HomeScreenContent extends StatelessWidget {
+  final AnimationController animationController;
+  final PageController statsPageController;
+  final int currentStatsPage;
+  final TextEditingController searchController;
+  final String searchQuery;
+  final ValueChanged<String> onSearchChanged;
+  final VoidCallback onClearSearch;
+  final List<CategoryItem> filteredCategories;
+  final Map<String, List<CategoryItem>> groupedCategories;
+  final ResponsiveSizing sizing;
 
-  BubbleData({
-    required this.icon,
-    required this.value,
+  const _HomeScreenContent({
+    required this.animationController,
+    required this.statsPageController,
+    required this.currentStatsPage,
+    required this.searchController,
+    required this.searchQuery,
+    required this.onSearchChanged,
+    required this.onClearSearch,
+    required this.filteredCategories,
+    required this.groupedCategories,
+    required this.sizing,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomScrollView(
+      physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+      slivers: [
+        // Header with search
+        _buildHeader(),
+        
+        // Stats snapshot section
+        _buildStatsSection(context),
+        
+        // Categories header
+        _buildCategoriesHeader(),
+        
+        // Category groups
+        ..._buildCategoryGroups(context),
+        
+        // Footer spacing
+        const SliverToBoxAdapter(
+          child: SizedBox(height: 32),
+        ),
+      ],
+    );
+  }
+
+  SliverToBoxAdapter _buildHeader() {
+    return SliverToBoxAdapter(
+      child: FadeTransition(
+        opacity: animationController,
+        child: Container(
+          decoration: BoxDecoration(
+            color: _bpsBlue,
+            boxShadow: [
+              BoxShadow(
+                color: _bpsBlue.withOpacity(0.2),
+                blurRadius: 30,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: SafeArea(
+            bottom: false,
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(
+                sizing.horizontalPadding,
+                sizing.horizontalPadding,
+                sizing.horizontalPadding,
+                sizing.horizontalPadding + 4,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Top bar with logo
+                  Row(
+                    children: [
+                      Container(
+                        padding: EdgeInsets.all(sizing.headerLogoPadding),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Image.asset(
+                          'assets/images/logo_white.png',
+                          width: sizing.headerLogoSize,
+                          height: sizing.headerLogoSize,
+                          filterQuality: FilterQuality.medium,
+                        ),
+                      ),
+                      SizedBox(width: sizing.itemSpacing),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'BPS KOTA SEMARANG',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: sizing.headerTitleSize,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Statistik Terpercaya',
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: sizing.headerSubtitleSize,
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: sizing.horizontalPadding),
+                  // Search bar
+                  Container(
+                    decoration: BoxDecoration(
+                      color: _bpsCardBg,
+                      borderRadius: BorderRadius.circular(14),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: TextField(
+                      controller: searchController,
+                      onChanged: onSearchChanged,
+                      decoration: InputDecoration(
+                        hintText: 'Cari kategori statistik...',
+                        hintStyle: TextStyle(
+                          color: _bpsTextLabel,
+                          fontSize: sizing.searchFontSize,
+                        ),
+                        prefixIcon: Icon(
+                          Icons.search_rounded,
+                          color: _bpsBlue,
+                          size: sizing.searchIconSize,
+                        ),
+                        suffixIcon: searchQuery.isNotEmpty
+                            ? IconButton(
+                                icon: Icon(
+                                  Icons.clear_rounded,
+                                  color: _bpsTextSecondary,
+                                  size: sizing.searchClearIconSize,
+                                ),
+                                onPressed: onClearSearch,
+                              )
+                            : null,
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: sizing.searchPadding,
+                          vertical: sizing.searchPadding,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  SliverToBoxAdapter _buildStatsSection(BuildContext context) {
+    return SliverToBoxAdapter(
+      child: SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(0, 0.3),
+          end: Offset.zero,
+        ).animate(CurvedAnimation(
+          parent: animationController,
+          curve: Curves.easeOutCubic,
+        )),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: EdgeInsets.fromLTRB(
+                sizing.horizontalPadding,
+                sizing.sectionSpacing - 8,
+                sizing.horizontalPadding,
+                sizing.horizontalPadding - 4,
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.analytics_rounded,
+                    color: _bpsBlue,
+                    size: sizing.sectionIconSize,
+                  ),
+                  SizedBox(width: sizing.itemSpacing - 2),
+                  Text(
+                    'Snapshot Indikator Utama',
+                    style: TextStyle(
+                      fontSize: sizing.sectionTitleSize,
+                      fontWeight: FontWeight.w700,
+                      color: _bpsTextPrimary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(
+              height: sizing.statsCardHeight,
+              child: PageView(
+                controller: statsPageController,
+                padEnds: false,
+                children: const [
+                  _StatsCard1(),
+                  _StatsCard2(),
+                  _StatsCard3(),
+                  _StatsCard4(),
+                ],
+              ),
+            ),
+            SizedBox(height: sizing.itemSpacing),
+            // Page indicators
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(4, (index) {
+                return Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  width: currentStatsPage == index
+                      ? sizing.pageIndicatorActiveWidth
+                      : sizing.pageIndicatorHeight,
+                  height: sizing.pageIndicatorHeight,
+                  decoration: BoxDecoration(
+                    color: currentStatsPage == index
+                        ? _bpsBlue
+                        : _bpsBorder,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                );
+              }),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  SliverToBoxAdapter _buildCategoriesHeader() {
+    return SliverToBoxAdapter(
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(
+          sizing.horizontalPadding,
+          sizing.sectionSpacing,
+          sizing.horizontalPadding,
+          sizing.horizontalPadding - 4,
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.grid_view_rounded,
+              color: _bpsBlue,
+              size: sizing.sectionIconSize,
+            ),
+            SizedBox(width: sizing.itemSpacing - 2),
+            Text(
+              'Jelajahi Statistik',
+              style: TextStyle(
+                fontSize: sizing.sectionTitleSize,
+                fontWeight: FontWeight.w700,
+                color: _bpsTextPrimary,
+              ),
+            ),
+            const Spacer(),
+            if (searchQuery.isNotEmpty)
+              Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: sizing.itemSpacing,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: _bpsBlue.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  '${filteredCategories.length} hasil',
+                  style: TextStyle(
+                    fontSize: sizing.bottomNavLabelSize,
+                    fontWeight: FontWeight.w600,
+                    color: _bpsBlue,
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  List<Widget> _buildCategoryGroups(BuildContext context) {
+    final widgets = <Widget>[];
+    final screenWidth = MediaQuery.of(context).size.width;
+    final crossAxisCount = screenWidth < 600 ? 2 : 3;
+
+    groupedCategories.forEach((groupKey, categories) {
+      if (categories.isEmpty) return;
+
+      final info = _HomeScreenCache.groupInfo[groupKey]!;
+
+      // Group header
+      widgets.add(
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(
+              sizing.horizontalPadding,
+              sizing.horizontalPadding,
+              sizing.horizontalPadding,
+              sizing.itemSpacing,
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(sizing.groupIconPadding),
+                  decoration: BoxDecoration(
+                    color: _bpsBlue.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    info['icon'] as IconData,
+                    color: _bpsBlue,
+                    size: sizing.groupIconSize,
+                  ),
+                ),
+                SizedBox(width: sizing.itemSpacing),
+                Text(
+                  info['title'] as String,
+                  style: TextStyle(
+                    fontSize: sizing.groupTitleSize,
+                    fontWeight: FontWeight.w700,
+                    color: _bpsTextPrimary,
+                  ),
+                ),
+                SizedBox(width: sizing.itemSpacing - 2),
+                Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: sizing.itemSpacing - 2,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: _bpsBlue.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    '${categories.length}',
+                    style: TextStyle(
+                      fontSize: sizing.bottomNavLabelSize,
+                      fontWeight: FontWeight.w600,
+                      color: _bpsBlue,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      // Category grid
+      widgets.add(
+        SliverPadding(
+          padding: EdgeInsets.symmetric(horizontal: sizing.horizontalPadding),
+          sliver: SliverGrid(
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: crossAxisCount,
+              childAspectRatio: sizing.categoryAspectRatio,
+              crossAxisSpacing: sizing.gridSpacing,
+              mainAxisSpacing: sizing.gridSpacing,
+            ),
+            delegate: SliverChildBuilderDelegate(
+              (context, index) => _CategoryCard(
+                category: categories[index],
+                sizing: sizing,
+              ),
+              childCount: categories.length,
+              addAutomaticKeepAlives: true, // Keep cards in memory
+            ),
+          ),
+        ),
+      );
+    });
+
+    // Empty state
+    if (filteredCategories.isEmpty) {
+      widgets.add(
+        SliverToBoxAdapter(
+          child: Container(
+            margin: EdgeInsets.symmetric(
+              horizontal: sizing.horizontalPadding,
+              vertical: sizing.sectionSpacing + 8,
+            ),
+            padding: EdgeInsets.all(sizing.sectionSpacing),
+            decoration: BoxDecoration(
+              color: _bpsCardBg,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Column(
+              children: [
+                Icon(
+                  Icons.search_off_rounded,
+                  size: sizing.isVerySmall ? 48 : 64,
+                  color: _bpsTextLabel,
+                ),
+                SizedBox(height: sizing.horizontalPadding - 4),
+                Text(
+                  'Tidak ada hasil',
+                  style: TextStyle(
+                    fontSize: sizing.sectionTitleSize - 2,
+                    fontWeight: FontWeight.w600,
+                    color: _bpsTextSecondary,
+                  ),
+                ),
+                SizedBox(height: sizing.itemSpacing - 2),
+                Text(
+                  'Coba kata kunci lain',
+                  style: TextStyle(
+                    fontSize: sizing.categoryLabelFontSize - 1,
+                    color: _bpsTextLabel,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    return widgets;
+  }
+}
+
+// Extract individual stat cards to separate widgets for better performance
+class _StatsCard1 extends StatelessWidget {
+  const _StatsCard1();
+
+  @override
+  Widget build(BuildContext context) {
+    return _StatsCard(
+      label: 'Penduduk',
+      value: '1.709M',
+      change: '+1.2%',
+      isPositive: true,
+      accentColor: _bpsBlue,
+      icon: Icons.people_rounded,
+      chartData: const [1.68, 1.69, 1.69, 1.70, 1.71],
+      screen: const PendudukScreen(),
+    );
+  }
+}
+
+class _StatsCard2 extends StatelessWidget {
+  const _StatsCard2();
+
+  @override
+  Widget build(BuildContext context) {
+    return _StatsCard(
+      label: 'IPM',
+      value: '82.39',
+      change: '+2.3%',
+      isPositive: true,
+      accentColor: _bpsGreen,
+      icon: Icons.trending_up_rounded,
+      chartData: const [80.5, 81.2, 81.8, 82.1, 82.4],
+      screen: const IpmScreen(),
+    );
+  }
+}
+
+class _StatsCard3 extends StatelessWidget {
+  const _StatsCard3();
+
+  @override
+  Widget build(BuildContext context) {
+    return _StatsCard(
+      label: 'Kemiskinan',
+      value: '4.03%',
+      change: '-0.87%',
+      isPositive: false,
+      accentColor: _bpsOrange,
+      icon: Icons.volunteer_activism_rounded,
+      chartData: const [4.5, 4.3, 4.2, 4.1, 4.0],
+      screen: const KemiskinanScreen(),
+    );
+  }
+}
+
+class _StatsCard4 extends StatelessWidget {
+  const _StatsCard4();
+
+  @override
+  Widget build(BuildContext context) {
+    return _StatsCard(
+      label: 'Inflasi',
+      value: '2.89%',
+      change: '+0.39%',
+      isPositive: true,
+      accentColor: _bpsRed,
+      icon: Icons.payments_rounded,
+      chartData: const [2.1, 2.5, 2.8, 2.9, 2.9],
+      screen: const InflasiScreen(),
+    );
+  }
+}
+
+class _StatsCard extends StatelessWidget {
+  final String label;
+  final String value;
+  final String change;
+  final bool isPositive;
+  final Color accentColor;
+  final IconData icon;
+  final List<double> chartData;
+  final Widget screen;
+
+  const _StatsCard({
     required this.label,
+    required this.value,
+    required this.change,
+    required this.isPositive,
+    required this.accentColor,
+    required this.icon,
+    required this.chartData,
+    required this.screen,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final sizing = ResponsiveSizing(context);
+    
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: sizing.itemSpacing),
+      child: Material(
+        color: _bpsCardBg,
+        borderRadius: BorderRadius.circular(20),
+        child: InkWell(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => screen),
+            );
+          },
+          borderRadius: BorderRadius.circular(20),
+          child: Container(
+            decoration: BoxDecoration(
+              color: _bpsCardBg,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: accentColor.withOpacity(0.2),
+                width: 2,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: accentColor.withOpacity(0.1),
+                  blurRadius: 15,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+            ),
+            padding: EdgeInsets.all(sizing.statsCardPadding),
+            child: Row(
+              children: [
+                // Icon container
+                Container(
+                  width: sizing.statsIconContainerSize,
+                  height: sizing.statsIconContainerSize,
+                  decoration: BoxDecoration(
+                    color: accentColor.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Icon(
+                    icon,
+                    color: accentColor,
+                    size: sizing.statsIconSize,
+                  ),
+                ),
+                SizedBox(width: sizing.statsCardPadding - 4),
+                // Data column
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        label,
+                        style: TextStyle(
+                          fontSize: sizing.statsLabelFontSize,
+                          fontWeight: FontWeight.w600,
+                          color: _bpsTextSecondary,
+                          letterSpacing: 0.2,
+                        ),
+                      ),
+                      SizedBox(height: sizing.isVerySmall ? 4 : 6),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Flexible(
+                            child: Text(
+                              value,
+                              style: TextStyle(
+                                fontSize: sizing.statsValueFontSize,
+                                fontWeight: FontWeight.w800,
+                                color: _bpsTextPrimary,
+                                height: 1,
+                                letterSpacing: -0.5,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          SizedBox(width: sizing.isVerySmall ? 4 : 8),
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: sizing.isVerySmall ? 5 : 8,
+                              vertical: sizing.isVerySmall ? 2 : 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isPositive
+                                  ? _bpsGreen.withOpacity(0.15)
+                                  : _bpsOrange.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  isPositive
+                                      ? Icons.arrow_upward_rounded
+                                      : Icons.arrow_downward_rounded,
+                                  color: isPositive ? _bpsGreen : _bpsOrange,
+                                  size: sizing.statsChangeIconSize,
+                                ),
+                                const SizedBox(width: 2),
+                                Text(
+                                  change,
+                                  style: TextStyle(
+                                    fontSize: sizing.statsChangeFontSize,
+                                    fontWeight: FontWeight.w700,
+                                    color: isPositive ? _bpsGreen : _bpsOrange,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                // Mini chart
+                SizedBox(
+                  width: sizing.statsMiniChartWidth,
+                  child: _MiniChart(data: chartData, color: accentColor),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MiniChart extends StatelessWidget {
+  final List<double> data;
+  final Color color;
+
+  const _MiniChart({
+    required this.data,
     required this.color,
-    required this.radius,
-    double? x,
-    double? y,
-    this.minX = 0,
-    this.maxX = double.infinity,
-    this.minY = 0,
-    this.maxY = double.infinity,
-  })  : x = x ?? 100,
-        y = y ?? 100,
-        vx = -0.8 + Random().nextDouble() * 1.6,
-        vy = -0.8 + Random().nextDouble() * 1.6;
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (data.isEmpty) return const SizedBox();
+
+    final spots = List.generate(data.length, (index) => FlSpot(index.toDouble(), data[index]));
+
+    return SizedBox(
+      width: 80,
+      height: 40,
+      child: LineChart(
+        LineChartData(
+          minY: data.reduce((a, b) => a < b ? a : b) * 0.95,
+          maxY: data.reduce((a, b) => a > b ? a : b) * 1.05,
+          minX: 0,
+          maxX: (data.length - 1).toDouble(),
+          gridData: const FlGridData(show: false),
+          titlesData: const FlTitlesData(show: false),
+          borderData: FlBorderData(show: false),
+          lineBarsData: [
+            LineChartBarData(
+              spots: spots,
+              isCurved: true,
+              curveSmoothness: 0.4,
+              color: color,
+              barWidth: 2,
+              dotData: const FlDotData(show: false),
+              belowBarData: BarAreaData(
+                show: true,
+                gradient: LinearGradient(
+                  colors: [
+                    color.withOpacity(0.3),
+                    color.withOpacity(0.0),
+                  ],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+              ),
+            ),
+          ],
+          lineTouchData: const LineTouchData(enabled: false),
+        ),
+      ),
+    );
+  }
+}
+
+class _CategoryCard extends StatelessWidget {
+  final CategoryItem category;
+  final ResponsiveSizing sizing;
+
+  const _CategoryCard({
+    required this.category,
+    required this.sizing,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: _bpsCardBg,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => category.screen),
+          );
+        },
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          decoration: BoxDecoration(
+            color: _bpsCardBg,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: _bpsBorder,
+              width: 1.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.04),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          padding: EdgeInsets.all(sizing.categoryCardPadding),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(sizing.categoryIconContainerPadding),
+                    decoration: BoxDecoration(
+                      color: _bpsBlue.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      category.icon,
+                      color: _bpsBlue,
+                      size: sizing.categoryIconSize,
+                    ),
+                  ),
+                  const Spacer(),
+                  Icon(
+                    Icons.arrow_forward_ios_rounded,
+                    color: _bpsTextLabel,
+                    size: sizing.categoryArrowSize,
+                  ),
+                ],
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    category.shortLabel,
+                    style: TextStyle(
+                      fontSize: sizing.categoryLabelFontSize,
+                      fontWeight: FontWeight.w700,
+                      color: _bpsTextPrimary,
+                      height: 1.2,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (category.label != category.shortLabel) ...[
+                    SizedBox(height: sizing.isVerySmall ? 2 : 4),
+                    Text(
+                      category.label,
+                      style: TextStyle(
+                        fontSize: sizing.categorySubLabelFontSize,
+                        color: _bpsTextLabel,
+                        height: 1.2,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }

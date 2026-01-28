@@ -1,0 +1,504 @@
+<svg width="1200" height="2400" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;display=swap');
+
+      .screen-bg { fill: #F5F5F5; }
+      .card { fill: #FFFFFF; }
+      .primary { fill: #1565C0; }
+      .primary-text { fill: #1565C0; font-family: 'Poppins', sans-serif; }
+      .secondary { fill: #2E7D32; }
+      .alert { fill: #C62828; }
+      .text-primary { fill: #212121; font-family: 'Poppins', sans-serif; }
+      .text-secondary { fill: #757575; font-family: 'Poppins', sans-serif; }
+      .text-white { fill: #FFFFFF; font-family: 'Poppins', sans-serif; }
+
+      .header { font-size: 18px; font-weight: 600; }
+      .title { font-size: 20px; font-weight: 700; }
+      .body { font-size: 14px; font-weight: 400; }
+      .caption { font-size: 12px; font-weight: 400; }
+      .number-lg { font-size: 32px; font-weight: 700; }
+      .number-md { font-size: 24px; font-weight: 600; }
+      .number-sm { font-size: 16px; font-weight: 600; }
+
+      .shadow { filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.1)); }
+      .shadow-lg { filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.15)); }
+    </style>
+  </defs>
+
+  <!-- Screen 1: Home Screen -->
+  <g id="home-screen">
+    <!-- Background -->
+    <rect class="screen-bg" width="360" height="800" rx="0"/>
+
+    <!-- Header / AppBar -->
+    <rect class="primary" width="360" height="64"/>
+    <text class="text-white header" x="16" y="32">🏛️ STARA Kota Semarang</text>
+    <text class="text-white caption" x="16" y="50">Statistik Resmi BPS</text>
+    <text class="text-white header" x="320" y="38">⋮</text>
+    <circle fill="#FFFFFF" opacity="0.2" cx="340" cy="32" r="20"/>
+    <text class="text-white header" x="330" y="38">🔍</text>
+
+    <!-- Hero Card - Today's Summary -->
+    <g class="shadow-lg">
+      <rect class="card" x="16" y="80" width="328" height="160" rx="12"/>
+      <text class="text-primary body" font-weight="600" x="28" y="102">📊 Ringkasan Hari Ini</text>
+      <text class="text-secondary caption" x="28" y="118">Update: 28 Jan 2026, 08:00 WIB</text>
+
+      <!-- Stats Row 1 -->
+      <text class="text-primary body" x="28" y="145">Populasi:</text>
+      <text class="primary-text number-sm" x="110" y="145">1.8 jt</text>
+      <text class="secondary caption" x="170" y="145">📈 +2.1%</text>
+
+      <!-- Stats Row 2 -->
+      <text class="text-primary body" x="28" y="170">Inflasi:</text>
+      <text class="primary-text number-sm" x="110" y="170">3.2%</text>
+      <text class="alert caption" x="170" y="170">📉 -0.4%</text>
+
+      <!-- Stats Row 3 -->
+      <text class="text-primary body" x="28" y="195">IPM:</text>
+      <text class="primary-text number-sm" x="110" y="195">78.5</text>
+      <text class="secondary caption" x="170" y="195">📊 +1.2</text>
+
+      <!-- Decorative accent -->
+      <rect class="primary" x="16" y="80" width="4" height="160" rx="2"/>
+    </g>
+
+    <!-- Section Header -->
+    <text class="text-primary body" font-weight="600" x="16" y="265">Kategori Statistik</text>
+    <text class="primary-text caption" x="310" y="265">Lihat →</text>
+
+    <!-- Category Grid Row 1 -->
+    <g class="shadow">
+      <!-- Penduduk -->
+      <rect class="card" x="16" y="280" width="104" height="108" rx="12"/>
+      <text x="47" y="315" font-size="40">👥</text>
+      <text class="text-primary body" font-weight="500" x="37" y="342">Penduduk</text>
+      <text class="primary-text number-sm" x="42" y="365">1.8 jt</text>
+
+      <!-- Ekonomi -->
+      <rect class="card" x="128" y="280" width="104" height="108" rx="12"/>
+      <text x="159" y="315" font-size="40">📈</text>
+      <text class="text-primary body" font-weight="500" x="148" y="342">Ekonomi</text>
+      <text class="primary-text number-sm" x="156" y="365">+5.2%</text>
+
+      <!-- Inflasi -->
+      <rect class="card" x="240" y="280" width="104" height="108" rx="12"/>
+      <text x="271" y="315" font-size="40">💰</text>
+      <text class="text-primary body" font-weight="500" x="267" y="342">Inflasi</text>
+      <text class="primary-text number-sm" x="275" y="365">3.2%</text>
+    </g>
+
+    <!-- Category Grid Row 2 -->
+    <g class="shadow">
+      <!-- Pendidikan -->
+      <rect class="card" x="16" y="396" width="104" height="108" rx="12"/>
+      <text x="47" y="431" font-size="40">🎓</text>
+      <text class="text-primary body" font-weight="500" x="26" y="458">Pendidikan</text>
+      <text class="primary-text number-sm" x="42" y="481">94.2%</text>
+
+      <!-- Kemiskinan -->
+      <rect class="card" x="128" y="396" width="104" height="108" rx="12"/>
+      <text x="159" y="431" font-size="40">🏥</text>
+      <text class="text-primary body" font-weight="500" x="136" y="458">Kemiskinan</text>
+      <text class="primary-text number-sm" x="168" y="481">8.1%</text>
+
+      <!-- Tenaga Kerja -->
+      <rect class="card" x="240" y="396" width="104" height="108" rx="12"/>
+      <text x="271" y="431" font-size="40">💼</text>
+      <text class="text-primary body" font-weight="500" x="263" y="450">Tenaga</text>
+      <text class="text-primary body" font-weight="500" x="267" y="465">Kerja</text>
+      <text class="primary-text number-sm" x="269" y="488">68.4%</text>
+    </g>
+
+    <!-- Category Grid Row 3 -->
+    <g class="shadow">
+      <!-- IPM -->
+      <rect class="card" x="16" y="512" width="104" height="108" rx="12"/>
+      <text x="47" y="547" font-size="40">📊</text>
+      <text class="text-primary body" font-weight="500" x="49" y="574">IPM</text>
+      <text class="primary-text number-sm" x="45" y="597">78.5</text>
+
+      <!-- IPG/IDG -->
+      <rect class="card" x="128" y="512" width="104" height="108" rx="12"/>
+      <text x="159" y="547" font-size="40">⚥</text>
+      <text class="text-primary body" font-weight="500" x="148" y="574">IPG/IDG</text>
+      <text class="primary-text number-sm" x="161" y="597">92.3</text>
+
+      <!-- SDGs -->
+      <rect class="card" x="240" y="512" width="104" height="108" rx="12"/>
+      <text x="271" y="547" font-size="40">🌍</text>
+      <text class="text-primary body" font-weight="500" x="268" y="574">SDGs</text>
+      <text class="primary-text number-sm" x="261" y="597">75/100</text>
+    </g>
+
+    <!-- Publications Section -->
+    <text class="text-primary body" font-weight="600" x="16" y="645">Publikasi Terbaru</text>
+    <text class="primary-text caption" x="290" y="645">Lihat Semua →</text>
+
+    <!-- Publication Card 1 -->
+    <g class="shadow">
+      <rect class="card" x="16" y="655" width="328" height="60" rx="8"/>
+      <text x="28" y="680" font-size="32">📄</text>
+      <text class="text-primary body" font-weight="500" x="65" y="678">Statistik Semarang 2025</text>
+      <text class="text-secondary caption" x="65" y="695">20 Jan 2026 • PDF • 2.4 MB</text>
+    </g>
+
+    <!-- Publication Card 2 -->
+    <g class="shadow">
+      <rect class="card" x="16" y="723" width="328" height="60" rx="8"/>
+      <text x="28" y="748" font-size="32">📄</text>
+      <text class="text-primary body" font-weight="500" x="65" y="746">Laporan Inflasi Q4 2025</text>
+      <text class="text-secondary caption" x="65" y="763">15 Jan 2026 • PDF • 1.8 MB</text>
+    </g>
+
+    <!-- Bottom Navigation -->
+    <rect fill="#FFFFFF" class="shadow" x="0" y="744" width="360" height="56"/>
+    <g id="bottom-nav">
+      <!-- Home Tab (Active) -->
+      <rect class="primary" x="50" y="750" width="60" height="3" rx="1.5"/>
+      <text x="63" y="768" font-size="24">🏠</text>
+      <text class="primary-text caption" x="52" y="788">Beranda</text>
+
+      <!-- Data Tab -->
+      <text x="163" y="768" font-size="24" opacity="0.6">📊</text>
+      <text class="text-secondary caption" x="160" y="788">Data</text>
+
+      <!-- Info Tab -->
+      <text x="263" y="768" font-size="24" opacity="0.6">ℹ️</text>
+      <text class="text-secondary caption" x="262" y="788">Info</text>
+    </g>
+  </g>
+
+  <!-- Screen 2: Detail View (Population) -->
+  <g id="detail-screen" transform="translate(400, 0)">
+    <!-- Background -->
+    <rect class="screen-bg" width="360" height="800" rx="0"/>
+
+    <!-- AppBar -->
+    <rect class="primary" width="360" height="56"/>
+    <text class="text-white header" x="16" y="36">←</text>
+    <text class="text-white header" x="56" y="36">Penduduk Kota Semarang</text>
+    <text class="text-white header" x="330" y="36">⋮</text>
+
+    <!-- Main Stat Card -->
+    <g class="shadow-lg">
+      <rect class="card" x="16" y="72" width="328" height="120" rx="12"/>
+      <text class="primary-text number-lg" x="28" y="110">1,847,056</text>
+      <text class="text-secondary body" x="28" y="130">jiwa</text>
+      <text class="text-primary body" x="28" y="150">Total Populasi 2025</text>
+      <g>
+        <text class="secondary body" x="28" y="172">↗ +2.1% dari 2024</text>
+        <text class="text-secondary caption" x="230" y="172">📅 Update: 1 Jan 2026</text>
+      </g>
+      <rect class="secondary" x="16" y="72" width="4" height="120" rx="2"/>
+    </g>
+
+    <!-- Tab Selector -->
+    <g id="tabs">
+      <rect fill="#FFFFFF" class="shadow" x="16" y="208" width="328" height="48" rx="8"/>
+      <text class="primary-text body" font-weight="600" x="50" y="236">Grafik</text>
+      <rect class="primary" x="40" y="244" width="50" height="3" rx="1.5"/>
+      <text class="text-secondary body" x="155" y="236">Tabel</text>
+      <text class="text-secondary body" x="245" y="236">Unduh</text>
+    </g>
+
+    <!-- Chart Section -->
+    <text class="text-primary body" font-weight="600" x="16" y="280">Trend Populasi 5 Tahun</text>
+
+    <g class="shadow">
+      <rect class="card" x="16" y="290" width="328" height="220" rx="12"/>
+
+      <!-- Chart Grid -->
+      <line x1="40" y1="320" x2="320" y2="320" stroke="#E0E0E0" stroke-width="1" stroke-dasharray="4,4"/>
+      <line x1="40" y1="370" x2="320" y2="370" stroke="#E0E0E0" stroke-width="1" stroke-dasharray="4,4"/>
+      <line x1="40" y1="420" x2="320" y2="420" stroke="#E0E0E0" stroke-width="1" stroke-dasharray="4,4"/>
+      <line x1="40" y1="470" x2="320" y2="470" stroke="#E0E0E0" stroke-width="1" stroke-dasharray="4,4"/>
+
+      <!-- Line Chart -->
+      <polyline points="60,450 110,430 160,410 210,385 260,350 310,320"
+                fill="none" stroke="#1565C0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+
+      <!-- Data Points -->
+      <circle cx="60" cy="450" r="5" class="primary"/>
+      <circle cx="110" cy="430" r="5" class="primary"/>
+      <circle cx="160" cy="410" r="5" class="primary"/>
+      <circle cx="210" cy="385" r="5" class="primary"/>
+      <circle cx="260" cy="350" r="5" class="primary"/>
+      <circle cx="310" cy="320" r="6" fill="#2E7D32"/>
+
+      <!-- X-axis Labels -->
+      <text class="text-secondary caption" x="48" y="495">2020</text>
+      <text class="text-secondary caption" x="98" y="495">2021</text>
+      <text class="text-secondary caption" x="148" y="495">2022</text>
+      <text class="text-secondary caption" x="198" y="495">2023</text>
+      <text class="text-secondary caption" x="248" y="495">2024</text>
+      <text class="text-secondary caption" x="298" y="495">2025</text>
+
+      <!-- Y-axis Labels -->
+      <text class="text-secondary caption" x="24" y="475">1.7M</text>
+      <text class="text-secondary caption" x="24" y="425">1.75M</text>
+      <text class="text-secondary caption" x="24" y="375">1.8M</text>
+      <text class="text-secondary caption" x="24" y="325">1.85M</text>
+    </g>
+
+    <!-- Age Distribution -->
+    <text class="text-primary body" font-weight="600" x="16" y="535">Distribusi Usia</text>
+
+    <g class="shadow">
+      <rect class="card" x="16" y="545" width="328" height="120" rx="12"/>
+
+      <!-- Bar 1: 0-14 years -->
+      <text class="text-primary caption" x="28" y="570">0-14 tahun:</text>
+      <rect fill="#1565C0" opacity="0.8" x="110" y="555" width="120" height="20" rx="4"/>
+      <text class="text-primary body" font-weight="600" x="240" y="570">22.3%</text>
+
+      <!-- Bar 2: 15-64 years -->
+      <text class="text-primary caption" x="28" y="600">15-64 tahun:</text>
+      <rect fill="#1565C0" opacity="0.8" x="110" y="585" width="180" height="20" rx="4"/>
+      <text class="text-primary body" font-weight="600" x="300" y="600">68.1%</text>
+
+      <!-- Bar 3: 65+ years -->
+      <text class="text-primary caption" x="28" y="630">65+ tahun:</text>
+      <rect fill="#1565C0" opacity="0.8" x="110" y="615" width="60" height="20" rx="4"/>
+      <text class="text-primary body" font-weight="600" x="180" y="630">9.6%</text>
+    </g>
+
+    <!-- Density Info -->
+    <text class="text-primary body" font-weight="600" x="16" y="690">Kepadatan Penduduk</text>
+
+    <g class="shadow">
+      <rect class="card" x="16" y="700" width="328" height="60" rx="12"/>
+      <text class="primary-text number-sm" x="28" y="725">4,812 jiwa/km²</text>
+      <text class="text-secondary body" x="28" y="745">Luas wilayah: 384 km²</text>
+    </g>
+
+    <!-- Attribution -->
+    <text class="text-secondary caption" x="16" y="780">ℹ️ Sumber: Badan Pusat Statistik Kota Semarang</text>
+    <text class="text-secondary caption" x="16" y="795">Diolah: 28 Jan 2026, 08:00 WIB</text>
+  </g>
+
+  <!-- Screen 3: Search/Filter -->
+  <g id="search-screen" transform="translate(800, 0)">
+    <!-- Background -->
+    <rect class="screen-bg" width="360" height="800" rx="0"/>
+
+    <!-- AppBar -->
+    <rect class="primary" width="360" height="56"/>
+    <text class="text-white header" x="16" y="36">←</text>
+    <text class="text-white header" x="56" y="36">Pencarian Data</text>
+
+    <!-- Search Bar -->
+    <g class="shadow">
+      <rect class="card" x="16" y="72" width="328" height="56" rx="28"/>
+      <text x="28" y="107" font-size="20">🔍</text>
+      <text class="text-secondary body" x="60" y="107">Cari statistik...</text>
+      <text class="text-secondary body" x="320" y="107">×</text>
+    </g>
+
+    <!-- Popular Searches -->
+    <text class="text-primary body" font-weight="600" x="16" y="155">Pencarian Populer</text>
+
+    <g id="chips">
+      <rect fill="#E3F2FD" x="16" y="165" width="75" height="32" rx="16"/>
+      <text class="primary-text caption" x="28" y="186">#Inflasi</text>
+
+      <rect fill="#E3F2FD" x="100" y="165" width="60" height="32" rx="16"/>
+      <text class="primary-text caption" x="112" y="186">#IPM</text>
+
+      <rect fill="#E3F2FD" x="169" y="165" width="110" height="32" rx="16"/>
+      <text class="primary-text caption" x="181" y="186">#Kemiskinan</text>
+    </g>
+
+    <!-- Results Header -->
+    <text class="text-primary body" font-weight="600" x="16" y="225">Hasil (23)</text>
+
+    <!-- Result Card 1 -->
+    <g class="shadow">
+      <rect class="card" x="16" y="235" width="328" height="88" rx="12"/>
+      <rect class="primary" opacity="0.1" x="16" y="235" width="6" height="88"/>
+      <text x="35" y="268" font-size="32">📊</text>
+      <text class="text-primary body" font-weight="600" x="75" y="263">Inflasi 2025</text>
+      <text class="text-secondary caption" x="75" y="280">Kategori: Inflasi • 3.2%</text>
+      <text class="text-secondary caption" x="75" y="297">Update: 15 Jan 2026</text>
+      <circle fill="#2E7D32" cx="325" cy="260" r="3"/>
+    </g>
+
+    <!-- Result Card 2 -->
+    <g class="shadow">
+      <rect class="card" x="16" y="333" width="328" height="88" rx="12"/>
+      <rect class="primary" opacity="0.1" x="16" y="333" width="6" height="88"/>
+      <text x="35" y="366" font-size="32">👥</text>
+      <text class="text-primary body" font-weight="600" x="75" y="361">Populasi Usia Produktif</text>
+      <text class="text-secondary caption" x="75" y="378">Kategori: Penduduk • 68.1%</text>
+      <text class="text-secondary caption" x="75" y="395">Update: 1 Jan 2026</text>
+      <circle fill="#2E7D32" cx="325" cy="358" r="3"/>
+    </g>
+
+    <!-- Result Card 3 -->
+    <g class="shadow">
+      <rect class="card" x="16" y="431" width="328" height="88" rx="12"/>
+      <rect class="primary" opacity="0.1" x="16" y="431" width="6" height="88"/>
+      <text x="35" y="464" font-size="32">🎓</text>
+      <text class="text-primary body" font-weight="600" x="75" y="459">Tingkat Literasi Dewasa</text>
+      <text class="text-secondary caption" x="75" y="476">Kategori: Pendidikan • 94.2%</text>
+      <text class="text-secondary caption" x="75" y="493">Update: 10 Jan 2026</text>
+      <circle fill="#2E7D32" cx="325" cy="456" r="3"/>
+    </g>
+
+    <!-- Filter Bar -->
+    <text class="text-primary body" font-weight="600" x="16" y="550">Filter</text>
+
+    <g class="shadow">
+      <rect class="card" x="16" y="560" width="100" height="48" rx="8"/>
+      <text class="text-primary body" x="28" y="588">Kategori ▼</text>
+
+      <rect class="card" x="125" y="560" width="85" height="48" rx="8"/>
+      <text class="text-primary body" x="137" y="588">Tahun ▼</text>
+
+      <rect class="card" x="219" y="560" width="125" height="48" rx="8"/>
+      <text class="text-primary body" x="231" y="588">Urutkan ▼</text>
+    </g>
+
+    <!-- Empty State Illustration -->
+    <text x="140" y="680" font-size="80" opacity="0.1">🔍</text>
+    <text class="text-secondary caption" text-anchor="middle" x="180" y="750">
+      Ketik kata kunci untuk mencari data statistik
+    </text>
+  </g>
+
+  <!-- Labels for Screens -->
+  <text class="text-primary" font-size="14" font-weight="700" x="120" y="820">SCREEN 1: Home</text>
+  <text class="text-primary" font-size="14" font-weight="700" x="490" y="820">SCREEN 2: Detail View</text>
+  <text class="text-primary" font-size="14" font-weight="700" x="890" y="820">SCREEN 3: Search</text>
+
+  <!-- Design Specs Panel -->
+  <g transform="translate(0, 860)">
+    <rect fill="#FFFFFF" class="shadow-lg" width="1180" height="420" rx="12"/>
+    <rect class="primary" width="1180" height="48" rx="12"/>
+    <rect fill="#F5F5F5" y="48" width="1180" height="48"/>
+    <text class="text-white title" x="20" y="32">STARA - Design Specifications</text>
+
+    <!-- Color Palette -->
+    <text class="text-primary body" font-weight="600" x="20" y="82">Color Palette</text>
+    <g transform="translate(20, 100)">
+      <rect class="primary" width="80" height="80" rx="8"/>
+      <text class="text-white caption" x="10" y="50">#1565C0</text>
+      <text class="text-secondary caption" x="7" y="100">Primary</text>
+
+      <rect class="secondary" x="100" width="80" height="80" rx="8"/>
+      <text class="text-white caption" x="110" y="50">#2E7D32</text>
+      <text class="text-secondary caption" x="107" y="100">Success</text>
+
+      <rect class="alert" x="200" width="80" height="80" rx="8"/>
+      <text class="text-white caption" x="210" y="50">#C62828</text>
+      <text class="text-secondary caption" x="215" y="100">Alert</text>
+
+      <rect fill="#212121" x="300" width="80" height="80" rx="8"/>
+      <text class="text-white caption" x="310" y="50">#212121</text>
+      <text class="text-secondary caption" x="312" y="100">Text 1°</text>
+
+      <rect fill="#757575" x="400" width="80" height="80" rx="8"/>
+      <text class="text-white caption" x="410" y="50">#757575</text>
+      <text class="text-secondary caption" x="412" y="100">Text 2°</text>
+
+      <rect fill="#F5F5F5" stroke="#E0E0E0" x="500" width="80" height="80" rx="8"/>
+      <text class="text-primary caption" x="510" y="50">#F5F5F5</text>
+      <text class="text-secondary caption" x="505" y="100">Background</text>
+    </g>
+
+    <!-- Typography -->
+    <text class="text-primary body" font-weight="600" x="640" y="82">Typography</text>
+    <g transform="translate(640, 100)">
+      <text class="text-primary" font-size="32" font-weight="700" y="30">Aa</text>
+      <text class="text-secondary caption" x="55" y="15">Poppins Bold 32sp</text>
+      <text class="text-secondary caption" x="55" y="30">Large Numbers</text>
+
+      <text class="text-primary" font-size="20" font-weight="700" y="70">Aa</text>
+      <text class="text-secondary caption" x="40" y="60">Poppins Bold 20sp</text>
+      <text class="text-secondary caption" x="40" y="75">Headers</text>
+
+      <text class="text-primary" font-size="14" font-weight="400" y="105">Aa</text>
+      <text class="text-secondary caption" x="30" y="95">Poppins Regular 14sp</text>
+      <text class="text-secondary caption" x="30" y="110">Body Text</text>
+    </g>
+
+    <!-- Component Specs -->
+    <text class="text-primary body" font-weight="600" x="20" y="225">Component Specifications</text>
+
+    <g transform="translate(20, 240)">
+      <!-- Card Example -->
+      <rect class="card shadow" width="200" height="100" rx="12"/>
+      <text class="text-secondary caption" x="5" y="-5">Card: 12dp radius, 2dp elevation</text>
+      <line x1="0" y1="0" x2="0" y2="100" stroke="#FF0000" stroke-width="1" stroke-dasharray="3,3"/>
+      <line x1="0" y1="0" x2="12" y2="0" stroke="#FF0000" stroke-width="1"/>
+      <text fill="#FF0000" font-size="10" x="15" y="5">12dp</text>
+
+      <!-- Touch Target -->
+      <rect fill="none" stroke="#1565C0" stroke-width="2" stroke-dasharray="5,5" x="230" y="10" width="48" height="48" rx="24"/>
+      <circle class="primary" cx="254" cy="34" r="20"/>
+      <text class="text-white" font-size="24" x="244" y="42">🔍</text>
+      <text class="text-secondary caption" x="230" y="70">Touch Target: 48x48dp min</text>
+
+      <!-- Grid System -->
+      <g transform="translate(320, 0)">
+        <rect fill="none" stroke="#E0E0E0" width="240" height="100" rx="8"/>
+        <line x1="16" y1="0" x2="16" y2="100" stroke="#1565C0" stroke-width="1" stroke-dasharray="3,3"/>
+        <line x1="224" y1="0" x2="224" y2="100" stroke="#1565C0" stroke-width="1" stroke-dasharray="3,3"/>
+        <text class="primary-text caption" x="5" y="50" transform="rotate(-90, 5, 50)">16dp</text>
+        <text class="text-secondary caption" x="70" y="95">Grid: 16dp margins</text>
+      </g>
+    </g>
+
+    <!-- Accessibility -->
+    <text class="text-primary body" font-weight="600" x="620" y="225">Accessibility Standards</text>
+    <g transform="translate(620, 240)">
+      <text class="text-primary caption" y="15">✓ WCAG AA Compliant (4.5:1 contrast ratio)</text>
+      <text class="text-primary caption" y="35">✓ Minimum text size: 14sp (body), 12sp (caption)</text>
+      <text class="text-primary caption" y="55">✓ Touch targets: 48x48dp minimum</text>
+      <text class="text-primary caption" y="75">✓ Screen reader optimized (TalkBack support)</text>
+      <text class="text-primary caption" y="95">✓ Color blind safe (icons + colors)</text>
+    </g>
+
+    <!-- Device Specs -->
+    <text class="text-primary body" font-weight="600" x="20" y="375">Target Device</text>
+    <g transform="translate(20, 390)">
+      <rect fill="none" stroke="#1565C0" stroke-width="2" width="120" height="60" rx="8"/>
+      <text class="text-primary caption" text-anchor="middle" x="60" y="35">360 × 800 dp</text>
+      <text class="text-secondary caption" x="150" y="20">Base: Android mdpi (360x800dp)</text>
+      <text class="text-secondary caption" x="150" y="40">Scales: ldpi to xxxhdpi</text>
+      <text class="text-secondary caption" x="150" y="60">Min SDK: 21 (Android 5.0)</text>
+    </g>
+
+    <!-- Status -->
+    <g transform="translate(500, 375)">
+      <text class="text-primary body" font-weight="600" y="0">Design Status</text>
+      <rect fill="#E8F5E9" x="0" y="10" width="180" height="32" rx="16"/>
+      <circle fill="#2E7D32" cx="20" cy="26" r="6"/>
+      <text class="text-primary body" x="35" y="32">Ready for Development</text>
+
+      <text class="text-secondary caption" y="60">Last Updated: 28 Jan 2026</text>
+    </g>
+
+    <!-- Footer -->
+    <rect fill="#F5F5F5" y="420" width="1180" height="1"/>
+  </g>
+
+  <!-- Annotation Lines -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#FF5722"/>
+    </marker>
+  </defs>
+
+  <!-- Dimension annotations -->
+  <g opacity="0.7">
+    <!-- Screen width -->
+    <line x1="0" y1="815" x2="360" y2="815" stroke="#FF5722" stroke-width="1" marker-end="url(#arrowhead)" marker-start="url(#arrowhead)"/>
+    <text fill="#FF5722" font-size="11" x="155" y="810">360dp</text>
+
+    <!-- Header height -->
+    <line x1="365" y1="0" x2="365" y2="64" stroke="#FF5722" stroke-width="1" marker-end="url(#arrowhead)" marker-start="url(#arrowhead)"/>
+    <text fill="#FF5722" font-size="11" x="368" y="35">64dp</text>
+  </g>
+</svg>
