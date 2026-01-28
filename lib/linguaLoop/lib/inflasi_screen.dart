@@ -1,5 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'responsive_sizing.dart';
+
+// BPS Color Palette - Consistent with home_screen.dart
+const Color _bpsBlue = Color(0xFF2E99D6);
+const Color _bpsOrange = Color(0xFFE88D34);
+const Color _bpsGreen = Color(0xFF7DBD42);
+const Color _bpsBackground = Color(0xFFF5F5F5);
+const Color _bpsCardBg = Color(0xFFFFFFFF);
+const Color _bpsTextPrimary = Color(0xFF333333);
+const Color _bpsTextSecondary = Color(0xFF808080);
+const Color _bpsTextLabel = Color(0xFFA0A0A0);
+const Color _bpsBorder = Color(0xFFE0E0E0);
+const Color _bpsRed = Color(0xFFE05555);
+const Color _bpsPurple = Color(0xFF9B59B6);
+const Color _bpsTeal = Color(0xFF1ABC9C);
 
 class InflasiScreen extends StatefulWidget {
   const InflasiScreen({super.key});
@@ -11,9 +26,15 @@ class InflasiScreen extends StatefulWidget {
 class _InflasiScreenState extends State<InflasiScreen> {
   int selectedYear = 2023;
   int? selectedMonth;
-  
-  final List<String> months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-  final List<String> fullMonths = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+
+  final List<String> months = [
+    'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
+    'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des',
+  ];
+  final List<String> fullMonths = [
+    'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
+  ];
 
   // Data inflasi bulanan
   final Map<int, List<double>> monthlyInflationData = {
@@ -91,338 +112,176 @@ class _InflasiScreenState extends State<InflasiScreen> {
 
   Color get inflationColor {
     final value = currentInflationValue;
-    if (value > 0.5) return Colors.red;
-    if (value > 0.2) return Colors.orange;
-    if (value >= 0) return Colors.green;
-    return Colors.blue;
+    if (value > 0.5) return _bpsRed;
+    if (value > 0.2) return _bpsOrange;
+    if (value >= 0) return _bpsGreen;
+    return _bpsBlue;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        title: const Text('Data Inflasi Indonesia'),
-        backgroundColor: const Color(0xFF3F51B5),
-        foregroundColor: Colors.white,
-        elevation: 2,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            _buildHeaderCard(),
-            const SizedBox(height: 20),
-            _buildFilterSection(),
-            const SizedBox(height: 20),
-            _buildKeyMetrics(),
-            const SizedBox(height: 20),
-            _buildInflationChart(),
-            const SizedBox(height: 20),
-            _buildMonthlyInflationChart(),
-            const SizedBox(height: 20),
-            _buildInflationComponents(),
-          ],
-        ),
-      ),
-    );
-  }
+    final sizing = ResponsiveSizing(context);
 
-  Widget _buildHeaderCard() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF3F51B5), Color(0xFF5C6BC0)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.indigo.withOpacity(0.4),
-            blurRadius: 15,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(Icons.analytics_outlined, color: Colors.white, size: 32),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Inflasi ${selectedMonth == null ? 'Tahun $selectedYear' : '$currentMonthLabel $selectedYear'}',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Data resmi Badan Pusat Statistik (BPS)',
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.9),
-                    fontSize: 13,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    '${currentInflationValue.toStringAsFixed(2)}%',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
+    if (availableYears.isEmpty) {
+      return Scaffold(
+        backgroundColor: _bpsBackground,
+        body: Column(
+          children: [
+            _buildHeader(context, sizing),
+            Expanded(
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.info_outline_rounded,
+                      size: sizing.isVerySmall ? 64 : 80,
+                      color: _bpsTextLabel,
                     ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFilterSection() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          _buildYearFilter(),
-          const SizedBox(height: 16),
-          _buildMonthFilter(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildYearFilter() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Icon(Icons.calendar_today, color: Colors.grey[600], size: 16),
-            const SizedBox(width: 8),
-            Text(
-              'Tahun',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: Colors.grey[700],
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: availableYears.map((year) {
-            final isSelected = year == selectedYear;
-            return GestureDetector(
-              onTap: () {
-                setState(() {
-                  selectedYear = year;
-                  selectedMonth = null;
-                });
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                decoration: BoxDecoration(
-                  color: isSelected ? const Color(0xFF3F51B5) : Colors.grey[50],
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: isSelected ? const Color(0xFF3F51B5) : Colors.grey[300]!,
-                  ),
-                ),
-                child: Text(
-                  year.toString(),
-                  style: TextStyle(
-                    color: isSelected ? Colors.white : Colors.grey[700],
-                    fontWeight: FontWeight.w500,
-                    fontSize: 12,
-                  ),
-                ),
-              ),
-            );
-          }).toList(),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMonthFilter() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Icon(Icons.calendar_month, color: Colors.grey[600], size: 16),
-            const SizedBox(width: 8),
-            Text(
-              'Bulan',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: Colors.grey[700],
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        SizedBox(
-          height: 50,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemCount: months.length,
-            separatorBuilder: (context, index) => const SizedBox(width: 8),
-            itemBuilder: (context, index) {
-              final isSelected = selectedMonth == index;
-              return GestureDetector(
-                onTap: () {
-                  setState(() {
-                    selectedMonth = isSelected ? null : index;
-                  });
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: isSelected ? const Color(0xFF3F51B5) : Colors.grey[50],
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: isSelected ? const Color(0xFF3F51B5) : Colors.grey[300]!,
-                      width: isSelected ? 1.5 : 1,
-                    ),
-                    boxShadow: isSelected ? [
-                      BoxShadow(
-                        color: const Color(0xFF3F51B5).withOpacity(0.3),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
+                    SizedBox(height: sizing.horizontalPadding),
+                    Text(
+                      'Belum ada data tersedia',
+                      style: TextStyle(
+                        fontSize: sizing.sectionTitleSize,
+                        color: _bpsTextSecondary,
+                        fontWeight: FontWeight.w600,
                       ),
-                    ] : null,
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        months[index],
-                        style: TextStyle(
-                          color: isSelected ? Colors.white : Colors.grey[700],
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                          fontSize: 12,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Scaffold(
+      backgroundColor: _bpsBackground,
+      body: CustomScrollView(
+        physics: const ClampingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+        slivers: [
+          SliverToBoxAdapter(child: _buildHeader(context, sizing)),
+          SliverPadding(
+            padding: EdgeInsets.all(sizing.horizontalPadding),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                _buildYearSelector(sizing),
+                SizedBox(height: sizing.sectionSpacing),
+                _buildMonthSelector(sizing),
+                SizedBox(height: sizing.sectionSpacing),
+                _buildMainIndicators(sizing),
+                SizedBox(height: sizing.sectionSpacing),
+                _buildInflationChart(sizing),
+                SizedBox(height: sizing.sectionSpacing),
+                _buildMonthlyInflationChart(sizing),
+                SizedBox(height: sizing.sectionSpacing),
+                _buildInflationComponents(sizing),
+                SizedBox(height: sizing.sectionSpacing),
+              ]),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context, ResponsiveSizing sizing) {
+    return Container(
+      decoration: BoxDecoration(
+        color: _bpsBlue,
+        boxShadow: [
+          BoxShadow(
+            color: _bpsBlue.withOpacity(0.2),
+            blurRadius: 30,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: EdgeInsets.all(sizing.horizontalPadding),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Material(
+                    color: Colors.white.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(12),
+                    child: InkWell(
+                      onTap: () => Navigator.of(context).pop(),
+                      borderRadius: BorderRadius.circular(12),
+                      child: Padding(
+                        padding: EdgeInsets.all(sizing.headerLogoPadding),
+                        child: Icon(
+                          Icons.arrow_back_rounded,
+                          color: Colors.white,
+                          size: sizing.headerLogoSize,
                         ),
                       ),
-                      if (isSelected) ...[
-                        const SizedBox(height: 2),
-                        Container(
-                          width: 4,
-                          height: 4,
-                          decoration: const BoxDecoration(
+                    ),
+                  ),
+                  SizedBox(width: sizing.itemSpacing),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Data Inflasi',
+                          style: TextStyle(
                             color: Colors.white,
-                            shape: BoxShape.circle,
+                            fontSize: sizing.headerTitleSize,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Data Tahun $selectedYear',
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: sizing.headerSubtitleSize,
+                            fontWeight: FontWeight.w400,
                           ),
                         ),
                       ],
-                    ],
+                    ),
                   ),
-                ),
-              );
-            },
+                  Container(
+                    padding: EdgeInsets.all(sizing.headerLogoPadding),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      Icons.analytics_rounded,
+                      color: Colors.white,
+                      size: sizing.headerLogoSize,
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
-      ],
-    );
-  }
-
-  Widget _buildKeyMetrics() {
-    final yearInflation = yearlyInflation[selectedYear] ?? 0.0;
-    final coreInfl = coreInflation[selectedYear] ?? 0.0;
-    final ihk = ihkData[selectedYear] ?? 0.0;
-
-    return GridView(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-        childAspectRatio: 1.2,
       ),
-      children: [
-        _buildMetricCard(
-          'Inflasi Tahunan',
-          '${yearInflation.toStringAsFixed(2)}%',
-          'YoY $selectedYear',
-          Icons.trending_up,
-          yearInflation > 3 ? Colors.red : yearInflation > 2 ? Colors.orange : Colors.green,
-        ),
-        _buildMetricCard(
-          selectedMonth == null ? 'Inflasi Bulanan' : 'Inflasi $currentMonthLabel',
-          '${currentInflationValue.toStringAsFixed(2)}%',
-          selectedMonth == null ? 'MoM Des' : 'MoM ${months[selectedMonth!]}',
-          Icons.calendar_month,
-          inflationColor,
-        ),
-        _buildMetricCard(
-          'Inflasi Inti',
-          '${coreInfl.toStringAsFixed(2)}%',
-          'YoY $selectedYear',
-          Icons.insights,
-          const Color(0xFF3F51B5),
-        ),
-        _buildMetricCard(
-          'Indeks Harga Konsumen',
-          ihk.toStringAsFixed(2),
-          '2018=100',
-          Icons.assessment,
-          Colors.purple,
-        ),
-      ],
     );
   }
 
-  Widget _buildMetricCard(String title, String value, String subtitle, IconData icon, Color color) {
+  Widget _buildYearSelector(ResponsiveSizing sizing) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(sizing.statsCardPadding),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        color: _bpsCardBg,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _bpsBorder, width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.black.withOpacity(0.04),
             blurRadius: 8,
-            offset: const Offset(0, 3),
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -430,49 +289,188 @@ class _InflasiScreenState extends State<InflasiScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
-                padding: const EdgeInsets.all(6),
+                padding: EdgeInsets.all(sizing.groupIconPadding),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: _bpsBlue.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(icon, color: color, size: 18),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.grey[50],
-                  borderRadius: BorderRadius.circular(6),
+                child: Icon(
+                  Icons.calendar_today_rounded,
+                  color: _bpsBlue,
+                  size: sizing.groupIconSize,
                 ),
-                child: Text(
-                  subtitle,
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: Colors.grey[600],
-                    fontWeight: FontWeight.w500,
-                  ),
+              ),
+              SizedBox(width: sizing.itemSpacing),
+              Text(
+                'Pilih Tahun Data',
+                style: TextStyle(
+                  fontSize: sizing.groupTitleSize,
+                  fontWeight: FontWeight.w700,
+                  color: _bpsTextPrimary,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
+          SizedBox(height: sizing.horizontalPadding),
+          Wrap(
+            spacing: sizing.itemSpacing,
+            runSpacing: sizing.itemSpacing,
+            children: availableYears.map((year) {
+              final isSelected = year == selectedYear;
+              return Material(
+                color: isSelected ? _bpsBlue : _bpsBackground,
+                borderRadius: BorderRadius.circular(12),
+                child: InkWell(
+                  onTap: () {
+                    setState(() {
+                      selectedYear = year;
+                      selectedMonth = null;
+                    });
+                  },
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: sizing.statsCardPadding,
+                      vertical: sizing.itemSpacing,
+                    ),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: isSelected ? _bpsBlue : _bpsBorder,
+                        width: isSelected ? 2 : 1.5,
+                      ),
+                    ),
+                    child: Text(
+                      year.toString(),
+                      style: TextStyle(
+                        fontSize: sizing.categoryLabelFontSize,
+                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                        color: isSelected ? Colors.white : _bpsTextSecondary,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
           ),
-          const SizedBox(height: 4),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey[600],
-              fontWeight: FontWeight.w500,
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMonthSelector(ResponsiveSizing sizing) {
+    return Container(
+      padding: EdgeInsets.all(sizing.statsCardPadding),
+      decoration: BoxDecoration(
+        color: _bpsCardBg,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _bpsBorder, width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: EdgeInsets.all(sizing.groupIconPadding),
+                decoration: BoxDecoration(
+                  color: _bpsOrange.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.calendar_month_rounded,
+                  color: _bpsOrange,
+                  size: sizing.groupIconSize,
+                ),
+              ),
+              SizedBox(width: sizing.itemSpacing),
+              Text(
+                'Pilih Bulan',
+                style: TextStyle(
+                  fontSize: sizing.groupTitleSize,
+                  fontWeight: FontWeight.w700,
+                  color: _bpsTextPrimary,
+                ),
+              ),
+              const Spacer(),
+              if (selectedMonth != null)
+                Material(
+                  color: _bpsOrange.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  child: InkWell(
+                    onTap: () => setState(() => selectedMonth = null),
+                    borderRadius: BorderRadius.circular(8),
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: sizing.itemSpacing,
+                        vertical: 4,
+                      ),
+                      child: Text(
+                        'Reset',
+                        style: TextStyle(
+                          fontSize: sizing.bottomNavLabelSize,
+                          color: _bpsOrange,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          SizedBox(height: sizing.horizontalPadding),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            child: Row(
+              children: List.generate(months.length, (index) {
+                final isSelected = selectedMonth == index;
+                return Padding(
+                  padding: EdgeInsets.only(right: sizing.itemSpacing),
+                  child: Material(
+                    color: isSelected ? _bpsOrange : _bpsBackground,
+                    borderRadius: BorderRadius.circular(12),
+                    child: InkWell(
+                      onTap: () {
+                        setState(() {
+                          selectedMonth = isSelected ? null : index;
+                        });
+                      },
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: sizing.statsCardPadding,
+                          vertical: sizing.itemSpacing,
+                        ),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: isSelected ? _bpsOrange : _bpsBorder,
+                            width: isSelected ? 2 : 1.5,
+                          ),
+                        ),
+                        child: Text(
+                          months[index],
+                          style: TextStyle(
+                            fontSize: sizing.categoryLabelFontSize,
+                            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                            color: isSelected ? Colors.white : _bpsTextSecondary,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              }),
             ),
           ),
         ],
@@ -480,50 +478,352 @@ class _InflasiScreenState extends State<InflasiScreen> {
     );
   }
 
-  Widget _buildInflationChart() {
+  Widget _buildMainIndicators(ResponsiveSizing sizing) {
+    final yearInflation = yearlyInflation[selectedYear] ?? 0.0;
+    final coreInfl = coreInflation[selectedYear] ?? 0.0;
+    final ihk = ihkData[selectedYear] ?? 0.0;
+
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(sizing.statsCardPadding),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: _bpsCardBg,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _bpsBorder, width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Tren Inflasi Tahunan (2019-2023)',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
+          Row(
+            children: [
+              Container(
+                padding: EdgeInsets.all(sizing.groupIconPadding),
+                decoration: BoxDecoration(
+                  color: _bpsBlue.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.analytics_rounded,
+                  color: _bpsBlue,
+                  size: sizing.groupIconSize,
+                ),
+              ),
+              SizedBox(width: sizing.itemSpacing),
+              Expanded(
+                child: Text(
+                  'Indikator Utama Inflasi',
+                  style: TextStyle(
+                    fontSize: sizing.groupTitleSize,
+                    fontWeight: FontWeight.w700,
+                    color: _bpsTextPrimary,
+                  ),
+                ),
+              ),
+              Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: sizing.itemSpacing,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: _bpsBlue.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.touch_app_rounded,
+                      color: _bpsBlue,
+                      size: sizing.bottomNavLabelSize,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Tap untuk detail',
+                      style: TextStyle(
+                        fontSize: sizing.bottomNavLabelSize,
+                        color: _bpsBlue,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: sizing.horizontalPadding),
+          Row(
+            children: [
+              Expanded(
+                child: _buildIndicatorCard(
+                  sizing: sizing,
+                  value: '${yearInflation.toStringAsFixed(2)}%',
+                  label: 'Inflasi Tahunan',
+                  icon: Icons.trending_up_rounded,
+                  color: _bpsBlue,
+                  onTap: () => _showDetailDialog(
+                    'Inflasi Tahunan',
+                    '${yearInflation.toStringAsFixed(2)}%',
+                    Icons.trending_up_rounded,
+                    _bpsBlue,
+                    'Inflasi tahunan (Year-on-Year) mengukur perubahan harga barang dan jasa secara umum selama satu tahun. Angka ini menjadi acuan utama kebijakan moneter.',
+                    sizing,
+                  ),
+                ),
+              ),
+              SizedBox(width: sizing.gridSpacing),
+              Expanded(
+                child: _buildIndicatorCard(
+                  sizing: sizing,
+                  value: '${currentInflationValue.toStringAsFixed(2)}%',
+                  label: selectedMonth == null ? 'Inflasi Bulanan' : 'Inflasi $currentMonthLabel',
+                  icon: Icons.calendar_month_rounded,
+                  color: inflationColor,
+                  onTap: () => _showDetailDialog(
+                    selectedMonth == null ? 'Inflasi Bulanan' : 'Inflasi $currentMonthLabel',
+                    '${currentInflationValue.toStringAsFixed(2)}%',
+                    Icons.calendar_month_rounded,
+                    inflationColor,
+                    'Inflasi bulanan (Month-to-Month) mengukur perubahan harga barang dan jasa dari bulan ke bulan. Fluktuasi bulanan dipengaruhi oleh faktor musiman dan kebijakan harga.',
+                    sizing,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: sizing.gridSpacing),
+          Row(
+            children: [
+              Expanded(
+                child: _buildIndicatorCard(
+                  sizing: sizing,
+                  value: '${coreInfl.toStringAsFixed(2)}%',
+                  label: 'Inflasi Inti',
+                  icon: Icons.insights_rounded,
+                  color: _bpsGreen,
+                  onTap: () => _showDetailDialog(
+                    'Inflasi Inti',
+                    '${coreInfl.toStringAsFixed(2)}%',
+                    Icons.insights_rounded,
+                    _bpsGreen,
+                    'Inflasi inti (Core Inflation) menghilangkan komponen harga yang bergejolak (volatile) seperti bahan makanan dan energi. Indikator ini mencerminkan tekanan inflasi yang lebih fundamental.',
+                    sizing,
+                  ),
+                ),
+              ),
+              SizedBox(width: sizing.gridSpacing),
+              Expanded(
+                child: _buildIndicatorCard(
+                  sizing: sizing,
+                  value: ihk.toStringAsFixed(2),
+                  label: 'Indeks Harga Konsumen',
+                  icon: Icons.assessment_rounded,
+                  color: _bpsPurple,
+                  onTap: () => _showDetailDialog(
+                    'Indeks Harga Konsumen',
+                    ihk.toStringAsFixed(2),
+                    Icons.assessment_rounded,
+                    _bpsPurple,
+                    'Indeks Harga Konsumen (IHK) mengukur rata-rata perubahan harga dari suatu paket barang dan jasa yang dikonsumsi oleh rumah tangga. Basis perhitungan 2018=100.',
+                    sizing,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildIndicatorCard({
+    required ResponsiveSizing sizing,
+    required String value,
+    required String label,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: _bpsCardBg,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: EdgeInsets.all(sizing.categoryCardPadding),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: color.withOpacity(0.2),
+              width: 2,
             ),
           ),
-          const SizedBox(height: 20),
+          child: Column(
+            children: [
+              Container(
+                padding: EdgeInsets.all(sizing.categoryIconContainerPadding),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  icon,
+                  color: color,
+                  size: sizing.categoryIconSize,
+                ),
+              ),
+              SizedBox(height: sizing.itemSpacing),
+              Text(
+                value,
+                style: TextStyle(
+                  fontSize: sizing.statsValueFontSize,
+                  fontWeight: FontWeight.w800,
+                  color: color,
+                  height: 1,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: sizing.itemSpacing - 4),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: sizing.categorySubLabelFontSize,
+                  color: _bpsTextSecondary,
+                  fontWeight: FontWeight.w600,
+                  height: 1.2,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: sizing.itemSpacing - 4),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.info_outline_rounded,
+                    size: sizing.bottomNavLabelSize,
+                    color: color.withOpacity(0.7),
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Detail',
+                    style: TextStyle(
+                      fontSize: sizing.bottomNavLabelSize,
+                      color: color.withOpacity(0.8),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInflationChart(ResponsiveSizing sizing) {
+    final years = availableYears;
+    final spots = years.asMap().entries.map((e) {
+      final val = yearlyInflation[e.value] ?? 0.0;
+      return FlSpot(e.key.toDouble(), val);
+    }).toList();
+
+    final maxY = (yearlyInflation.values.reduce((a, b) => a > b ? a : b) + 0.5).ceilToDouble();
+
+    return Container(
+      padding: EdgeInsets.all(sizing.statsCardPadding),
+      decoration: BoxDecoration(
+        color: _bpsCardBg,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _bpsBorder, width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: EdgeInsets.all(sizing.groupIconPadding),
+                decoration: BoxDecoration(
+                  color: _bpsBlue.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.show_chart_rounded,
+                  color: _bpsBlue,
+                  size: sizing.groupIconSize,
+                ),
+              ),
+              SizedBox(width: sizing.itemSpacing),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Tren Inflasi Tahunan',
+                      style: TextStyle(
+                        fontSize: sizing.groupTitleSize,
+                        fontWeight: FontWeight.w700,
+                        color: _bpsTextPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Persentase Year-on-Year (${years.first}-${years.last})',
+                      style: TextStyle(
+                        fontSize: sizing.categorySubLabelFontSize,
+                        color: _bpsTextSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: sizing.horizontalPadding),
           SizedBox(
-            height: 200,
+            height: 220,
             child: LineChart(
               LineChartData(
-                minY: 1.0,
-                maxY: 4.5,
-                gridData: const FlGridData(show: false),
+                gridData: FlGridData(
+                  show: true,
+                  drawVerticalLine: false,
+                  horizontalInterval: 1,
+                  getDrawingHorizontalLine: (value) {
+                    return FlLine(
+                      color: _bpsBorder,
+                      strokeWidth: 1,
+                    );
+                  },
+                ),
                 titlesData: FlTitlesData(
                   leftTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
                       reservedSize: 40,
+                      interval: 1,
                       getTitlesWidget: (value, meta) {
                         return Text(
                           '${value.toStringAsFixed(1)}%',
-                          style: const TextStyle(
-                            fontSize: 10,
-                            color: Colors.grey,
+                          style: TextStyle(
+                            fontSize: sizing.bottomNavLabelSize,
+                            color: _bpsTextSecondary,
+                            fontWeight: FontWeight.w500,
                           ),
                         );
                       },
@@ -532,41 +832,66 @@ class _InflasiScreenState extends State<InflasiScreen> {
                   bottomTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
+                      interval: 1,
                       getTitlesWidget: (value, meta) {
-                        const years = ['2019', '2020', '2021', '2022', '2023'];
-                        if (value.toInt() < years.length) {
-                          return Text(
-                            years[value.toInt()],
-                            style: const TextStyle(
-                              fontSize: 10,
-                              color: Colors.grey,
+                        final index = value.toInt();
+                        if (index >= 0 && index < years.length) {
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: Text(
+                              years[index].toString(),
+                              style: TextStyle(
+                                fontSize: sizing.bottomNavLabelSize,
+                                color: _bpsTextPrimary,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           );
                         }
-                        return const Text('');
+                        return const SizedBox.shrink();
                       },
                     ),
                   ),
-                  rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  rightTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  topTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
                 ),
                 borderData: FlBorderData(show: false),
+                minX: 0,
+                maxX: (years.length - 1).toDouble(),
+                minY: 1.0,
+                maxY: maxY,
                 lineBarsData: [
                   LineChartBarData(
-                    spots: [
-                      const FlSpot(0, 2.72),
-                      const FlSpot(1, 1.68),
-                      const FlSpot(2, 1.87),
-                      const FlSpot(3, 4.21),
-                      const FlSpot(4, 2.61),
-                    ],
+                    spots: spots,
                     isCurved: true,
-                    color: const Color(0xFF3F51B5),
-                    barWidth: 3,
-                    dotData: const FlDotData(show: true),
+                    color: _bpsBlue,
+                    barWidth: 3.5,
+                    isStrokeCapRound: true,
+                    dotData: FlDotData(
+                      show: true,
+                      getDotPainter: (spot, percent, barData, index) {
+                        return FlDotCirclePainter(
+                          radius: 5,
+                          color: _bpsBlue,
+                          strokeWidth: 2.5,
+                          strokeColor: Colors.white,
+                        );
+                      },
+                    ),
                     belowBarData: BarAreaData(
                       show: true,
-                      color: const Color(0xFF3F51B5).withOpacity(0.1),
+                      gradient: LinearGradient(
+                        colors: [
+                          _bpsBlue.withOpacity(0.2),
+                          _bpsBlue.withOpacity(0.02),
+                        ],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                      ),
                     ),
                   ),
                 ],
@@ -578,16 +903,30 @@ class _InflasiScreenState extends State<InflasiScreen> {
     );
   }
 
-  Widget _buildMonthlyInflationChart() {
+  Widget _buildMonthlyInflationChart(ResponsiveSizing sizing) {
     if (filteredMonthlyData.isEmpty) {
       return Container(
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.all(sizing.statsCardPadding),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: _bpsCardBg,
           borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: _bpsBorder, width: 1.5),
         ),
-        child: const Center(
-          child: Text('Data tidak tersedia'),
+        child: Center(
+          child: Column(
+            children: [
+              Icon(Icons.info_outline_rounded, size: 40, color: _bpsTextLabel),
+              SizedBox(height: sizing.itemSpacing),
+              Text(
+                'Data tidak tersedia',
+                style: TextStyle(
+                  fontSize: sizing.categoryLabelFontSize,
+                  color: _bpsTextSecondary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
         ),
       );
     }
@@ -595,34 +934,77 @@ class _InflasiScreenState extends State<InflasiScreen> {
     final monthlyData = filteredMonthlyData;
     final maxValue = monthlyData.reduce((a, b) => a > b ? a : b) + 0.2;
     final minValue = monthlyData.reduce((a, b) => a < b ? a : b) - 0.2;
-    
+
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(sizing.statsCardPadding),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: _bpsCardBg,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _bpsBorder, width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            selectedMonth == null
-                ? 'Inflasi Bulanan $selectedYear'
-                : 'Inflasi $currentMonthLabel $selectedYear',
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-            ),
+          Row(
+            children: [
+              Container(
+                padding: EdgeInsets.all(sizing.groupIconPadding),
+                decoration: BoxDecoration(
+                  color: _bpsGreen.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.bar_chart_rounded,
+                  color: _bpsGreen,
+                  size: sizing.groupIconSize,
+                ),
+              ),
+              SizedBox(width: sizing.itemSpacing),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      selectedMonth == null
+                          ? 'Inflasi Bulanan $selectedYear'
+                          : 'Inflasi $currentMonthLabel $selectedYear',
+                      style: TextStyle(
+                        fontSize: sizing.groupTitleSize,
+                        fontWeight: FontWeight.w700,
+                        color: _bpsTextPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Persentase Month-to-Month',
+                      style: TextStyle(
+                        fontSize: sizing.categorySubLabelFontSize,
+                        color: _bpsTextSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: sizing.horizontalPadding),
+          // Legend
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _buildLegendItem(sizing, 'Positif', _bpsBlue),
+              SizedBox(width: sizing.horizontalPadding),
+              _buildLegendItem(sizing, 'Negatif (Deflasi)', _bpsRed),
+            ],
+          ),
+          SizedBox(height: sizing.horizontalPadding),
           SizedBox(
             height: 200,
             child: BarChart(
@@ -634,13 +1016,14 @@ class _InflasiScreenState extends State<InflasiScreen> {
                   leftTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
-                      reservedSize: 30,
+                      reservedSize: 35,
                       getTitlesWidget: (value, meta) {
                         return Text(
                           '${value.toStringAsFixed(1)}%',
-                          style: const TextStyle(
-                            fontSize: 9,
-                            color: Colors.grey,
+                          style: TextStyle(
+                            fontSize: sizing.bottomNavLabelSize,
+                            color: _bpsTextSecondary,
+                            fontWeight: FontWeight.w500,
                           ),
                         );
                       },
@@ -651,25 +1034,34 @@ class _InflasiScreenState extends State<InflasiScreen> {
                       showTitles: true,
                       getTitlesWidget: (value, meta) {
                         if (selectedMonth != null) {
-                          return Text(
-                            months[selectedMonth!],
-                            style: const TextStyle(
-                              fontSize: 11,
-                              color: Colors.grey,
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 6),
+                            child: Text(
+                              months[selectedMonth!],
+                              style: TextStyle(
+                                fontSize: sizing.bottomNavLabelSize,
+                                color: _bpsTextPrimary,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           );
                         } else {
-                          if (value.toInt() < months.length) {
-                            return Text(
-                              months[value.toInt()],
-                              style: const TextStyle(
-                                fontSize: 9,
-                                color: Colors.grey,
+                          final idx = value.toInt();
+                          if (idx >= 0 && idx < months.length) {
+                            return Padding(
+                              padding: const EdgeInsets.only(top: 6),
+                              child: Text(
+                                months[idx],
+                                style: TextStyle(
+                                  fontSize: sizing.bottomNavLabelSize,
+                                  color: _bpsTextPrimary,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             );
                           }
                         }
-                        return const Text('');
+                        return const SizedBox.shrink();
                       },
                     ),
                   ),
@@ -679,8 +1071,8 @@ class _InflasiScreenState extends State<InflasiScreen> {
                 borderData: FlBorderData(show: false),
                 barGroups: List.generate(monthlyData.length, (index) {
                   final value = monthlyData[index];
-                  final color = value >= 0 ? Colors.indigo : Colors.red;
-                  
+                  final color = value >= 0 ? _bpsBlue : _bpsRed;
+
                   return BarChartGroupData(
                     x: index,
                     barRods: [
@@ -688,7 +1080,8 @@ class _InflasiScreenState extends State<InflasiScreen> {
                         toY: value,
                         color: color,
                         width: selectedMonth != null ? 25 : 10,
-                      )
+                        borderRadius: BorderRadius.circular(4),
+                      ),
                     ],
                   );
                 }),
@@ -700,87 +1093,154 @@ class _InflasiScreenState extends State<InflasiScreen> {
     );
   }
 
-  Widget _buildInflationComponents() {
+  Widget _buildInflationComponents(ResponsiveSizing sizing) {
     final yearStr = selectedYear.toString();
-    
+
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(sizing.statsCardPadding),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: _bpsCardBg,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _bpsBorder, width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Komponen Inflasi',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-            ),
+          Row(
+            children: [
+              Container(
+                padding: EdgeInsets.all(sizing.groupIconPadding),
+                decoration: BoxDecoration(
+                  color: _bpsOrange.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.category_rounded,
+                  color: _bpsOrange,
+                  size: sizing.groupIconSize,
+                ),
+              ),
+              SizedBox(width: sizing.itemSpacing),
+              Text(
+                'Komponen Inflasi',
+                style: TextStyle(
+                  fontSize: sizing.groupTitleSize,
+                  fontWeight: FontWeight.w700,
+                  color: _bpsTextPrimary,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: sizing.horizontalPadding),
           ...inflationComponents.entries.map((entry) {
             final value = entry.value[yearStr] ?? 0.0;
             final color = _getComponentColor(entry.key);
-            
-            return _buildComponentItem(
-              entry.key,
-              '${value.toStringAsFixed(2)}%',
-              _getComponentIcon(entry.key),
-              color,
+
+            return Padding(
+              padding: EdgeInsets.only(bottom: sizing.itemSpacing),
+              child: Container(
+                padding: EdgeInsets.all(sizing.statsCardPadding),
+                decoration: BoxDecoration(
+                  color: _bpsBackground,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: _bpsBorder),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(sizing.categoryIconContainerPadding),
+                      decoration: BoxDecoration(
+                        color: color.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        _getComponentIcon(entry.key),
+                        color: color,
+                        size: sizing.groupIconSize,
+                      ),
+                    ),
+                    SizedBox(width: sizing.itemSpacing),
+                    Expanded(
+                      child: Text(
+                        entry.key,
+                        style: TextStyle(
+                          fontSize: sizing.categoryLabelFontSize,
+                          fontWeight: FontWeight.w600,
+                          color: _bpsTextPrimary,
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: sizing.itemSpacing),
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: sizing.itemSpacing,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: color.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: color.withOpacity(0.3),
+                        ),
+                      ),
+                      child: Text(
+                        '${value.toStringAsFixed(2)}%',
+                        style: TextStyle(
+                          fontSize: sizing.categoryLabelFontSize,
+                          fontWeight: FontWeight.w700,
+                          color: color,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             );
-          }).toList(),
+          }),
         ],
       ),
     );
   }
 
-  Widget _buildComponentItem(String title, String value, IconData icon, Color color) {
+  Widget _buildLegendItem(ResponsiveSizing sizing, String label, Color color) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.symmetric(
+        horizontal: sizing.statsCardPadding,
+        vertical: sizing.itemSpacing,
+      ),
       decoration: BoxDecoration(
-        color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[200]!),
+        color: color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: color.withOpacity(0.3),
+          width: 1.5,
+        ),
       ),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            width: 10,
+            height: 10,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(icon, color: color, size: 18),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              title,
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: Colors.black87,
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
               color: color,
+              shape: BoxShape.circle,
+            ),
+          ),
+          SizedBox(width: sizing.itemSpacing - 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: sizing.categorySubLabelFontSize,
+              color: color,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],
@@ -791,42 +1251,262 @@ class _InflasiScreenState extends State<InflasiScreen> {
   Color _getComponentColor(String component) {
     switch (component) {
       case 'Makanan, Minuman & Tembakau':
-        return Colors.orange;
+        return _bpsOrange;
       case 'Pakaian & Alas Kaki':
-        return Colors.purple;
+        return _bpsPurple;
       case 'Perumahan & Fasilitas':
-        return Colors.blue;
+        return _bpsBlue;
       case 'Perawatan Kesehatan':
-        return Colors.red;
+        return _bpsRed;
       case 'Transportasi':
-        return Colors.green;
+        return _bpsGreen;
       case 'Komunikasi & Keuangan':
-        return Colors.indigo;
+        return const Color(0xFF3F51B5);
       case 'Rekreasi & Olahraga':
-        return Colors.teal;
+        return _bpsTeal;
       default:
-        return Colors.grey;
+        return _bpsTextSecondary;
     }
   }
 
   IconData _getComponentIcon(String component) {
     switch (component) {
       case 'Makanan, Minuman & Tembakau':
-        return Icons.restaurant;
+        return Icons.restaurant_rounded;
       case 'Pakaian & Alas Kaki':
-        return Icons.checkroom;
+        return Icons.checkroom_rounded;
       case 'Perumahan & Fasilitas':
-        return Icons.home;
+        return Icons.home_rounded;
       case 'Perawatan Kesehatan':
-        return Icons.local_hospital;
+        return Icons.local_hospital_rounded;
       case 'Transportasi':
-        return Icons.directions_car;
+        return Icons.directions_car_rounded;
       case 'Komunikasi & Keuangan':
-        return Icons.phone_iphone;
+        return Icons.phone_iphone_rounded;
       case 'Rekreasi & Olahraga':
-        return Icons.sports_soccer;
+        return Icons.sports_soccer_rounded;
       default:
-        return Icons.category;
+        return Icons.category_rounded;
     }
+  }
+}
+
+extension on _InflasiScreenState {
+  void _showDetailDialog(
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+    String description,
+    ResponsiveSizing sizing,
+  ) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(dialogContext).size.height * 0.8,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Header
+              Container(
+                padding: EdgeInsets.all(sizing.statsCardPadding),
+                decoration: BoxDecoration(
+                  color: color,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(20),
+                    topRight: Radius.circular(20),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(sizing.categoryIconContainerPadding),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(icon, color: Colors.white, size: sizing.categoryIconSize),
+                    ),
+                    SizedBox(width: sizing.itemSpacing),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            title,
+                            style: TextStyle(
+                              fontSize: sizing.groupTitleSize,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Tahun $selectedYear',
+                            style: TextStyle(
+                              fontSize: sizing.categorySubLabelFontSize,
+                              color: Colors.white70,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Material(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(8),
+                      child: InkWell(
+                        onTap: () => Navigator.pop(dialogContext),
+                        borderRadius: BorderRadius.circular(8),
+                        child: Padding(
+                          padding: const EdgeInsets.all(8),
+                          child: Icon(
+                            Icons.close_rounded,
+                            color: Colors.white,
+                            size: sizing.groupIconSize,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Content
+              Flexible(
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.all(sizing.statsCardPadding),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Value Card
+                      Container(
+                        width: double.infinity,
+                        padding: EdgeInsets.all(sizing.statsCardPadding),
+                        decoration: BoxDecoration(
+                          color: color.withOpacity(0.08),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: color.withOpacity(0.2),
+                            width: 2,
+                          ),
+                        ),
+                        child: Column(
+                          children: [
+                            Text(
+                              'Nilai Indikator',
+                              style: TextStyle(
+                                fontSize: sizing.categorySubLabelFontSize,
+                                color: _bpsTextSecondary,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            SizedBox(height: sizing.itemSpacing),
+                            Text(
+                              value,
+                              style: TextStyle(
+                                fontSize: sizing.statsValueFontSize * 1.5,
+                                fontWeight: FontWeight.w800,
+                                color: color,
+                                letterSpacing: -1,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      SizedBox(height: sizing.horizontalPadding),
+
+                      // Description
+                      Container(
+                        padding: EdgeInsets.all(sizing.statsCardPadding),
+                        decoration: BoxDecoration(
+                          color: _bpsBackground,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Icon(
+                              Icons.lightbulb_outline_rounded,
+                              color: color,
+                              size: sizing.groupIconSize,
+                            ),
+                            SizedBox(width: sizing.itemSpacing),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Penjelasan',
+                                    style: TextStyle(
+                                      fontSize: sizing.categoryLabelFontSize,
+                                      fontWeight: FontWeight.w700,
+                                      color: color,
+                                    ),
+                                  ),
+                                  SizedBox(height: sizing.itemSpacing - 4),
+                                  Text(
+                                    description,
+                                    style: TextStyle(
+                                      fontSize: sizing.categorySubLabelFontSize,
+                                      color: _bpsTextSecondary,
+                                      height: 1.5,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      SizedBox(height: sizing.horizontalPadding),
+
+                      // Additional Info
+                      Container(
+                        padding: EdgeInsets.all(sizing.statsCardPadding),
+                        decoration: BoxDecoration(
+                          color: color.withOpacity(0.05),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: color.withOpacity(0.2),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.info_rounded,
+                              color: color,
+                              size: sizing.groupIconSize,
+                            ),
+                            SizedBox(width: sizing.itemSpacing),
+                            Expanded(
+                              child: Text(
+                                'Data bersumber dari Badan Pusat Statistik (BPS) Kota Semarang',
+                                style: TextStyle(
+                                  fontSize: sizing.categorySubLabelFontSize,
+                                  color: _bpsTextSecondary,
+                                  height: 1.4,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

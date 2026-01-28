@@ -394,7 +394,7 @@ class _HomeScreenContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CustomScrollView(
-      physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+      physics: const ClampingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
       slivers: [
         // Header with search
         _buildHeader(),

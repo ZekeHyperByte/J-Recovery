@@ -2,6 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import 'responsive_sizing.dart';
+
+// BPS Color Palette (matching home_screen.dart)
+const Color _bpsBlue = Color(0xFF2E99D6);
+const Color _bpsOrange = Color(0xFFE88D34);
+const Color _bpsGreen = Color(0xFF7DBD42);
+const Color _bpsRed = Color(0xFFEF4444);
+const Color _bpsBackground = Color(0xFFF5F5F5);
+const Color _bpsCardBg = Color(0xFFFFFFFF);
+const Color _bpsTextPrimary = Color(0xFF333333);
+const Color _bpsTextSecondary = Color(0xFF808080);
+const Color _bpsTextLabel = Color(0xFFA0A0A0);
+const Color _bpsBorder = Color(0xFFE0E0E0);
+const Color _bpsPurple = Color(0xFF7B1FA2);
 
 class TenagaKerjaScreen extends StatefulWidget {
   const TenagaKerjaScreen({super.key});
@@ -10,14 +24,12 @@ class TenagaKerjaScreen extends StatefulWidget {
   _TenagaKerjaScreenState createState() => _TenagaKerjaScreenState();
 }
 
-class _TenagaKerjaScreenState extends State<TenagaKerjaScreen> with SingleTickerProviderStateMixin {
+class _TenagaKerjaScreenState extends State<TenagaKerjaScreen> {
   int selectedYear = 2024;
   List<int> availableYears = [2020, 2021, 2022, 2023, 2024];
-  late AnimationController _animationController;
   int touchedIndex = -1;
   bool isLoading = true;
 
-  // Data yang akan dimuat dari SharedPreferences
   Map<int, Map<String, dynamic>> yearData = {};
   Map<int, Map<String, dynamic>> indikatorData = {};
   Map<int, Map<String, double>> distribusiData = {};
@@ -26,69 +38,55 @@ class _TenagaKerjaScreenState extends State<TenagaKerjaScreen> with SingleTicker
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1500),
-    )..repeat(reverse: true);
     _loadData();
   }
 
-  @override
-  void dispose() {
-    _animationController.dispose();
-    super.dispose();
-  }
-
   // ============= LOAD DATA FROM SHARED PREFERENCES =============
-  
+
   Future<void> _loadData() async {
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      
-      // Load Year Data
+
       String? savedYearData = prefs.getString('tenaga_kerja_year_data');
       if (savedYearData != null) {
         Map<String, dynamic> decoded = json.decode(savedYearData);
-        yearData = decoded.map((key, value) => 
+        yearData = decoded.map((key, value) =>
           MapEntry(int.parse(key), Map<String, dynamic>.from(value as Map))
         );
       } else {
         _initializeDefaultYearData();
       }
 
-      // Load Indikator Data
       String? savedIndikatorData = prefs.getString('tenaga_kerja_indikator_data');
       if (savedIndikatorData != null) {
         Map<String, dynamic> decoded = json.decode(savedIndikatorData);
-        indikatorData = decoded.map((key, value) => 
+        indikatorData = decoded.map((key, value) =>
           MapEntry(int.parse(key), Map<String, dynamic>.from(value as Map))
         );
       } else {
         _initializeDefaultIndikatorData();
       }
 
-      // Load Distribusi Data
       String? savedDistribusiData = prefs.getString('tenaga_kerja_distribusi_data');
       if (savedDistribusiData != null) {
         Map<String, dynamic> decoded = json.decode(savedDistribusiData);
-        distribusiData = decoded.map((key, value) => 
+        distribusiData = decoded.map((key, value) =>
           MapEntry(int.parse(key), Map<String, double>.from(value as Map))
         );
       } else {
         _initializeDefaultDistribusiData();
       }
 
-      // Load Jateng Data
       String? savedJatengData = prefs.getString('tenaga_kerja_jateng_data');
       if (savedJatengData != null) {
         Map<String, dynamic> decoded = json.decode(savedJatengData);
-        jatengData = decoded.map((key, value) => 
+        jatengData = decoded.map((key, value) =>
           MapEntry(int.parse(key), Map<String, dynamic>.from(value as Map))
         );
       } else {
         _initializeDefaultJatengData();
       }
-      
+
       setState(() {
         availableYears = yearData.keys.toList()..sort();
         if (availableYears.isNotEmpty && !availableYears.contains(selectedYear)) {
@@ -113,7 +111,7 @@ class _TenagaKerjaScreenState extends State<TenagaKerjaScreen> with SingleTicker
   }
 
   // ============= DEFAULT DATA INITIALIZATION =============
-  
+
   void _initializeDefaultYearData() {
     yearData = {
       2020: {'angkatanKerja': 1023964, 'bekerja': 925963, 'pengangguran': 98001, 'bukanAngkatanKerja': 441157, 'tpt': 9.57, 'tkk': 90.43, 'tpak': 69.89},
@@ -165,51 +163,55 @@ class _TenagaKerjaScreenState extends State<TenagaKerjaScreen> with SingleTicker
 
   String _getChangeText(int year, String key) {
     if (year == availableYears.first) return '0%';
-    
+
     final currentIndex = availableYears.indexOf(year);
     if (currentIndex <= 0) return '0%';
-    
+
     final prevYear = availableYears[currentIndex - 1];
     if (!yearData.containsKey(prevYear)) return '0%';
-    
+
     final currentValue = yearData[year]![key] as num;
     final prevValue = yearData[prevYear]![key] as num;
     final change = ((currentValue - prevValue) / prevValue * 100);
-    
+
     return '${change >= 0 ? '+' : ''}${change.toStringAsFixed(1)}%';
   }
 
   @override
   Widget build(BuildContext context) {
+    final sizing = ResponsiveSizing(context);
+
     if (isLoading) {
       return Scaffold(
+        backgroundColor: _bpsBackground,
         appBar: AppBar(
           title: const Text('Tenaga Kerja'),
-          backgroundColor: const Color(0xFF1976D2),
+          backgroundColor: _bpsBlue,
           foregroundColor: Colors.white,
         ),
         body: const Center(
-          child: CircularProgressIndicator(color: Color(0xFF1976D2)),
+          child: CircularProgressIndicator(color: _bpsBlue),
         ),
       );
     }
 
     if (availableYears.isEmpty || !yearData.containsKey(selectedYear)) {
       return Scaffold(
+        backgroundColor: _bpsBackground,
         appBar: AppBar(
           title: const Text('Tenaga Kerja'),
-          backgroundColor: const Color(0xFF1976D2),
+          backgroundColor: _bpsBlue,
           foregroundColor: Colors.white,
         ),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.error_outline, size: 64, color: Colors.grey[400]),
-              const SizedBox(height: 16),
+              Icon(Icons.error_outline, size: sizing.isVerySmall ? 48 : 64, color: _bpsTextLabel),
+              SizedBox(height: sizing.itemSpacing),
               Text(
                 'Data tidak tersedia',
-                style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+                style: TextStyle(fontSize: sizing.sectionTitleSize, color: _bpsTextSecondary),
               ),
             ],
           ),
@@ -217,50 +219,196 @@ class _TenagaKerjaScreenState extends State<TenagaKerjaScreen> with SingleTicker
       );
     }
 
-    final currentData = yearData[selectedYear]!;
-    
     return Scaffold(
+      backgroundColor: _bpsBackground,
       appBar: AppBar(
         title: const Text('Tenaga Kerja', overflow: TextOverflow.ellipsis),
-        backgroundColor: const Color(0xFF1976D2),
+        backgroundColor: _bpsBlue,
         foregroundColor: Colors.white,
         elevation: 1,
       ),
       body: RefreshIndicator(
+        color: _bpsBlue,
         onRefresh: _loadData,
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildHeaderCard(),
-              const SizedBox(height: 20),
-              _buildYearSelector(),
-              const SizedBox(height: 20),
-              _buildStatisticsCards(currentData),
-              const SizedBox(height: 20),
-              _buildUnemploymentChart(),
-              const SizedBox(height: 20),
-              _buildWorkforceChart(),
-              const SizedBox(height: 20),
-              _buildSectorAnalysis(selectedYear),
-            ],
+        child: _TenagaKerjaContent(
+          selectedYear: selectedYear,
+          availableYears: availableYears,
+          yearData: yearData,
+          indikatorData: indikatorData,
+          distribusiData: distribusiData,
+          jatengData: jatengData,
+          touchedIndex: touchedIndex,
+          sizing: sizing,
+          onYearSelected: (year) => setState(() => selectedYear = year),
+          onTouchedIndexChanged: (index) => setState(() => touchedIndex = index),
+          formatNumber: _formatNumber,
+          getChangeText: _getChangeText,
+        ),
+      ),
+    );
+  }
+}
+
+class _TenagaKerjaContent extends StatelessWidget {
+  final int selectedYear;
+  final List<int> availableYears;
+  final Map<int, Map<String, dynamic>> yearData;
+  final Map<int, Map<String, dynamic>> indikatorData;
+  final Map<int, Map<String, double>> distribusiData;
+  final Map<int, Map<String, dynamic>> jatengData;
+  final int touchedIndex;
+  final ResponsiveSizing sizing;
+  final ValueChanged<int> onYearSelected;
+  final ValueChanged<int> onTouchedIndexChanged;
+  final String Function(int) formatNumber;
+  final String Function(int, String) getChangeText;
+
+  const _TenagaKerjaContent({
+    required this.selectedYear,
+    required this.availableYears,
+    required this.yearData,
+    required this.indikatorData,
+    required this.distribusiData,
+    required this.jatengData,
+    required this.touchedIndex,
+    required this.sizing,
+    required this.onYearSelected,
+    required this.onTouchedIndexChanged,
+    required this.formatNumber,
+    required this.getChangeText,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final currentData = yearData[selectedYear]!;
+
+    return CustomScrollView(
+      physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+      slivers: [
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: EdgeInsets.all(sizing.horizontalPadding),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildHeaderCard(),
+                SizedBox(height: sizing.sectionSpacing - 4),
+                _buildYearSelector(),
+                SizedBox(height: sizing.sectionSpacing - 4),
+                _buildStatisticsCards(currentData),
+              ],
+            ),
           ),
         ),
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: sizing.horizontalPadding),
+            child: _UnemploymentChart(
+              availableYears: availableYears,
+              yearData: yearData,
+              jatengData: jatengData,
+              sizing: sizing,
+            ),
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: EdgeInsets.only(
+              left: sizing.horizontalPadding,
+              right: sizing.horizontalPadding,
+              top: sizing.sectionSpacing - 4,
+            ),
+            child: _WorkforceChart(
+              selectedYear: selectedYear,
+              distribusiData: distribusiData,
+              touchedIndex: touchedIndex,
+              onTouchedIndexChanged: onTouchedIndexChanged,
+              sizing: sizing,
+            ),
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: EdgeInsets.only(
+              left: sizing.horizontalPadding,
+              right: sizing.horizontalPadding,
+              top: sizing.sectionSpacing - 4,
+              bottom: sizing.sectionSpacing,
+            ),
+            child: _SectorAnalysis(
+              year: selectedYear,
+              indikatorData: indikatorData,
+              sizing: sizing,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildHeaderCard() {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(sizing.statsCardPadding),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [_bpsBlue, Color(0xFF5BB8E8)],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ),
+        borderRadius: BorderRadius.circular(15),
+        boxShadow: [
+          BoxShadow(
+            color: Color.fromRGBO(_bpsBlue.r.toInt(), _bpsBlue.g.toInt(), _bpsBlue.b.toInt(), 0.3),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.work, color: Colors.white, size: sizing.isVerySmall ? 32 : 40),
+          SizedBox(width: sizing.itemSpacing + 3),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Statistik Tenaga Kerja',
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: sizing.sectionTitleSize + 2,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 5),
+                Text(
+                  'Data Kota Semarang - BPS Sakernas',
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: sizing.categoryLabelFontSize - 1,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildYearSelector() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(sizing.statsCardPadding),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: _bpsCardBg,
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: _bpsBorder),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: const Color.fromRGBO(0, 0, 0, 0.04),
             blurRadius: 5,
             offset: const Offset(0, 2),
           ),
@@ -271,49 +419,53 @@ class _TenagaKerjaScreenState extends State<TenagaKerjaScreen> with SingleTicker
         children: [
           Row(
             children: [
-              Icon(Icons.calendar_today, color: Colors.grey[600], size: 18),
-              const SizedBox(width: 8),
+              Icon(Icons.calendar_today, color: _bpsTextSecondary, size: sizing.groupIconSize),
+              SizedBox(width: sizing.itemSpacing),
               Text(
                 'Pilih Tahun Data',
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: sizing.categoryLabelFontSize,
                   fontWeight: FontWeight.w500,
-                  color: Colors.grey[700],
+                  color: _bpsTextSecondary,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: sizing.itemSpacing),
           Wrap(
-            spacing: 8,
-            runSpacing: 8,
+            spacing: sizing.itemSpacing,
+            runSpacing: sizing.itemSpacing,
             alignment: WrapAlignment.start,
             children: availableYears.map((year) {
               final isSelected = year == selectedYear;
               return SizedBox(
-                width: 63,
-                child: GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      selectedYear = year;
-                    });
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: isSelected ? const Color(0xFF1976D2) : Colors.grey[100],
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: isSelected ? const Color(0xFF1976D2) : Colors.grey[300]!,
-                      ),
+                width: sizing.isVerySmall ? 56 : 63,
+                child: Material(
+                  color: isSelected ? _bpsBlue : Colors.transparent,
+                  borderRadius: BorderRadius.circular(20),
+                  child: InkWell(
+                    onTap: () => onYearSelected(year),
+                    borderRadius: BorderRadius.circular(20),
+                    splashColor: Color.fromRGBO(
+                      _bpsBlue.r.toInt(), _bpsBlue.g.toInt(), _bpsBlue.b.toInt(), 0.2,
                     ),
-                    child: Text(
-                      year.toString(),
-                      style: TextStyle(
-                        color: isSelected ? Colors.white : Colors.grey[700],
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                        fontSize: 12,
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      padding: EdgeInsets.symmetric(vertical: sizing.itemSpacing - 2),
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: isSelected ? _bpsBlue : _bpsBorder,
+                        ),
+                      ),
+                      child: Text(
+                        year.toString(),
+                        style: TextStyle(
+                          color: isSelected ? Colors.white : _bpsTextSecondary,
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                          fontSize: sizing.bottomNavLabelSize + 1,
+                        ),
                       ),
                     ),
                   ),
@@ -326,123 +478,85 @@ class _TenagaKerjaScreenState extends State<TenagaKerjaScreen> with SingleTicker
     );
   }
 
-  Widget _buildHeaderCard() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF1976D2), Color(0xFF42A5F5)],
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-        ),
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.blue.withOpacity(0.3),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
+  Widget _buildStatisticsCards(Map<String, dynamic> data) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final useSingleColumn = constraints.maxWidth < 300;
+
+        final cards = [
+          _buildStatCard(
+            'Jumlah Angkatan Kerja',
+            formatNumber(data['angkatanKerja']),
+            Icons.groups,
+            _bpsBlue,
+            getChangeText(selectedYear, 'angkatanKerja'),
           ),
-        ],
-      ),
-      child: const Row(
-        children: [
-          Icon(Icons.work, color: Colors.white, size: 40),
-          SizedBox(width: 15),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          _buildStatCard(
+            'Angkatan Kerja Yang Bekerja',
+            formatNumber(data['bekerja']),
+            Icons.work_outline,
+            _bpsGreen,
+            getChangeText(selectedYear, 'bekerja'),
+          ),
+          _buildStatCard(
+            'Jumlah Bukan Angkatan Kerja',
+            formatNumber(data['bukanAngkatanKerja']),
+            Icons.person_off,
+            _bpsPurple,
+            getChangeText(selectedYear, 'bukanAngkatanKerja'),
+          ),
+          _buildStatCard(
+            'Pengangguran Terbuka',
+            formatNumber(data['pengangguran']),
+            Icons.trending_down,
+            _bpsRed,
+            getChangeText(selectedYear, 'pengangguran'),
+          ),
+        ];
+
+        if (useSingleColumn) {
+          return Column(
+            children: cards.map((card) => Padding(
+              padding: EdgeInsets.only(bottom: sizing.itemSpacing),
+              child: card,
+            )).toList(),
+          );
+        }
+
+        return Column(
+          children: [
+            Row(
               children: [
-                Text(
-                  'Statistik Tenaga Kerja',
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                SizedBox(height: 5),
-                Text(
-                  'Data Kota Semarang - BPS Sakernas',
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 14,
-                  ),
-                ),
+                Expanded(child: cards[0]),
+                SizedBox(width: sizing.itemSpacing),
+                Expanded(child: cards[1]),
               ],
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatisticsCards(Map<String, dynamic> data) {
-    return Column(
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: _buildStatCard(
-                'Jumlah Angkatan Kerja',
-                _formatNumber(data['angkatanKerja']),
-                Icons.groups,
-                const Color(0xFF1976D2),
-                _getChangeText(selectedYear, 'angkatanKerja'),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildStatCard(
-                'Angkatan Kerja Yang Bekerja',
-                _formatNumber(data['bekerja']),
-                Icons.work_outline,
-                const Color(0xFF388E3C),
-                _getChangeText(selectedYear, 'bekerja'),
-              ),
+            SizedBox(height: sizing.itemSpacing),
+            Row(
+              children: [
+                Expanded(child: cards[2]),
+                SizedBox(width: sizing.itemSpacing),
+                Expanded(child: cards[3]),
+              ],
             ),
           ],
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: _buildStatCard(
-                'Jumlah Bukan Angkatan Kerja',
-                _formatNumber(data['bukanAngkatanKerja']),
-                Icons.person_off,
-                const Color(0xFF7B1FA2),
-                _getChangeText(selectedYear, 'bukanAngkatanKerja'),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildStatCard(
-                'Pengangguran Terbuka',
-                _formatNumber(data['pengangguran']),
-                Icons.trending_down,
-                const Color(0xFFD32F2F),
-                _getChangeText(selectedYear, 'pengangguran'),
-              ),
-            ),
-          ],
-        ),
-      ],
+        );
+      },
     );
   }
 
   Widget _buildStatCard(
       String title, String value, IconData icon, Color color, String change) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(sizing.statsCardPadding),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: _bpsCardBg,
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: _bpsBorder),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: const Color.fromRGBO(0, 0, 0, 0.04),
             blurRadius: 5,
             offset: const Offset(0, 2),
           ),
@@ -454,17 +568,20 @@ class _TenagaKerjaScreenState extends State<TenagaKerjaScreen> with SingleTicker
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Icon(icon, color: color, size: 24),
+              Icon(icon, color: color, size: sizing.categoryIconSize),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                padding: EdgeInsets.symmetric(
+                  horizontal: sizing.isVerySmall ? 4 : 6,
+                  vertical: 2,
+                ),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: Color.fromRGBO(color.r.toInt(), color.g.toInt(), color.b.toInt(), 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
                   change,
                   style: TextStyle(
-                    fontSize: 10,
+                    fontSize: sizing.statsChangeFontSize,
                     color: color,
                     fontWeight: FontWeight.bold,
                   ),
@@ -472,49 +589,63 @@ class _TenagaKerjaScreenState extends State<TenagaKerjaScreen> with SingleTicker
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: sizing.itemSpacing),
           Text(
             value,
             style: TextStyle(
-              fontSize: 18,
+              fontSize: sizing.sectionTitleSize,
               fontWeight: FontWeight.bold,
-              color: Colors.grey[800],
+              color: _bpsTextPrimary,
             ),
           ),
           const SizedBox(height: 4),
           Text(
             title,
             style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey[600],
+              fontSize: sizing.bottomNavLabelSize + 1,
+              color: _bpsTextSecondary,
             ),
           ),
         ],
       ),
     );
   }
+}
 
-  Widget _buildUnemploymentChart() {
+class _UnemploymentChart extends StatelessWidget {
+  final List<int> availableYears;
+  final Map<int, Map<String, dynamic>> yearData;
+  final Map<int, Map<String, dynamic>> jatengData;
+  final ResponsiveSizing sizing;
+
+  const _UnemploymentChart({
+    required this.availableYears,
+    required this.yearData,
+    required this.jatengData,
+    required this.sizing,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     List<FlSpot> semarangSpots = [];
     List<FlSpot> jatengSpots = [];
     List<String> yearLabels = [];
 
     for (int i = 0; i < availableYears.length; i++) {
       final year = availableYears[i];
-      
       if (!yearData.containsKey(year) || !jatengData.containsKey(year)) continue;
-      
+
       final semarangData = yearData[year]!;
       final semarangAK = semarangData['angkatanKerja'] as int;
       final semarangPengangguran = semarangData['pengangguran'] as int;
       final semarangTPT = (semarangPengangguran / semarangAK) * 100;
-      
+
       final jatengDataYear = jatengData[year]!;
       final jatengBekerja = jatengDataYear['bekerja'] as int;
       final jatengPengangguran = jatengDataYear['pengangguran'] as int;
       final jatengAK = jatengBekerja + jatengPengangguran;
       final jatengTPT = (jatengPengangguran / jatengAK) * 100;
-      
+
       semarangSpots.add(FlSpot(i.toDouble(), semarangTPT));
       jatengSpots.add(FlSpot(i.toDouble(), jatengTPT));
       yearLabels.add(year.toString());
@@ -522,25 +653,26 @@ class _TenagaKerjaScreenState extends State<TenagaKerjaScreen> with SingleTicker
 
     if (semarangSpots.isEmpty) {
       return Container(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(sizing.statsCardPadding),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: _bpsCardBg,
           borderRadius: BorderRadius.circular(12),
         ),
-        child: const Center(
-          child: Text('Data chart tidak tersedia'),
-        ),
+        child: const Center(child: Text('Data chart tidak tersedia')),
       );
     }
 
+    final chartHeight = (sizing.screenWidth * 0.55).clamp(180.0, 280.0);
+
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(sizing.statsCardPadding),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: _bpsCardBg,
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: _bpsBorder),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: const Color.fromRGBO(0, 0, 0, 0.04),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -551,15 +683,15 @@ class _TenagaKerjaScreenState extends State<TenagaKerjaScreen> with SingleTicker
         children: [
           Row(
             children: [
-              Icon(Icons.show_chart, color: Colors.grey[700], size: 20),
-              const SizedBox(width: 8),
+              Icon(Icons.show_chart, color: _bpsTextSecondary, size: sizing.sectionIconSize),
+              SizedBox(width: sizing.itemSpacing),
               Expanded(
                 child: Text(
                   'Tingkat Pengangguran Terbuka (TPT)',
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: sizing.sectionTitleSize - 2,
                     fontWeight: FontWeight.bold,
-                    color: Colors.grey[800],
+                    color: _bpsTextPrimary,
                   ),
                 ),
               ),
@@ -569,13 +701,13 @@ class _TenagaKerjaScreenState extends State<TenagaKerjaScreen> with SingleTicker
           Text(
             'Kota Semarang dan Jawa Tengah',
             style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey[600],
+              fontSize: sizing.bottomNavLabelSize + 1,
+              color: _bpsTextSecondary,
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: sizing.itemSpacing + 4),
           SizedBox(
-            height: 250,
+            height: chartHeight,
             child: LineChart(
               LineChartData(
                 minY: 4,
@@ -586,7 +718,7 @@ class _TenagaKerjaScreenState extends State<TenagaKerjaScreen> with SingleTicker
                   horizontalInterval: 1,
                   getDrawingHorizontalLine: (value) {
                     return FlLine(
-                      color: Colors.grey.withOpacity(0.2),
+                      color: const Color.fromRGBO(158, 158, 158, 0.2),
                       strokeWidth: 0.5,
                     );
                   },
@@ -595,14 +727,14 @@ class _TenagaKerjaScreenState extends State<TenagaKerjaScreen> with SingleTicker
                   leftTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
-                      reservedSize: 35,
+                      reservedSize: sizing.isVerySmall ? 30 : 35,
                       interval: 1,
                       getTitlesWidget: (value, meta) {
                         return Text(
                           '${value.toStringAsFixed(0)}%',
-                          style: const TextStyle(
-                            fontSize: 10,
-                            color: Color(0xFF4472C4),
+                          style: TextStyle(
+                            fontSize: sizing.statsChangeFontSize,
+                            color: const Color(0xFF4472C4),
                             fontWeight: FontWeight.w500,
                           ),
                         );
@@ -612,14 +744,14 @@ class _TenagaKerjaScreenState extends State<TenagaKerjaScreen> with SingleTicker
                   rightTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
-                      reservedSize: 35,
+                      reservedSize: sizing.isVerySmall ? 30 : 35,
                       interval: 1,
                       getTitlesWidget: (value, meta) {
                         return Text(
                           '${value.toStringAsFixed(0)}%',
-                          style: const TextStyle(
-                            fontSize: 10,
-                            color: Color(0xFFED7D31),
+                          style: TextStyle(
+                            fontSize: sizing.statsChangeFontSize,
+                            color: const Color(0xFFED7D31),
                             fontWeight: FontWeight.w500,
                           ),
                         );
@@ -638,9 +770,9 @@ class _TenagaKerjaScreenState extends State<TenagaKerjaScreen> with SingleTicker
                             padding: const EdgeInsets.only(top: 8),
                             child: Text(
                               yearLabels[index],
-                              style: const TextStyle(
-                                fontSize: 10,
-                                color: Colors.grey,
+                              style: TextStyle(
+                                fontSize: sizing.statsChangeFontSize,
+                                color: _bpsTextSecondary,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -654,10 +786,10 @@ class _TenagaKerjaScreenState extends State<TenagaKerjaScreen> with SingleTicker
                 ),
                 borderData: FlBorderData(
                   show: true,
-                  border: Border(
-                    left: BorderSide(color: Colors.grey.withOpacity(0.3), width: 1),
-                    right: BorderSide(color: Colors.grey.withOpacity(0.3), width: 1),
-                    bottom: BorderSide(color: Colors.grey.withOpacity(0.3), width: 1),
+                  border: const Border(
+                    left: BorderSide(color: Color.fromRGBO(158, 158, 158, 0.3), width: 1),
+                    right: BorderSide(color: Color.fromRGBO(158, 158, 158, 0.3), width: 1),
+                    bottom: BorderSide(color: Color.fromRGBO(158, 158, 158, 0.3), width: 1),
                   ),
                 ),
                 lineBarsData: [
@@ -670,7 +802,7 @@ class _TenagaKerjaScreenState extends State<TenagaKerjaScreen> with SingleTicker
                       show: true,
                       getDotPainter: (spot, percent, barData, index) {
                         return FlDotCirclePainter(
-                          radius: 4,
+                          radius: sizing.isVerySmall ? 3 : 4,
                           color: const Color(0xFF4472C4),
                           strokeWidth: 2,
                           strokeColor: Colors.white,
@@ -688,7 +820,7 @@ class _TenagaKerjaScreenState extends State<TenagaKerjaScreen> with SingleTicker
                       show: true,
                       getDotPainter: (spot, percent, barData, index) {
                         return FlDotCirclePainter(
-                          radius: 4,
+                          radius: sizing.isVerySmall ? 3 : 4,
                           color: const Color(0xFFED7D31),
                           strokeWidth: 2,
                           strokeColor: Colors.white,
@@ -704,10 +836,10 @@ class _TenagaKerjaScreenState extends State<TenagaKerjaScreen> with SingleTicker
                     getTooltipItems: (touchedSpots) {
                       return touchedSpots.map((barSpot) {
                         final index = barSpot.x.toInt();
-                        if (index >= 0 && index < availableYears.length) {
+                        if (index >= 0 && index < yearLabels.length) {
                           final year = yearLabels[index];
                           final value = barSpot.y.toStringAsFixed(2);
-                          
+
                           if (barSpot.barIndex == 0) {
                             return LineTooltipItem(
                               '$year\nSemarang: $value%',
@@ -736,45 +868,13 @@ class _TenagaKerjaScreenState extends State<TenagaKerjaScreen> with SingleTicker
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: sizing.itemSpacing + 4),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Column(
-                children: [
-                  Container(
-                    width: 16,
-                    height: 16,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Color(0xFF4472C4),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    'Kota Semarang',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
-                  ),
-                ],
-              ),
-              const SizedBox(width: 24),
-              Column(
-                children: [
-                  Container(
-                    width: 16,
-                    height: 16,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Color(0xFFED7D31),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    'Jawa Tengah',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
-                  ),
-                ],
-              ),
+              _buildLegendDot('Kota Semarang', const Color(0xFF4472C4)),
+              SizedBox(width: sizing.sectionSpacing),
+              _buildLegendDot('Jawa Tengah', const Color(0xFFED7D31)),
             ],
           ),
         ],
@@ -782,30 +882,69 @@ class _TenagaKerjaScreenState extends State<TenagaKerjaScreen> with SingleTicker
     );
   }
 
-  Widget _buildWorkforceChart() {
+  Widget _buildLegendDot(String label, Color color) {
+    return Column(
+      children: [
+        Container(
+          width: sizing.isVerySmall ? 12 : 16,
+          height: sizing.isVerySmall ? 12 : 16,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: color,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: TextStyle(fontSize: sizing.bottomNavLabelSize + 1, fontWeight: FontWeight.w500),
+        ),
+      ],
+    );
+  }
+}
+
+class _WorkforceChart extends StatelessWidget {
+  final int selectedYear;
+  final Map<int, Map<String, double>> distribusiData;
+  final int touchedIndex;
+  final ValueChanged<int> onTouchedIndexChanged;
+  final ResponsiveSizing sizing;
+
+  const _WorkforceChart({
+    required this.selectedYear,
+    required this.distribusiData,
+    required this.touchedIndex,
+    required this.onTouchedIndexChanged,
+    required this.sizing,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     if (!distribusiData.containsKey(selectedYear)) {
       return Container(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(sizing.statsCardPadding),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: _bpsCardBg,
           borderRadius: BorderRadius.circular(12),
         ),
-        child: const Center(
-          child: Text('Data distribusi tidak tersedia'),
-        ),
+        child: const Center(child: Text('Data distribusi tidak tersedia')),
       );
     }
 
     final currentDistribusi = distribusiData[selectedYear]!;
+    final chartHeight = (sizing.screenWidth * 0.55).clamp(180.0, 260.0);
+    final barWidth = (sizing.screenWidth * 0.12).clamp(30.0, 50.0);
+    final barWidthTouched = barWidth + 10;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(sizing.statsCardPadding),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: _bpsCardBg,
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: _bpsBorder),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: const Color.fromRGBO(0, 0, 0, 0.04),
             blurRadius: 5,
             offset: const Offset(0, 2),
           ),
@@ -816,15 +955,15 @@ class _TenagaKerjaScreenState extends State<TenagaKerjaScreen> with SingleTicker
         children: [
           Row(
             children: [
-              Icon(Icons.bar_chart, color: Colors.grey[700], size: 20),
-              const SizedBox(width: 8),
+              Icon(Icons.bar_chart, color: _bpsTextSecondary, size: sizing.sectionIconSize),
+              SizedBox(width: sizing.itemSpacing),
               Expanded(
                 child: Text(
                   'Distribusi Penduduk Bekerja',
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: sizing.sectionTitleSize - 2,
                     fontWeight: FontWeight.bold,
-                    color: Colors.grey[800],
+                    color: _bpsTextPrimary,
                   ),
                 ),
               ),
@@ -834,13 +973,13 @@ class _TenagaKerjaScreenState extends State<TenagaKerjaScreen> with SingleTicker
           Text(
             'Menurut Lapangan Usaha di Kota Semarang',
             style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey[600],
+              fontSize: sizing.bottomNavLabelSize + 1,
+              color: _bpsTextSecondary,
             ),
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: sizing.sectionSpacing - 8),
           SizedBox(
-            height: 240,
+            height: chartHeight,
             child: BarChart(
               BarChartData(
                 alignment: BarChartAlignment.spaceEvenly,
@@ -848,15 +987,13 @@ class _TenagaKerjaScreenState extends State<TenagaKerjaScreen> with SingleTicker
                 barTouchData: BarTouchData(
                   enabled: true,
                   touchCallback: (FlTouchEvent event, barTouchResponse) {
-                    setState(() {
-                      if (!event.isInterestedForInteractions ||
-                          barTouchResponse == null ||
-                          barTouchResponse.spot == null) {
-                        touchedIndex = -1;
-                        return;
-                      }
-                      touchedIndex = barTouchResponse.spot!.touchedBarGroupIndex;
-                    });
+                    if (!event.isInterestedForInteractions ||
+                        barTouchResponse == null ||
+                        barTouchResponse.spot == null) {
+                      onTouchedIndexChanged(-1);
+                      return;
+                    }
+                    onTouchedIndexChanged(barTouchResponse.spot!.touchedBarGroupIndex);
                   },
                   touchTooltipData: BarTouchTooltipData(
                     getTooltipColor: (group) => Colors.black87,
@@ -865,17 +1002,10 @@ class _TenagaKerjaScreenState extends State<TenagaKerjaScreen> with SingleTicker
                     getTooltipItem: (group, groupIndex, rod, rodIndex) {
                       String label;
                       switch (groupIndex) {
-                        case 0:
-                          label = 'Pertanian';
-                          break;
-                        case 1:
-                          label = 'Manufaktur';
-                          break;
-                        case 2:
-                          label = 'Jasa';
-                          break;
-                        default:
-                          label = '';
+                        case 0: label = 'Pertanian'; break;
+                        case 1: label = 'Manufaktur'; break;
+                        case 2: label = 'Jasa'; break;
+                        default: label = '';
                       }
                       return BarTooltipItem(
                         '$label\n${rod.toY.toStringAsFixed(0)}%',
@@ -890,35 +1020,23 @@ class _TenagaKerjaScreenState extends State<TenagaKerjaScreen> with SingleTicker
                 ),
                 titlesData: FlTitlesData(
                   show: true,
-                  rightTitles: const AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
-                  ),
-                  topTitles: const AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
-                  ),
+                  rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
                   bottomTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
                       getTitlesWidget: (double value, TitleMeta meta) {
-                        const style = TextStyle(
-                          color: Colors.black87,
+                        final style = TextStyle(
+                          color: _bpsTextPrimary,
                           fontWeight: FontWeight.w600,
-                          fontSize: 12,
+                          fontSize: sizing.bottomNavLabelSize + 1,
                         );
                         Widget text;
                         switch (value.toInt()) {
-                          case 0:
-                            text = const Text('Pertanian', style: style);
-                            break;
-                          case 1:
-                            text = const Text('Manufaktur', style: style);
-                            break;
-                          case 2:
-                            text = const Text('Jasa', style: style);
-                            break;
-                          default:
-                            text = const Text('', style: style);
-                            break;
+                          case 0: text = Text('Pertanian', style: style); break;
+                          case 1: text = Text('Manufaktur', style: style); break;
+                          case 2: text = Text('Jasa', style: style); break;
+                          default: text = Text('', style: style); break;
                         }
                         return SideTitleWidget(
                           axisSide: meta.axisSide,
@@ -932,110 +1050,48 @@ class _TenagaKerjaScreenState extends State<TenagaKerjaScreen> with SingleTicker
                   leftTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
-                      reservedSize: 40,
+                      reservedSize: sizing.isVerySmall ? 32 : 40,
                       interval: 20,
                       getTitlesWidget: (value, meta) {
                         return Text(
                           '${value.toInt()}%',
                           style: TextStyle(
-                            color: Colors.grey[600],
+                            color: _bpsTextSecondary,
                             fontWeight: FontWeight.w500,
-                            fontSize: 10,
+                            fontSize: sizing.statsChangeFontSize,
                           ),
                         );
                       },
                     ),
                   ),
                 ),
-                borderData: FlBorderData(
-                  show: false,
-                ),
+                borderData: FlBorderData(show: false),
                 gridData: FlGridData(
                   show: true,
                   drawVerticalLine: false,
                   horizontalInterval: 20,
                   getDrawingHorizontalLine: (value) {
-                    return FlLine(
-                      color: Colors.grey.withOpacity(0.2),
+                    return const FlLine(
+                      color: Color.fromRGBO(158, 158, 158, 0.2),
                       strokeWidth: 1,
                     );
                   },
                 ),
                 barGroups: [
-                  BarChartGroupData(
-                    x: 0,
-                    barRods: [
-                      BarChartRodData(
-                        toY: currentDistribusi['Pertanian']!,
-                        color: const Color(0xFF388E3C),
-                        width: touchedIndex == 0 ? 60 : 50,
-                        borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(6),
-                          topRight: Radius.circular(6),
-                        ),
-                        backDrawRodData: BackgroundBarChartRodData(
-                          show: true,
-                          toY: 80,
-                          color: Colors.grey.withOpacity(0.1),
-                        ),
-                      ),
-                    ],
-                    showingTooltipIndicators: touchedIndex == 0 ? [0] : [],
-                  ),
-                  BarChartGroupData(
-                    x: 1,
-                    barRods: [
-                      BarChartRodData(
-                        toY: currentDistribusi['Manufaktur']!,
-                        color: const Color(0xFF1976D2),
-                        width: touchedIndex == 1 ? 60 : 50,
-                        borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(6),
-                          topRight: Radius.circular(6),
-                        ),
-                        backDrawRodData: BackgroundBarChartRodData(
-                          show: true,
-                          toY: 80,
-                          color: Colors.grey.withOpacity(0.1),
-                        ),
-                      ),
-                    ],
-                    showingTooltipIndicators: touchedIndex == 1 ? [0] : [],
-                  ),
-                  BarChartGroupData(
-                    x: 2,
-                    barRods: [
-                      BarChartRodData(
-                        toY: currentDistribusi['Jasa']!,
-                        color: const Color(0xFFF57C00),
-                        width: touchedIndex == 2 ? 60 : 50,
-                        borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(6),
-                          topRight: Radius.circular(6),
-                        ),
-                        backDrawRodData: BackgroundBarChartRodData(
-                          show: true,
-                          toY: 80,
-                          color: Colors.grey.withOpacity(0.1),
-                        ),
-                      ),
-                    ],
-                    showingTooltipIndicators: touchedIndex == 2 ? [0] : [],
-                  ),
+                  _barGroup(0, currentDistribusi['Pertanian']!, _bpsGreen, barWidth, barWidthTouched),
+                  _barGroup(1, currentDistribusi['Manufaktur']!, _bpsBlue, barWidth, barWidthTouched),
+                  _barGroup(2, currentDistribusi['Jasa']!, _bpsOrange, barWidth, barWidthTouched),
                 ],
               ),
             ),
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: sizing.sectionSpacing - 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _buildLegendItem('Pertanian', const Color(0xFF388E3C),
-                  currentDistribusi['Pertanian']!),
-              _buildLegendItem('Manufaktur', const Color(0xFF1976D2),
-                  currentDistribusi['Manufaktur']!),
-              _buildLegendItem('Jasa', const Color(0xFFF57C00),
-                  currentDistribusi['Jasa']!),
+              _buildLegendItem('Pertanian', _bpsGreen, currentDistribusi['Pertanian']!),
+              _buildLegendItem('Manufaktur', _bpsBlue, currentDistribusi['Manufaktur']!),
+              _buildLegendItem('Jasa', _bpsOrange, currentDistribusi['Jasa']!),
             ],
           ),
         ],
@@ -1043,18 +1099,41 @@ class _TenagaKerjaScreenState extends State<TenagaKerjaScreen> with SingleTicker
     );
   }
 
+  BarChartGroupData _barGroup(int x, double toY, Color color, double width, double widthTouched) {
+    return BarChartGroupData(
+      x: x,
+      barRods: [
+        BarChartRodData(
+          toY: toY,
+          color: color,
+          width: touchedIndex == x ? widthTouched : width,
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(6),
+            topRight: Radius.circular(6),
+          ),
+          backDrawRodData: BackgroundBarChartRodData(
+            show: true,
+            toY: 80,
+            color: const Color.fromRGBO(158, 158, 158, 0.1),
+          ),
+        ),
+      ],
+      showingTooltipIndicators: touchedIndex == x ? [0] : [],
+    );
+  }
+
   Widget _buildLegendItem(String label, Color color, double percentage) {
     return Column(
       children: [
         Container(
-          width: 20,
-          height: 20,
+          width: sizing.isVerySmall ? 16 : 20,
+          height: sizing.isVerySmall ? 16 : 20,
           decoration: BoxDecoration(
             color: color,
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: color.withOpacity(0.3),
+                color: Color.fromRGBO(color.r.toInt(), color.g.toInt(), color.b.toInt(), 0.3),
                 blurRadius: 4,
                 offset: const Offset(0, 2),
               ),
@@ -1064,57 +1143,69 @@ class _TenagaKerjaScreenState extends State<TenagaKerjaScreen> with SingleTicker
         const SizedBox(height: 6),
         Text(
           label,
-          style: const TextStyle(
-            fontSize: 12,
+          style: TextStyle(
+            fontSize: sizing.bottomNavLabelSize + 1,
             fontWeight: FontWeight.w600,
-            color: Colors.black87,
+            color: _bpsTextPrimary,
           ),
         ),
         const SizedBox(height: 2),
         Text(
           '${percentage.toStringAsFixed(0)}%',
           style: TextStyle(
-            fontSize: 11,
+            fontSize: sizing.bottomNavLabelSize,
             fontWeight: FontWeight.w500,
-            color: Colors.grey[600],
+            color: _bpsTextSecondary,
           ),
         ),
       ],
     );
   }
+}
 
-  Widget _buildSectorAnalysis(int year) {
+class _SectorAnalysis extends StatelessWidget {
+  final int year;
+  final Map<int, Map<String, dynamic>> indikatorData;
+  final ResponsiveSizing sizing;
+
+  const _SectorAnalysis({
+    required this.year,
+    required this.indikatorData,
+    required this.sizing,
+  });
+
+  static const Map<int, double> _dependencyRatio = {
+    2020: 28.52,
+    2021: 28.59,
+    2022: 28.68,
+    2023: 28.77,
+    2024: 28.91,
+  };
+
+  @override
+  Widget build(BuildContext context) {
     if (!indikatorData.containsKey(year)) {
       return Container(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(sizing.statsCardPadding),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: _bpsCardBg,
           borderRadius: BorderRadius.circular(12),
         ),
-        child: const Center(
-          child: Text('Data indikator tidak tersedia'),
-        ),
+        child: const Center(child: Text('Data indikator tidak tersedia')),
       );
     }
 
     final indikator = indikatorData[year]!;
-    
-    final Map<int, double> dependencyRatio = {
-      2020: 28.52,
-      2021: 28.59,
-      2022: 28.68,
-      2023: 28.77,
-      2024: 28.91,
-    };
-    
+
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(sizing.statsCardPadding),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: _bpsCardBg,
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: _bpsBorder),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: const Color.fromRGBO(0, 0, 0, 0.04),
             blurRadius: 5,
             offset: const Offset(0, 2),
           ),
@@ -1126,43 +1217,43 @@ class _TenagaKerjaScreenState extends State<TenagaKerjaScreen> with SingleTicker
           Text(
             'Indikator Ketenagakerjaan',
             style: TextStyle(
-              fontSize: 16,
+              fontSize: sizing.sectionTitleSize - 2,
               fontWeight: FontWeight.bold,
-              color: Colors.grey[800],
+              color: _bpsTextPrimary,
             ),
           ),
-          const SizedBox(height: 15),
+          SizedBox(height: sizing.itemSpacing + 3),
           _buildAnalysisItem(
             'Tingkat Pengangguran Terbuka (TPT)',
             '${indikator['tptTotal']}%',
             'Laki-laki: ${indikator['tptLaki']}% | Perempuan: ${indikator['tptPerempuan']}%',
             Icons.trending_down,
-            const Color(0xFFD32F2F),
+            _bpsRed,
           ),
-          const SizedBox(height: 10),
+          SizedBox(height: sizing.itemSpacing),
           _buildAnalysisItem(
             'Tingkat Partisipasi Angkatan Kerja (TPAK)',
             '${indikator['tpakTotal']}%',
             'Laki-laki: ${indikator['tpakLaki']}% | Perempuan: ${indikator['tpakPerempuan']}%',
             Icons.trending_up,
-            const Color(0xFF1976D2),
+            _bpsBlue,
           ),
-          const SizedBox(height: 10),
+          SizedBox(height: sizing.itemSpacing),
           _buildAnalysisItem(
             'Tingkat Kesempatan Kerja (TKK)',
             '${indikator['tkkTotal']}%',
             'Laki-laki: ${indikator['tkkLaki']}% | Perempuan: ${indikator['tkkPerempuan']}%',
             Icons.work_outline,
-            const Color(0xFF388E3C),
+            _bpsGreen,
           ),
-          if (dependencyRatio.containsKey(year)) ...[
-            const SizedBox(height: 10),
+          if (_dependencyRatio.containsKey(year)) ...[
+            SizedBox(height: sizing.itemSpacing),
             _buildAnalysisItem(
               'Angka Ketergantungan',
-              '${dependencyRatio[year]!.toStringAsFixed(2)}',
+              '${_dependencyRatio[year]!.toStringAsFixed(2)}',
               'Rasio ketergantungan penduduk Kota Semarang',
               Icons.info_outline,
-              const Color(0xFF7B1FA2),
+              _bpsPurple,
             ),
           ],
         ],
@@ -1173,23 +1264,25 @@ class _TenagaKerjaScreenState extends State<TenagaKerjaScreen> with SingleTicker
   Widget _buildAnalysisItem(String title, String value, String description,
       IconData icon, Color color) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: EdgeInsets.all(sizing.itemSpacing + 2),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.05),
+        color: Color.fromRGBO(color.r.toInt(), color.g.toInt(), color.b.toInt(), 0.05),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity(0.2)),
+        border: Border.all(
+          color: Color.fromRGBO(color.r.toInt(), color.g.toInt(), color.b.toInt(), 0.2),
+        ),
       ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: EdgeInsets.all(sizing.itemSpacing - 2),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: Color.fromRGBO(color.r.toInt(), color.g.toInt(), color.b.toInt(), 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(icon, color: color, size: 20),
+            child: Icon(icon, color: color, size: sizing.sectionIconSize),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: sizing.itemSpacing),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1197,16 +1290,16 @@ class _TenagaKerjaScreenState extends State<TenagaKerjaScreen> with SingleTicker
                 Text(
                   title,
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: sizing.categoryLabelFontSize - 1,
                     fontWeight: FontWeight.bold,
-                    color: Colors.grey[800],
+                    color: _bpsTextPrimary,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   value,
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: sizing.sectionTitleSize - 2,
                     fontWeight: FontWeight.bold,
                     color: color,
                   ),
@@ -1215,8 +1308,8 @@ class _TenagaKerjaScreenState extends State<TenagaKerjaScreen> with SingleTicker
                 Text(
                   description,
                   style: TextStyle(
-                    fontSize: 11,
-                    color: Colors.grey[600],
+                    fontSize: sizing.statsChangeFontSize + 1,
+                    color: _bpsTextSecondary,
                   ),
                 ),
               ],
