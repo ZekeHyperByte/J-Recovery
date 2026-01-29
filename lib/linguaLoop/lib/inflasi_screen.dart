@@ -2,17 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'responsive_sizing.dart';
 
-// BPS Color Palette - Consistent with home_screen.dart
+// BPS Color Palette (matching kemiskinana_screen.dart)
 const Color _bpsBlue = Color(0xFF2E99D6);
 const Color _bpsOrange = Color(0xFFE88D34);
 const Color _bpsGreen = Color(0xFF7DBD42);
+const Color _bpsRed = Color(0xFFEF4444);
 const Color _bpsBackground = Color(0xFFF5F5F5);
 const Color _bpsCardBg = Color(0xFFFFFFFF);
 const Color _bpsTextPrimary = Color(0xFF333333);
 const Color _bpsTextSecondary = Color(0xFF808080);
 const Color _bpsTextLabel = Color(0xFFA0A0A0);
 const Color _bpsBorder = Color(0xFFE0E0E0);
-const Color _bpsRed = Color(0xFFE05555);
 const Color _bpsPurple = Color(0xFF9B59B6);
 const Color _bpsTeal = Color(0xFF1ABC9C);
 
@@ -36,7 +36,6 @@ class _InflasiScreenState extends State<InflasiScreen> {
     'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
   ];
 
-  // Data inflasi bulanan
   final Map<int, List<double>> monthlyInflationData = {
     2019: [0.32, 0.01, 0.11, -0.10, 0.48, 0.55, 0.31, -0.02, -0.27, 0.02, -0.16, 0.30],
     2020: [0.40, 0.28, 0.10, -0.10, 0.07, 0.18, -0.05, -0.05, -0.05, -0.09, 0.28, 0.45],
@@ -45,7 +44,6 @@ class _InflasiScreenState extends State<InflasiScreen> {
     2023: [0.34, -0.02, 0.12, -0.07, 0.09, 0.59, 0.21, 0.18, -0.04, -0.06, 0.08, 0.15],
   };
 
-  // Data inflasi tahunan
   final Map<int, double> yearlyInflation = {
     2019: 2.72,
     2020: 1.68,
@@ -54,7 +52,6 @@ class _InflasiScreenState extends State<InflasiScreen> {
     2023: 2.61,
   };
 
-  // Data inflasi inti
   final Map<int, double> coreInflation = {
     2019: 3.04,
     2020: 1.59,
@@ -63,7 +60,6 @@ class _InflasiScreenState extends State<InflasiScreen> {
     2023: 1.93,
   };
 
-  // Data IHK
   final Map<int, double> ihkData = {
     2019: 106.02,
     2020: 107.80,
@@ -72,7 +68,6 @@ class _InflasiScreenState extends State<InflasiScreen> {
     2023: 113.59,
   };
 
-  // Data komponen inflasi
   final Map<String, Map<String, double>> inflationComponents = {
     'Makanan, Minuman & Tembakau': {'2019': 4.55, '2020': 3.28, '2021': 2.84, '2022': 5.33, '2023': 4.12},
     'Pakaian & Alas Kaki': {'2019': 0.84, '2020': 0.45, '2021': 0.67, '2022': 1.23, '2023': 0.92},
@@ -83,7 +78,6 @@ class _InflasiScreenState extends State<InflasiScreen> {
     'Rekreasi & Olahraga': {'2019': 2.18, '2020': 1.67, '2021': 2.05, '2022': 2.89, '2023': 2.45},
   };
 
-  // Getter methods
   List<int> get availableYears => monthlyInflationData.keys.toList()..sort();
 
   List<double> get filteredMonthlyData {
@@ -121,33 +115,46 @@ class _InflasiScreenState extends State<InflasiScreen> {
   @override
   Widget build(BuildContext context) {
     final sizing = ResponsiveSizing(context);
+    final isSmallScreen = sizing.isVerySmall || sizing.isSmall;
 
     if (availableYears.isEmpty) {
       return Scaffold(
         backgroundColor: _bpsBackground,
         body: Column(
           children: [
-            _buildHeader(context, sizing),
+            _buildHeader(context, sizing, isSmallScreen),
             Expanded(
               child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.info_outline_rounded,
-                      size: sizing.isVerySmall ? 64 : 80,
-                      color: _bpsTextLabel,
-                    ),
-                    SizedBox(height: sizing.horizontalPadding),
-                    Text(
-                      'Belum ada data tersedia',
-                      style: TextStyle(
-                        fontSize: sizing.sectionTitleSize,
-                        color: _bpsTextSecondary,
-                        fontWeight: FontWeight.w600,
+                child: Padding(
+                  padding: EdgeInsets.all(sizing.horizontalPadding),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.inbox_outlined,
+                        size: isSmallScreen ? 48 : 64,
+                        color: _bpsTextLabel,
                       ),
-                    ),
-                  ],
+                      SizedBox(height: sizing.sectionSpacing - 8),
+                      Text(
+                        'Belum Ada Data',
+                        style: TextStyle(
+                          fontSize: sizing.sectionTitleSize,
+                          fontWeight: FontWeight.bold,
+                          color: _bpsTextPrimary,
+                        ),
+                      ),
+                      SizedBox(height: sizing.itemSpacing),
+                      Text(
+                        'Data inflasi belum tersedia',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: sizing.categoryLabelFontSize,
+                          color: _bpsTextSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -158,27 +165,35 @@ class _InflasiScreenState extends State<InflasiScreen> {
 
     return Scaffold(
       backgroundColor: _bpsBackground,
-      body: CustomScrollView(
-        physics: const ClampingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-        slivers: [
-          SliverToBoxAdapter(child: _buildHeader(context, sizing)),
-          SliverPadding(
-            padding: EdgeInsets.all(sizing.horizontalPadding),
-            sliver: SliverList(
-              delegate: SliverChildListDelegate([
-                _buildYearSelector(sizing),
-                SizedBox(height: sizing.sectionSpacing),
-                _buildMonthSelector(sizing),
-                SizedBox(height: sizing.sectionSpacing),
-                _buildMainIndicators(sizing),
-                SizedBox(height: sizing.sectionSpacing),
-                _buildInflationChart(sizing),
-                SizedBox(height: sizing.sectionSpacing),
-                _buildMonthlyInflationChart(sizing),
-                SizedBox(height: sizing.sectionSpacing),
-                _buildInflationComponents(sizing),
-                SizedBox(height: sizing.sectionSpacing),
-              ]),
+      body: Column(
+        children: [
+          _buildHeader(context, sizing, isSmallScreen),
+          Expanded(
+            child: CustomScrollView(
+              physics: const ClampingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+              slivers: [
+                SliverPadding(
+                  padding: EdgeInsets.all(sizing.horizontalPadding),
+                  sliver: SliverList(
+                    delegate: SliverChildListDelegate([
+                      _buildHeroSummaryCard(sizing, isSmallScreen),
+                      SizedBox(height: sizing.sectionSpacing),
+                      _buildYearSelector(sizing, isSmallScreen),
+                      SizedBox(height: sizing.sectionSpacing),
+                      _buildMonthSelector(sizing, isSmallScreen),
+                      SizedBox(height: sizing.sectionSpacing),
+                      _buildMainIndicators(sizing, isSmallScreen),
+                      SizedBox(height: sizing.sectionSpacing),
+                      _buildInflationChart(sizing, isSmallScreen),
+                      SizedBox(height: sizing.sectionSpacing),
+                      _buildMonthlyInflationChart(sizing, isSmallScreen),
+                      SizedBox(height: sizing.sectionSpacing),
+                      _buildInflationComponents(sizing, isSmallScreen),
+                      SizedBox(height: sizing.sectionSpacing),
+                    ]),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -186,15 +201,15 @@ class _InflasiScreenState extends State<InflasiScreen> {
     );
   }
 
-  Widget _buildHeader(BuildContext context, ResponsiveSizing sizing) {
+  Widget _buildHeader(BuildContext context, ResponsiveSizing sizing, bool isSmallScreen) {
     return Container(
       decoration: BoxDecoration(
         color: _bpsBlue,
         boxShadow: [
           BoxShadow(
             color: _bpsBlue.withOpacity(0.2),
-            blurRadius: 30,
-            offset: const Offset(0, 10),
+            blurRadius: 20,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -202,66 +217,67 @@ class _InflasiScreenState extends State<InflasiScreen> {
         bottom: false,
         child: Padding(
           padding: EdgeInsets.all(sizing.horizontalPadding),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Row(
             children: [
-              Row(
-                children: [
-                  Material(
-                    color: Colors.white.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(12),
-                    child: InkWell(
-                      onTap: () => Navigator.of(context).pop(),
-                      borderRadius: BorderRadius.circular(12),
-                      child: Padding(
-                        padding: EdgeInsets.all(sizing.headerLogoPadding),
-                        child: Icon(
-                          Icons.arrow_back_rounded,
-                          color: Colors.white,
-                          size: sizing.headerLogoSize,
-                        ),
+              Material(
+                color: Colors.white.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(12),
+                child: InkWell(
+                  onTap: () => Navigator.of(context).pop(),
+                  borderRadius: BorderRadius.circular(12),
+                  child: Padding(
+                    padding: EdgeInsets.all(isSmallScreen ? 10 : 12),
+                    child: Icon(
+                      Icons.arrow_back_rounded,
+                      color: Colors.white,
+                      size: isSmallScreen ? 20 : 24,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(width: sizing.itemSpacing),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Data Inflasi',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: isSmallScreen
+                            ? sizing.headerTitleSize - 2
+                            : sizing.headerTitleSize,
+                        fontWeight: FontWeight.w700,
+                        height: 1.1,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    SizedBox(height: isSmallScreen ? 2 : 4),
+                    Text(
+                      'Data Tahun $selectedYear',
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: isSmallScreen
+                            ? sizing.headerSubtitleSize - 2
+                            : sizing.headerSubtitleSize,
+                        fontWeight: FontWeight.w400,
                       ),
                     ),
-                  ),
-                  SizedBox(width: sizing.itemSpacing),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Data Inflasi',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: sizing.headerTitleSize,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          'Data Tahun $selectedYear',
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontSize: sizing.headerSubtitleSize,
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding: EdgeInsets.all(sizing.headerLogoPadding),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      Icons.analytics_rounded,
-                      color: Colors.white,
-                      size: sizing.headerLogoSize,
-                    ),
-                  ),
-                ],
+                  ],
+                ),
+              ),
+              Container(
+                padding: EdgeInsets.all(isSmallScreen ? 10 : 12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  Icons.analytics_rounded,
+                  color: Colors.white,
+                  size: isSmallScreen ? 20 : 24,
+                ),
               ),
             ],
           ),
@@ -270,9 +286,88 @@ class _InflasiScreenState extends State<InflasiScreen> {
     );
   }
 
-  Widget _buildYearSelector(ResponsiveSizing sizing) {
+  Widget _buildHeroSummaryCard(ResponsiveSizing sizing, bool isSmallScreen) {
+    final yearInflation = yearlyInflation[selectedYear] ?? 0.0;
+
     return Container(
-      padding: EdgeInsets.all(sizing.statsCardPadding),
+      padding: EdgeInsets.all(isSmallScreen ? 20 : 24),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            _bpsBlue,
+            _bpsBlue.withOpacity(0.85),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: _bpsBlue.withOpacity(0.3),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: EdgeInsets.all(isSmallScreen ? 10 : 12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  Icons.trending_up_rounded,
+                  color: Colors.white,
+                  size: isSmallScreen ? 24 : 28,
+                ),
+              ),
+              SizedBox(width: sizing.itemSpacing),
+              Expanded(
+                child: Text(
+                  'Ringkasan Inflasi',
+                  style: TextStyle(
+                    fontSize: isSmallScreen ? 16 : 18,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: isSmallScreen ? 16 : 20),
+          Text(
+            'Inflasi Tahunan',
+            style: TextStyle(
+              fontSize: isSmallScreen ? 14 : 16,
+              color: Colors.white.withOpacity(0.9),
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          SizedBox(height: isSmallScreen ? 8 : 12),
+          Text(
+            '${yearInflation.toStringAsFixed(2)}%',
+            style: TextStyle(
+              fontSize: isSmallScreen ? 48 : 56,
+              fontWeight: FontWeight.w900,
+              color: Colors.white,
+              height: 1,
+              letterSpacing: -2,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildYearSelector(ResponsiveSizing sizing, bool isSmallScreen) {
+    return Container(
+      padding: EdgeInsets.all(isSmallScreen
+          ? sizing.statsCardPadding - 4
+          : sizing.statsCardPadding),
       decoration: BoxDecoration(
         color: _bpsCardBg,
         borderRadius: BorderRadius.circular(16),
@@ -280,7 +375,7 @@ class _InflasiScreenState extends State<InflasiScreen> {
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.04),
-            blurRadius: 8,
+            blurRadius: 6,
             offset: const Offset(0, 2),
           ),
         ],
@@ -291,7 +386,7 @@ class _InflasiScreenState extends State<InflasiScreen> {
           Row(
             children: [
               Container(
-                padding: EdgeInsets.all(sizing.groupIconPadding),
+                padding: EdgeInsets.all(isSmallScreen ? 8 : 10),
                 decoration: BoxDecoration(
                   color: _bpsBlue.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
@@ -299,29 +394,31 @@ class _InflasiScreenState extends State<InflasiScreen> {
                 child: Icon(
                   Icons.calendar_today_rounded,
                   color: _bpsBlue,
-                  size: sizing.groupIconSize,
+                  size: isSmallScreen ? 16 : 20,
                 ),
               ),
               SizedBox(width: sizing.itemSpacing),
               Text(
                 'Pilih Tahun Data',
                 style: TextStyle(
-                  fontSize: sizing.groupTitleSize,
+                  fontSize: isSmallScreen
+                      ? sizing.groupTitleSize - 2
+                      : sizing.groupTitleSize,
                   fontWeight: FontWeight.w700,
                   color: _bpsTextPrimary,
                 ),
               ),
             ],
           ),
-          SizedBox(height: sizing.horizontalPadding),
+          SizedBox(height: isSmallScreen ? 12 : 16),
           Wrap(
-            spacing: sizing.itemSpacing,
-            runSpacing: sizing.itemSpacing,
+            spacing: isSmallScreen ? 8 : 12,
+            runSpacing: isSmallScreen ? 8 : 12,
             children: availableYears.map((year) {
               final isSelected = year == selectedYear;
               return Material(
                 color: isSelected ? _bpsBlue : _bpsBackground,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(10),
                 child: InkWell(
                   onTap: () {
                     setState(() {
@@ -329,26 +426,37 @@ class _InflasiScreenState extends State<InflasiScreen> {
                       selectedMonth = null;
                     });
                   },
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(10),
                   child: Container(
+                    constraints: BoxConstraints(
+                      minWidth: isSmallScreen ? 60 : 70,
+                    ),
                     padding: EdgeInsets.symmetric(
-                      horizontal: sizing.statsCardPadding,
-                      vertical: sizing.itemSpacing,
+                      horizontal: isSmallScreen ? 12 : 16,
+                      vertical: isSmallScreen ? 8 : 10,
                     ),
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(10),
                       border: Border.all(
                         color: isSelected ? _bpsBlue : _bpsBorder,
                         width: isSelected ? 2 : 1.5,
                       ),
+                      boxShadow: isSelected ? [
+                        BoxShadow(
+                          color: _bpsBlue.withOpacity(0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ] : null,
                     ),
                     child: Text(
                       year.toString(),
                       style: TextStyle(
-                        fontSize: sizing.categoryLabelFontSize,
+                        fontSize: isSmallScreen ? 14 : 16,
                         fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
                         color: isSelected ? Colors.white : _bpsTextSecondary,
                       ),
+                      textAlign: TextAlign.center,
                     ),
                   ),
                 ),
@@ -360,9 +468,11 @@ class _InflasiScreenState extends State<InflasiScreen> {
     );
   }
 
-  Widget _buildMonthSelector(ResponsiveSizing sizing) {
+  Widget _buildMonthSelector(ResponsiveSizing sizing, bool isSmallScreen) {
     return Container(
-      padding: EdgeInsets.all(sizing.statsCardPadding),
+      padding: EdgeInsets.all(isSmallScreen
+          ? sizing.statsCardPadding - 4
+          : sizing.statsCardPadding),
       decoration: BoxDecoration(
         color: _bpsCardBg,
         borderRadius: BorderRadius.circular(16),
@@ -370,7 +480,7 @@ class _InflasiScreenState extends State<InflasiScreen> {
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.04),
-            blurRadius: 8,
+            blurRadius: 6,
             offset: const Offset(0, 2),
           ),
         ],
@@ -381,7 +491,7 @@ class _InflasiScreenState extends State<InflasiScreen> {
           Row(
             children: [
               Container(
-                padding: EdgeInsets.all(sizing.groupIconPadding),
+                padding: EdgeInsets.all(isSmallScreen ? 8 : 10),
                 decoration: BoxDecoration(
                   color: _bpsOrange.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
@@ -389,14 +499,16 @@ class _InflasiScreenState extends State<InflasiScreen> {
                 child: Icon(
                   Icons.calendar_month_rounded,
                   color: _bpsOrange,
-                  size: sizing.groupIconSize,
+                  size: isSmallScreen ? 16 : 20,
                 ),
               ),
               SizedBox(width: sizing.itemSpacing),
               Text(
                 'Pilih Bulan',
                 style: TextStyle(
-                  fontSize: sizing.groupTitleSize,
+                  fontSize: isSmallScreen
+                      ? sizing.groupTitleSize - 2
+                      : sizing.groupTitleSize,
                   fontWeight: FontWeight.w700,
                   color: _bpsTextPrimary,
                 ),
@@ -427,7 +539,7 @@ class _InflasiScreenState extends State<InflasiScreen> {
                 ),
             ],
           ),
-          SizedBox(height: sizing.horizontalPadding),
+          SizedBox(height: isSmallScreen ? 12 : 16),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             physics: const BouncingScrollPhysics(),
@@ -438,21 +550,24 @@ class _InflasiScreenState extends State<InflasiScreen> {
                   padding: EdgeInsets.only(right: sizing.itemSpacing),
                   child: Material(
                     color: isSelected ? _bpsOrange : _bpsBackground,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(10),
                     child: InkWell(
                       onTap: () {
                         setState(() {
                           selectedMonth = isSelected ? null : index;
                         });
                       },
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(10),
                       child: Container(
+                        constraints: BoxConstraints(
+                          minWidth: isSmallScreen ? 50 : 60,
+                        ),
                         padding: EdgeInsets.symmetric(
-                          horizontal: sizing.statsCardPadding,
-                          vertical: sizing.itemSpacing,
+                          horizontal: isSmallScreen ? 10 : 12,
+                          vertical: isSmallScreen ? 8 : 10,
                         ),
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(10),
                           border: Border.all(
                             color: isSelected ? _bpsOrange : _bpsBorder,
                             width: isSelected ? 2 : 1.5,
@@ -461,10 +576,11 @@ class _InflasiScreenState extends State<InflasiScreen> {
                         child: Text(
                           months[index],
                           style: TextStyle(
-                            fontSize: sizing.categoryLabelFontSize,
+                            fontSize: isSmallScreen ? 13 : 14,
                             fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
                             color: isSelected ? Colors.white : _bpsTextSecondary,
                           ),
+                          textAlign: TextAlign.center,
                         ),
                       ),
                     ),
@@ -478,13 +594,15 @@ class _InflasiScreenState extends State<InflasiScreen> {
     );
   }
 
-  Widget _buildMainIndicators(ResponsiveSizing sizing) {
+  Widget _buildMainIndicators(ResponsiveSizing sizing, bool isSmallScreen) {
     final yearInflation = yearlyInflation[selectedYear] ?? 0.0;
     final coreInfl = coreInflation[selectedYear] ?? 0.0;
     final ihk = ihkData[selectedYear] ?? 0.0;
 
     return Container(
-      padding: EdgeInsets.all(sizing.statsCardPadding),
+      padding: EdgeInsets.all(isSmallScreen
+          ? sizing.statsCardPadding - 4
+          : sizing.statsCardPadding),
       decoration: BoxDecoration(
         color: _bpsCardBg,
         borderRadius: BorderRadius.circular(16),
@@ -492,7 +610,7 @@ class _InflasiScreenState extends State<InflasiScreen> {
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.04),
-            blurRadius: 8,
+            blurRadius: 6,
             offset: const Offset(0, 2),
           ),
         ],
@@ -503,7 +621,7 @@ class _InflasiScreenState extends State<InflasiScreen> {
           Row(
             children: [
               Container(
-                padding: EdgeInsets.all(sizing.groupIconPadding),
+                padding: EdgeInsets.all(isSmallScreen ? 8 : 10),
                 decoration: BoxDecoration(
                   color: _bpsBlue.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
@@ -511,7 +629,7 @@ class _InflasiScreenState extends State<InflasiScreen> {
                 child: Icon(
                   Icons.analytics_rounded,
                   color: _bpsBlue,
-                  size: sizing.groupIconSize,
+                  size: isSmallScreen ? 16 : 20,
                 ),
               ),
               SizedBox(width: sizing.itemSpacing),
@@ -519,120 +637,86 @@ class _InflasiScreenState extends State<InflasiScreen> {
                 child: Text(
                   'Indikator Utama Inflasi',
                   style: TextStyle(
-                    fontSize: sizing.groupTitleSize,
+                    fontSize: isSmallScreen
+                        ? sizing.groupTitleSize - 2
+                        : sizing.groupTitleSize,
                     fontWeight: FontWeight.w700,
                     color: _bpsTextPrimary,
                   ),
                 ),
               ),
-              Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: sizing.itemSpacing,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: _bpsBlue.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.touch_app_rounded,
-                      color: _bpsBlue,
-                      size: sizing.bottomNavLabelSize,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      'Tap untuk detail',
-                      style: TextStyle(
-                        fontSize: sizing.bottomNavLabelSize,
+              if (!isSmallScreen) ...[
+                Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: sizing.itemSpacing,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: _bpsBlue.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.touch_app_rounded,
                         color: _bpsBlue,
-                        fontWeight: FontWeight.w600,
+                        size: 14,
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 4),
+                      Text(
+                        'Tap untuk detail',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: _bpsBlue,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
+              ],
             ],
           ),
-          SizedBox(height: sizing.horizontalPadding),
-          Row(
+          SizedBox(height: isSmallScreen ? 12 : 16),
+          Column(
             children: [
-              Expanded(
-                child: _buildIndicatorCard(
-                  sizing: sizing,
-                  value: '${yearInflation.toStringAsFixed(2)}%',
-                  label: 'Inflasi Tahunan',
-                  icon: Icons.trending_up_rounded,
-                  color: _bpsBlue,
-                  onTap: () => _showDetailDialog(
-                    'Inflasi Tahunan',
-                    '${yearInflation.toStringAsFixed(2)}%',
-                    Icons.trending_up_rounded,
-                    _bpsBlue,
-                    'Inflasi tahunan (Year-on-Year) mengukur perubahan harga barang dan jasa secara umum selama satu tahun. Angka ini menjadi acuan utama kebijakan moneter.',
-                    sizing,
-                  ),
-                ),
+              _buildCompactIndicatorRow(
+                context: context,
+                value: '${yearInflation.toStringAsFixed(2)}%',
+                label: 'Inflasi Tahunan',
+                color: _bpsBlue,
+                icon: Icons.trending_up_rounded,
+                description: 'Inflasi tahunan (Year-on-Year) mengukur perubahan harga barang dan jasa secara umum selama satu tahun. Angka ini menjadi acuan utama kebijakan moneter.',
+                isFirst: true,
               ),
-              SizedBox(width: sizing.gridSpacing),
-              Expanded(
-                child: _buildIndicatorCard(
-                  sizing: sizing,
-                  value: '${currentInflationValue.toStringAsFixed(2)}%',
-                  label: selectedMonth == null ? 'Inflasi Bulanan' : 'Inflasi $currentMonthLabel',
-                  icon: Icons.calendar_month_rounded,
-                  color: inflationColor,
-                  onTap: () => _showDetailDialog(
-                    selectedMonth == null ? 'Inflasi Bulanan' : 'Inflasi $currentMonthLabel',
-                    '${currentInflationValue.toStringAsFixed(2)}%',
-                    Icons.calendar_month_rounded,
-                    inflationColor,
-                    'Inflasi bulanan (Month-to-Month) mengukur perubahan harga barang dan jasa dari bulan ke bulan. Fluktuasi bulanan dipengaruhi oleh faktor musiman dan kebijakan harga.',
-                    sizing,
-                  ),
-                ),
+              _buildIndicatorDivider(isSmallScreen),
+              _buildCompactIndicatorRow(
+                context: context,
+                value: '${currentInflationValue.toStringAsFixed(2)}%',
+                label: selectedMonth == null ? 'Inflasi Bulanan' : 'Inflasi $currentMonthLabel',
+                color: inflationColor,
+                icon: Icons.calendar_month_rounded,
+                description: 'Inflasi bulanan (Month-to-Month) mengukur perubahan harga barang dan jasa dari bulan ke bulan. Fluktuasi bulanan dipengaruhi oleh faktor musiman dan kebijakan harga.',
               ),
-            ],
-          ),
-          SizedBox(height: sizing.gridSpacing),
-          Row(
-            children: [
-              Expanded(
-                child: _buildIndicatorCard(
-                  sizing: sizing,
-                  value: '${coreInfl.toStringAsFixed(2)}%',
-                  label: 'Inflasi Inti',
-                  icon: Icons.insights_rounded,
-                  color: _bpsGreen,
-                  onTap: () => _showDetailDialog(
-                    'Inflasi Inti',
-                    '${coreInfl.toStringAsFixed(2)}%',
-                    Icons.insights_rounded,
-                    _bpsGreen,
-                    'Inflasi inti (Core Inflation) menghilangkan komponen harga yang bergejolak (volatile) seperti bahan makanan dan energi. Indikator ini mencerminkan tekanan inflasi yang lebih fundamental.',
-                    sizing,
-                  ),
-                ),
+              _buildIndicatorDivider(isSmallScreen),
+              _buildCompactIndicatorRow(
+                context: context,
+                value: '${coreInfl.toStringAsFixed(2)}%',
+                label: 'Inflasi Inti',
+                color: _bpsGreen,
+                icon: Icons.insights_rounded,
+                description: 'Inflasi inti (Core Inflation) menghilangkan komponen harga yang bergejolak (volatile) seperti bahan makanan dan energi. Indikator ini mencerminkan tekanan inflasi yang lebih fundamental.',
               ),
-              SizedBox(width: sizing.gridSpacing),
-              Expanded(
-                child: _buildIndicatorCard(
-                  sizing: sizing,
-                  value: ihk.toStringAsFixed(2),
-                  label: 'Indeks Harga Konsumen',
-                  icon: Icons.assessment_rounded,
-                  color: _bpsPurple,
-                  onTap: () => _showDetailDialog(
-                    'Indeks Harga Konsumen',
-                    ihk.toStringAsFixed(2),
-                    Icons.assessment_rounded,
-                    _bpsPurple,
-                    'Indeks Harga Konsumen (IHK) mengukur rata-rata perubahan harga dari suatu paket barang dan jasa yang dikonsumsi oleh rumah tangga. Basis perhitungan 2018=100.',
-                    sizing,
-                  ),
-                ),
+              _buildIndicatorDivider(isSmallScreen),
+              _buildCompactIndicatorRow(
+                context: context,
+                value: ihk.toStringAsFixed(2),
+                label: 'Indeks Harga Konsumen',
+                color: _bpsPurple,
+                icon: Icons.assessment_rounded,
+                description: 'Indeks Harga Konsumen (IHK) mengukur rata-rata perubahan harga dari suatu paket barang dan jasa yang dikonsumsi oleh rumah tangga. Basis perhitungan 2018=100.',
+                isLast: true,
               ),
             ],
           ),
@@ -641,86 +725,82 @@ class _InflasiScreenState extends State<InflasiScreen> {
     );
   }
 
-  Widget _buildIndicatorCard({
-    required ResponsiveSizing sizing,
+  Widget _buildCompactIndicatorRow({
+    required BuildContext context,
     required String value,
     required String label,
-    required IconData icon,
     required Color color,
-    required VoidCallback onTap,
+    required IconData icon,
+    required String description,
+    bool isFirst = false,
+    bool isLast = false,
   }) {
+    final sizing = ResponsiveSizing(context);
+    final isSmallScreen = sizing.isVerySmall || sizing.isSmall;
+
     return Material(
-      color: _bpsCardBg,
-      borderRadius: BorderRadius.circular(12),
+      color: Colors.transparent,
       child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: EdgeInsets.all(sizing.categoryCardPadding),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: color.withOpacity(0.2),
-              width: 2,
-            ),
+        onTap: () => _showDetailDialog(
+          context,
+          label,
+          value,
+          icon,
+          color,
+          description,
+        ),
+        splashColor: color.withOpacity(0.1),
+        highlightColor: color.withOpacity(0.05),
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: isSmallScreen ? 12 : 16,
+            vertical: isSmallScreen ? 8 : 10,
           ),
-          child: Column(
+          child: Row(
             children: [
               Container(
-                padding: EdgeInsets.all(sizing.categoryIconContainerPadding),
+                width: isSmallScreen ? 10 : 12,
+                height: isSmallScreen ? 10 : 12,
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.12),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  icon,
                   color: color,
-                  size: sizing.categoryIconSize,
+                  shape: BoxShape.circle,
                 ),
               ),
-              SizedBox(height: sizing.itemSpacing),
-              Text(
-                value,
-                style: TextStyle(
-                  fontSize: sizing.statsValueFontSize,
-                  fontWeight: FontWeight.w800,
-                  color: color,
-                  height: 1,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(height: sizing.itemSpacing - 4),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: sizing.categorySubLabelFontSize,
-                  color: _bpsTextSecondary,
-                  fontWeight: FontWeight.w600,
-                  height: 1.2,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(height: sizing.itemSpacing - 4),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.info_outline_rounded,
-                    size: sizing.bottomNavLabelSize,
-                    color: color.withOpacity(0.7),
+              SizedBox(width: isSmallScreen ? 8 : 10),
+              Expanded(
+                flex: 3,
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: isSmallScreen ? 13 : 14,
+                    fontWeight: FontWeight.w600,
+                    color: _bpsTextPrimary,
                   ),
-                  const SizedBox(width: 4),
-                  Text(
-                    'Detail',
-                    style: TextStyle(
-                      fontSize: sizing.bottomNavLabelSize,
-                      color: color.withOpacity(0.8),
-                      fontWeight: FontWeight.w600,
-                    ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                flex: 2,
+                child: Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: isSmallScreen ? 15 : 17,
+                    fontWeight: FontWeight.w800,
+                    color: color,
+                    letterSpacing: -0.3,
                   ),
-                ],
+                  textAlign: TextAlign.right,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Icon(
+                Icons.chevron_right_rounded,
+                color: color.withOpacity(0.5),
+                size: isSmallScreen ? 18 : 20,
               ),
             ],
           ),
@@ -729,7 +809,211 @@ class _InflasiScreenState extends State<InflasiScreen> {
     );
   }
 
-  Widget _buildInflationChart(ResponsiveSizing sizing) {
+  Widget _buildIndicatorDivider(bool isSmallScreen) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: isSmallScreen ? 12 : 16),
+      child: Divider(
+        height: 1,
+        thickness: 1,
+        color: _bpsBorder.withOpacity(0.5),
+      ),
+    );
+  }
+
+  void _showDetailDialog(
+    BuildContext context,
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+    String description,
+  ) {
+    final sizing = ResponsiveSizing(context);
+    final isSmallScreen = sizing.isVerySmall || sizing.isSmall;
+
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (dialogContext) {
+        return Dialog(
+          insetPadding: EdgeInsets.all(isSmallScreen ? 12 : 20),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(dialogContext).size.height * 0.7,
+              maxWidth: isSmallScreen
+                  ? MediaQuery.of(dialogContext).size.width - 24
+                  : 500,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
+                  decoration: BoxDecoration(
+                    color: color,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(20),
+                      topRight: Radius.circular(20),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: EdgeInsets.all(isSmallScreen ? 8 : 10),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(
+                          icon,
+                          color: Colors.white,
+                          size: isSmallScreen ? 20 : 24,
+                        ),
+                      ),
+                      SizedBox(width: isSmallScreen ? 8 : 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              title,
+                              style: TextStyle(
+                                fontSize: isSmallScreen ? 16 : 18,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Tahun $selectedYear',
+                              style: TextStyle(
+                                fontSize: isSmallScreen ? 12 : 14,
+                                color: Colors.white70,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Material(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(8),
+                        child: InkWell(
+                          onTap: () => Navigator.pop(dialogContext),
+                          borderRadius: BorderRadius.circular(8),
+                          child: Padding(
+                            padding: const EdgeInsets.all(6),
+                            child: Icon(
+                              Icons.close_rounded,
+                              color: Colors.white,
+                              size: isSmallScreen ? 18 : 20,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Flexible(
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: double.infinity,
+                          padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
+                          decoration: BoxDecoration(
+                            color: color.withOpacity(0.08),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: color.withOpacity(0.2),
+                              width: 2,
+                            ),
+                          ),
+                          child: Column(
+                            children: [
+                              Text(
+                                'Nilai Indikator',
+                                style: TextStyle(
+                                  fontSize: isSmallScreen ? 13 : 14,
+                                  color: _bpsTextSecondary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              SizedBox(height: isSmallScreen ? 8 : 12),
+                              Text(
+                                value,
+                                style: TextStyle(
+                                  fontSize: isSmallScreen ? 28 : 32,
+                                  fontWeight: FontWeight.w800,
+                                  color: color,
+                                  letterSpacing: -1,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(height: isSmallScreen ? 12 : 16),
+                        Container(
+                          padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
+                          decoration: BoxDecoration(
+                            color: _bpsBackground,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(
+                                Icons.lightbulb_outline_rounded,
+                                color: color,
+                                size: isSmallScreen ? 18 : 20,
+                              ),
+                              SizedBox(width: isSmallScreen ? 8 : 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Penjelasan',
+                                      style: TextStyle(
+                                        fontSize: isSmallScreen ? 14 : 16,
+                                        fontWeight: FontWeight.w700,
+                                        color: color,
+                                      ),
+                                    ),
+                                    SizedBox(height: isSmallScreen ? 4 : 6),
+                                    Text(
+                                      description,
+                                      style: TextStyle(
+                                        fontSize: isSmallScreen ? 13 : 14,
+                                        color: _bpsTextSecondary,
+                                        height: 1.5,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildInflationChart(ResponsiveSizing sizing, bool isSmallScreen) {
     final years = availableYears;
     final spots = years.asMap().entries.map((e) {
       final val = yearlyInflation[e.value] ?? 0.0;
@@ -739,7 +1023,9 @@ class _InflasiScreenState extends State<InflasiScreen> {
     final maxY = (yearlyInflation.values.reduce((a, b) => a > b ? a : b) + 0.5).ceilToDouble();
 
     return Container(
-      padding: EdgeInsets.all(sizing.statsCardPadding),
+      padding: EdgeInsets.all(isSmallScreen
+          ? sizing.statsCardPadding - 4
+          : sizing.statsCardPadding),
       decoration: BoxDecoration(
         color: _bpsCardBg,
         borderRadius: BorderRadius.circular(16),
@@ -747,7 +1033,7 @@ class _InflasiScreenState extends State<InflasiScreen> {
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.04),
-            blurRadius: 8,
+            blurRadius: 6,
             offset: const Offset(0, 2),
           ),
         ],
@@ -758,7 +1044,7 @@ class _InflasiScreenState extends State<InflasiScreen> {
           Row(
             children: [
               Container(
-                padding: EdgeInsets.all(sizing.groupIconPadding),
+                padding: EdgeInsets.all(isSmallScreen ? 8 : 10),
                 decoration: BoxDecoration(
                   color: _bpsBlue.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
@@ -766,7 +1052,7 @@ class _InflasiScreenState extends State<InflasiScreen> {
                 child: Icon(
                   Icons.show_chart_rounded,
                   color: _bpsBlue,
-                  size: sizing.groupIconSize,
+                  size: isSmallScreen ? 16 : 20,
                 ),
               ),
               SizedBox(width: sizing.itemSpacing),
@@ -777,7 +1063,9 @@ class _InflasiScreenState extends State<InflasiScreen> {
                     Text(
                       'Tren Inflasi Tahunan',
                       style: TextStyle(
-                        fontSize: sizing.groupTitleSize,
+                        fontSize: isSmallScreen
+                            ? sizing.groupTitleSize - 2
+                            : sizing.groupTitleSize,
                         fontWeight: FontWeight.w700,
                         color: _bpsTextPrimary,
                       ),
@@ -786,7 +1074,7 @@ class _InflasiScreenState extends State<InflasiScreen> {
                     Text(
                       'Persentase Year-on-Year (${years.first}-${years.last})',
                       style: TextStyle(
-                        fontSize: sizing.categorySubLabelFontSize,
+                        fontSize: isSmallScreen ? 12 : 13,
                         color: _bpsTextSecondary,
                       ),
                     ),
@@ -795,9 +1083,9 @@ class _InflasiScreenState extends State<InflasiScreen> {
               ),
             ],
           ),
-          SizedBox(height: sizing.horizontalPadding),
+          SizedBox(height: isSmallScreen ? 12 : 16),
           SizedBox(
-            height: 220,
+            height: isSmallScreen ? 200 : 220,
             child: LineChart(
               LineChartData(
                 gridData: FlGridData(
@@ -807,7 +1095,7 @@ class _InflasiScreenState extends State<InflasiScreen> {
                   getDrawingHorizontalLine: (value) {
                     return FlLine(
                       color: _bpsBorder,
-                      strokeWidth: 1,
+                      strokeWidth: 0.5,
                     );
                   },
                 ),
@@ -815,13 +1103,13 @@ class _InflasiScreenState extends State<InflasiScreen> {
                   leftTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
-                      reservedSize: 40,
+                      reservedSize: isSmallScreen ? 35 : 40,
                       interval: 1,
                       getTitlesWidget: (value, meta) {
                         return Text(
                           '${value.toStringAsFixed(1)}%',
                           style: TextStyle(
-                            fontSize: sizing.bottomNavLabelSize,
+                            fontSize: isSmallScreen ? 10 : 12,
                             color: _bpsTextSecondary,
                             fontWeight: FontWeight.w500,
                           ),
@@ -837,11 +1125,11 @@ class _InflasiScreenState extends State<InflasiScreen> {
                         final index = value.toInt();
                         if (index >= 0 && index < years.length) {
                           return Padding(
-                            padding: const EdgeInsets.only(top: 8),
+                            padding: EdgeInsets.only(top: isSmallScreen ? 6 : 8),
                             child: Text(
                               years[index].toString(),
                               style: TextStyle(
-                                fontSize: sizing.bottomNavLabelSize,
+                                fontSize: isSmallScreen ? 10 : 12,
                                 color: _bpsTextPrimary,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -869,10 +1157,10 @@ class _InflasiScreenState extends State<InflasiScreen> {
                     spots: spots,
                     isCurved: true,
                     color: _bpsBlue,
-                    barWidth: 3.5,
+                    barWidth: isSmallScreen ? 2.5 : 3.5,
                     isStrokeCapRound: true,
                     dotData: FlDotData(
-                      show: true,
+                      show: !isSmallScreen,
                       getDotPainter: (spot, percent, barData, index) {
                         return FlDotCirclePainter(
                           radius: 5,
@@ -903,7 +1191,7 @@ class _InflasiScreenState extends State<InflasiScreen> {
     );
   }
 
-  Widget _buildMonthlyInflationChart(ResponsiveSizing sizing) {
+  Widget _buildMonthlyInflationChart(ResponsiveSizing sizing, bool isSmallScreen) {
     if (filteredMonthlyData.isEmpty) {
       return Container(
         padding: EdgeInsets.all(sizing.statsCardPadding),
@@ -936,7 +1224,9 @@ class _InflasiScreenState extends State<InflasiScreen> {
     final minValue = monthlyData.reduce((a, b) => a < b ? a : b) - 0.2;
 
     return Container(
-      padding: EdgeInsets.all(sizing.statsCardPadding),
+      padding: EdgeInsets.all(isSmallScreen
+          ? sizing.statsCardPadding - 4
+          : sizing.statsCardPadding),
       decoration: BoxDecoration(
         color: _bpsCardBg,
         borderRadius: BorderRadius.circular(16),
@@ -944,7 +1234,7 @@ class _InflasiScreenState extends State<InflasiScreen> {
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.04),
-            blurRadius: 8,
+            blurRadius: 6,
             offset: const Offset(0, 2),
           ),
         ],
@@ -955,7 +1245,7 @@ class _InflasiScreenState extends State<InflasiScreen> {
           Row(
             children: [
               Container(
-                padding: EdgeInsets.all(sizing.groupIconPadding),
+                padding: EdgeInsets.all(isSmallScreen ? 8 : 10),
                 decoration: BoxDecoration(
                   color: _bpsGreen.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
@@ -963,7 +1253,7 @@ class _InflasiScreenState extends State<InflasiScreen> {
                 child: Icon(
                   Icons.bar_chart_rounded,
                   color: _bpsGreen,
-                  size: sizing.groupIconSize,
+                  size: isSmallScreen ? 16 : 20,
                 ),
               ),
               SizedBox(width: sizing.itemSpacing),
@@ -976,7 +1266,9 @@ class _InflasiScreenState extends State<InflasiScreen> {
                           ? 'Inflasi Bulanan $selectedYear'
                           : 'Inflasi $currentMonthLabel $selectedYear',
                       style: TextStyle(
-                        fontSize: sizing.groupTitleSize,
+                        fontSize: isSmallScreen
+                            ? sizing.groupTitleSize - 2
+                            : sizing.groupTitleSize,
                         fontWeight: FontWeight.w700,
                         color: _bpsTextPrimary,
                       ),
@@ -985,7 +1277,7 @@ class _InflasiScreenState extends State<InflasiScreen> {
                     Text(
                       'Persentase Month-to-Month',
                       style: TextStyle(
-                        fontSize: sizing.categorySubLabelFontSize,
+                        fontSize: isSmallScreen ? 12 : 13,
                         color: _bpsTextSecondary,
                       ),
                     ),
@@ -994,19 +1286,18 @@ class _InflasiScreenState extends State<InflasiScreen> {
               ),
             ],
           ),
-          SizedBox(height: sizing.horizontalPadding),
-          // Legend
+          SizedBox(height: isSmallScreen ? 12 : 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _buildLegendItem(sizing, 'Positif', _bpsBlue),
+              _buildLegendItem('Positif', _bpsBlue, isSmallScreen),
               SizedBox(width: sizing.horizontalPadding),
-              _buildLegendItem(sizing, 'Negatif (Deflasi)', _bpsRed),
+              _buildLegendItem('Negatif (Deflasi)', _bpsRed, isSmallScreen),
             ],
           ),
-          SizedBox(height: sizing.horizontalPadding),
+          SizedBox(height: isSmallScreen ? 12 : 16),
           SizedBox(
-            height: 200,
+            height: isSmallScreen ? 180 : 200,
             child: BarChart(
               BarChartData(
                 alignment: BarChartAlignment.spaceAround,
@@ -1016,12 +1307,12 @@ class _InflasiScreenState extends State<InflasiScreen> {
                   leftTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
-                      reservedSize: 35,
+                      reservedSize: isSmallScreen ? 30 : 35,
                       getTitlesWidget: (value, meta) {
                         return Text(
                           '${value.toStringAsFixed(1)}%',
                           style: TextStyle(
-                            fontSize: sizing.bottomNavLabelSize,
+                            fontSize: isSmallScreen ? 10 : 12,
                             color: _bpsTextSecondary,
                             fontWeight: FontWeight.w500,
                           ),
@@ -1039,7 +1330,7 @@ class _InflasiScreenState extends State<InflasiScreen> {
                             child: Text(
                               months[selectedMonth!],
                               style: TextStyle(
-                                fontSize: sizing.bottomNavLabelSize,
+                                fontSize: isSmallScreen ? 10 : 12,
                                 color: _bpsTextPrimary,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -1053,7 +1344,7 @@ class _InflasiScreenState extends State<InflasiScreen> {
                               child: Text(
                                 months[idx],
                                 style: TextStyle(
-                                  fontSize: sizing.bottomNavLabelSize,
+                                  fontSize: isSmallScreen ? 10 : 12,
                                   color: _bpsTextPrimary,
                                   fontWeight: FontWeight.w600,
                                 ),
@@ -1093,11 +1384,13 @@ class _InflasiScreenState extends State<InflasiScreen> {
     );
   }
 
-  Widget _buildInflationComponents(ResponsiveSizing sizing) {
+  Widget _buildInflationComponents(ResponsiveSizing sizing, bool isSmallScreen) {
     final yearStr = selectedYear.toString();
 
     return Container(
-      padding: EdgeInsets.all(sizing.statsCardPadding),
+      padding: EdgeInsets.all(isSmallScreen
+          ? sizing.statsCardPadding - 4
+          : sizing.statsCardPadding),
       decoration: BoxDecoration(
         color: _bpsCardBg,
         borderRadius: BorderRadius.circular(16),
@@ -1105,7 +1398,7 @@ class _InflasiScreenState extends State<InflasiScreen> {
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.04),
-            blurRadius: 8,
+            blurRadius: 6,
             offset: const Offset(0, 2),
           ),
         ],
@@ -1116,7 +1409,7 @@ class _InflasiScreenState extends State<InflasiScreen> {
           Row(
             children: [
               Container(
-                padding: EdgeInsets.all(sizing.groupIconPadding),
+                padding: EdgeInsets.all(isSmallScreen ? 8 : 10),
                 decoration: BoxDecoration(
                   color: _bpsOrange.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
@@ -1124,21 +1417,23 @@ class _InflasiScreenState extends State<InflasiScreen> {
                 child: Icon(
                   Icons.category_rounded,
                   color: _bpsOrange,
-                  size: sizing.groupIconSize,
+                  size: isSmallScreen ? 16 : 20,
                 ),
               ),
               SizedBox(width: sizing.itemSpacing),
               Text(
                 'Komponen Inflasi',
                 style: TextStyle(
-                  fontSize: sizing.groupTitleSize,
+                  fontSize: isSmallScreen
+                      ? sizing.groupTitleSize - 2
+                      : sizing.groupTitleSize,
                   fontWeight: FontWeight.w700,
                   color: _bpsTextPrimary,
                 ),
               ),
             ],
           ),
-          SizedBox(height: sizing.horizontalPadding),
+          SizedBox(height: isSmallScreen ? 12 : 16),
           ...inflationComponents.entries.map((entry) {
             final value = entry.value[yearStr] ?? 0.0;
             final color = _getComponentColor(entry.key);
@@ -1146,7 +1441,7 @@ class _InflasiScreenState extends State<InflasiScreen> {
             return Padding(
               padding: EdgeInsets.only(bottom: sizing.itemSpacing),
               child: Container(
-                padding: EdgeInsets.all(sizing.statsCardPadding),
+                padding: EdgeInsets.all(isSmallScreen ? 12 : 14),
                 decoration: BoxDecoration(
                   color: _bpsBackground,
                   borderRadius: BorderRadius.circular(12),
@@ -1155,7 +1450,7 @@ class _InflasiScreenState extends State<InflasiScreen> {
                 child: Row(
                   children: [
                     Container(
-                      padding: EdgeInsets.all(sizing.categoryIconContainerPadding),
+                      padding: EdgeInsets.all(isSmallScreen ? 8 : 10),
                       decoration: BoxDecoration(
                         color: color.withOpacity(0.12),
                         borderRadius: BorderRadius.circular(8),
@@ -1163,7 +1458,7 @@ class _InflasiScreenState extends State<InflasiScreen> {
                       child: Icon(
                         _getComponentIcon(entry.key),
                         color: color,
-                        size: sizing.groupIconSize,
+                        size: isSmallScreen ? 18 : 20,
                       ),
                     ),
                     SizedBox(width: sizing.itemSpacing),
@@ -1171,7 +1466,7 @@ class _InflasiScreenState extends State<InflasiScreen> {
                       child: Text(
                         entry.key,
                         style: TextStyle(
-                          fontSize: sizing.categoryLabelFontSize,
+                          fontSize: isSmallScreen ? 13 : 14,
                           fontWeight: FontWeight.w600,
                           color: _bpsTextPrimary,
                         ),
@@ -1193,7 +1488,7 @@ class _InflasiScreenState extends State<InflasiScreen> {
                       child: Text(
                         '${value.toStringAsFixed(2)}%',
                         style: TextStyle(
-                          fontSize: sizing.categoryLabelFontSize,
+                          fontSize: isSmallScreen ? 13 : 14,
                           fontWeight: FontWeight.w700,
                           color: color,
                         ),
@@ -1209,11 +1504,11 @@ class _InflasiScreenState extends State<InflasiScreen> {
     );
   }
 
-  Widget _buildLegendItem(ResponsiveSizing sizing, String label, Color color) {
+  Widget _buildLegendItem(String label, Color color, bool isSmallScreen) {
     return Container(
       padding: EdgeInsets.symmetric(
-        horizontal: sizing.statsCardPadding,
-        vertical: sizing.itemSpacing,
+        horizontal: isSmallScreen ? 10 : 12,
+        vertical: isSmallScreen ? 6 : 8,
       ),
       decoration: BoxDecoration(
         color: color.withOpacity(0.08),
@@ -1227,18 +1522,18 @@ class _InflasiScreenState extends State<InflasiScreen> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 10,
-            height: 10,
+            width: isSmallScreen ? 8 : 10,
+            height: isSmallScreen ? 8 : 10,
             decoration: BoxDecoration(
               color: color,
               shape: BoxShape.circle,
             ),
           ),
-          SizedBox(width: sizing.itemSpacing - 4),
+          SizedBox(width: isSmallScreen ? 4 : 6),
           Text(
             label,
             style: TextStyle(
-              fontSize: sizing.categorySubLabelFontSize,
+              fontSize: isSmallScreen ? 12 : 13,
               color: color,
               fontWeight: FontWeight.w600,
             ),
@@ -1288,225 +1583,5 @@ class _InflasiScreenState extends State<InflasiScreen> {
       default:
         return Icons.category_rounded;
     }
-  }
-}
-
-extension on _InflasiScreenState {
-  void _showDetailDialog(
-    String title,
-    String value,
-    IconData icon,
-    Color color,
-    String description,
-    ResponsiveSizing sizing,
-  ) {
-    showDialog(
-      context: context,
-      builder: (dialogContext) => Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Container(
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(dialogContext).size.height * 0.8,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Header
-              Container(
-                padding: EdgeInsets.all(sizing.statsCardPadding),
-                decoration: BoxDecoration(
-                  color: color,
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(20),
-                    topRight: Radius.circular(20),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: EdgeInsets.all(sizing.categoryIconContainerPadding),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(icon, color: Colors.white, size: sizing.categoryIconSize),
-                    ),
-                    SizedBox(width: sizing.itemSpacing),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            title,
-                            style: TextStyle(
-                              fontSize: sizing.groupTitleSize,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Tahun $selectedYear',
-                            style: TextStyle(
-                              fontSize: sizing.categorySubLabelFontSize,
-                              color: Colors.white70,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Material(
-                      color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(8),
-                      child: InkWell(
-                        onTap: () => Navigator.pop(dialogContext),
-                        borderRadius: BorderRadius.circular(8),
-                        child: Padding(
-                          padding: const EdgeInsets.all(8),
-                          child: Icon(
-                            Icons.close_rounded,
-                            color: Colors.white,
-                            size: sizing.groupIconSize,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              // Content
-              Flexible(
-                child: SingleChildScrollView(
-                  padding: EdgeInsets.all(sizing.statsCardPadding),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Value Card
-                      Container(
-                        width: double.infinity,
-                        padding: EdgeInsets.all(sizing.statsCardPadding),
-                        decoration: BoxDecoration(
-                          color: color.withOpacity(0.08),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: color.withOpacity(0.2),
-                            width: 2,
-                          ),
-                        ),
-                        child: Column(
-                          children: [
-                            Text(
-                              'Nilai Indikator',
-                              style: TextStyle(
-                                fontSize: sizing.categorySubLabelFontSize,
-                                color: _bpsTextSecondary,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            SizedBox(height: sizing.itemSpacing),
-                            Text(
-                              value,
-                              style: TextStyle(
-                                fontSize: sizing.statsValueFontSize * 1.5,
-                                fontWeight: FontWeight.w800,
-                                color: color,
-                                letterSpacing: -1,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      SizedBox(height: sizing.horizontalPadding),
-
-                      // Description
-                      Container(
-                        padding: EdgeInsets.all(sizing.statsCardPadding),
-                        decoration: BoxDecoration(
-                          color: _bpsBackground,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Icon(
-                              Icons.lightbulb_outline_rounded,
-                              color: color,
-                              size: sizing.groupIconSize,
-                            ),
-                            SizedBox(width: sizing.itemSpacing),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Penjelasan',
-                                    style: TextStyle(
-                                      fontSize: sizing.categoryLabelFontSize,
-                                      fontWeight: FontWeight.w700,
-                                      color: color,
-                                    ),
-                                  ),
-                                  SizedBox(height: sizing.itemSpacing - 4),
-                                  Text(
-                                    description,
-                                    style: TextStyle(
-                                      fontSize: sizing.categorySubLabelFontSize,
-                                      color: _bpsTextSecondary,
-                                      height: 1.5,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      SizedBox(height: sizing.horizontalPadding),
-
-                      // Additional Info
-                      Container(
-                        padding: EdgeInsets.all(sizing.statsCardPadding),
-                        decoration: BoxDecoration(
-                          color: color.withOpacity(0.05),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: color.withOpacity(0.2),
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.info_rounded,
-                              color: color,
-                              size: sizing.groupIconSize,
-                            ),
-                            SizedBox(width: sizing.itemSpacing),
-                            Expanded(
-                              child: Text(
-                                'Data bersumber dari Badan Pusat Statistik (BPS) Kota Semarang',
-                                style: TextStyle(
-                                  fontSize: sizing.categorySubLabelFontSize,
-                                  color: _bpsTextSecondary,
-                                  height: 1.4,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 }

@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'responsive_sizing.dart';
 
-// BPS Color Palette (matching home_screen.dart)
+// BPS Color Palette (matching kemiskinana_screen.dart)
 const Color _bpsBlue = Color(0xFF2E99D6);
 const Color _bpsOrange = Color(0xFFE88D34);
 const Color _bpsGreen = Color(0xFF7DBD42);
@@ -16,6 +16,7 @@ const Color _bpsTextSecondary = Color(0xFF808080);
 const Color _bpsTextLabel = Color(0xFFA0A0A0);
 const Color _bpsBorder = Color(0xFFE0E0E0);
 const Color _bpsPurple = Color(0xFF7B1FA2);
+const Color _bpsTeal = Color(0xFF1ABC9C);
 
 class TenagaKerjaScreen extends StatefulWidget {
   const TenagaKerjaScreen({super.key});
@@ -40,8 +41,6 @@ class _TenagaKerjaScreenState extends State<TenagaKerjaScreen> {
     super.initState();
     _loadData();
   }
-
-  // ============= LOAD DATA FROM SHARED PREFERENCES =============
 
   Future<void> _loadData() async {
     try {
@@ -101,297 +100,305 @@ class _TenagaKerjaScreenState extends State<TenagaKerjaScreen> {
       _initializeDefaultDistribusiData();
       _initializeDefaultJatengData();
       setState(() {
-        availableYears = yearData.keys.toList()..sort();
-        if (availableYears.isNotEmpty) {
-          selectedYear = availableYears.last;
-        }
         isLoading = false;
       });
     }
   }
 
-  // ============= DEFAULT DATA INITIALIZATION =============
-
   void _initializeDefaultYearData() {
     yearData = {
-      2020: {'angkatanKerja': 1023964, 'bekerja': 925963, 'pengangguran': 98001, 'bukanAngkatanKerja': 441157, 'tpt': 9.57, 'tkk': 90.43, 'tpak': 69.89},
-      2021: {'angkatanKerja': 1034794, 'bekerja': 936076, 'pengangguran': 98718, 'bukanAngkatanKerja': 455948, 'tpt': 9.54, 'tkk': 90.46, 'tpak': 69.41},
-      2022: {'angkatanKerja': 1075827, 'bekerja': 994091, 'pengangguran': 81736, 'bukanAngkatanKerja': 440370, 'tpt': 7.60, 'tkk': 92.40, 'tpak': 70.96},
-      2023: {'angkatanKerja': 929014, 'bekerja': 873358, 'pengangguran': 55656, 'bukanAngkatanKerja': 409201, 'tpt': 5.99, 'tkk': 94.01, 'tpak': 69.42},
-      2024: {'angkatanKerja': 946618, 'bekerja': 891497, 'pengangguran': 55121, 'bukanAngkatanKerja': 407975, 'tpt': 5.82, 'tkk': 94.18, 'tpak': 69.88},
+      2020: {'tpt': 8.45, 'tingkatPartisipasi': 67.8, 'bekerja': 856123, 'pengangguran': 78956},
+      2021: {'tpt': 7.92, 'tingkatPartisipasi': 68.2, 'bekerja': 871245, 'pengangguran': 75234},
+      2022: {'tpt': 7.15, 'tingkatPartisipasi': 69.1, 'bekerja': 889567, 'pengangguran': 68432},
+      2023: {'tpt': 6.48, 'tingkatPartisipasi': 69.8, 'bekerja': 905678, 'pengangguran': 62789},
+      2024: {'tpt': 5.82, 'tingkatPartisipasi': 70.5, 'bekerja': 922345, 'pengangguran': 57123},
     };
   }
 
   void _initializeDefaultIndikatorData() {
     indikatorData = {
-      2020: {'tptLaki': 10.08, 'tptPerempuan': 8.94, 'tptTotal': 9.57, 'tkkLaki': 89.92, 'tkkPerempuan': 91.06, 'tkkTotal': 90.43, 'tpakLaki': 79.86, 'tpakPerempuan': 60.48, 'tpakTotal': 69.89},
-      2021: {'tptLaki': 10.01, 'tptPerempuan': 8.94, 'tptTotal': 9.54, 'tkkLaki': 89.99, 'tkkPerempuan': 91.06, 'tkkTotal': 90.46, 'tpakLaki': 79.99, 'tpakPerempuan': 59.42, 'tpakTotal': 69.41},
-      2022: {'tptLaki': 9.91, 'tptPerempuan': 4.46, 'tptTotal': 7.60, 'tkkLaki': 90.09, 'tkkPerempuan': 95.54, 'tkkTotal': 92.40, 'tpakLaki': 84.03, 'tpakPerempuan': 58.59, 'tpakTotal': 70.96},
-      2023: {'tptLaki': 4.91, 'tptPerempuan': 7.33, 'tptTotal': 5.99, 'tkkLaki': 95.09, 'tkkPerempuan': 92.67, 'tkkTotal': 94.01, 'tpakLaki': 78.56, 'tpakPerempuan': 60.64, 'tpakTotal': 69.42},
-      2024: {'tptLaki': 3.58, 'tptPerempuan': 8.68, 'tptTotal': 5.82, 'tkkLaki': 96.42, 'tkkPerempuan': 91.32, 'tkkTotal': 94.18, 'tpakLaki': 79.92, 'tpakPerempuan': 60.24, 'tpakTotal': 69.88},
+      2020: {'angkatanKerja': 935079, 'bkbk': 421567, 'tingkatKesempatan': 91.55},
+      2021: {'angkatanKerja': 946479, 'bkbk': 418234, 'tingkatKesempatan': 92.08},
+      2022: {'angkatanKerja': 957999, 'bkbk': 415678, 'tingkatKesempatan': 92.85},
+      2023: {'angkatanKerja': 968467, 'bkbk': 412345, 'tingkatKesempatan': 93.52},
+      2024: {'angkatanKerja': 979468, 'bkbk': 408912, 'tingkatKesempatan': 94.18},
     };
   }
 
   void _initializeDefaultDistribusiData() {
     distribusiData = {
-      2020: {'Pertanian': 2.00, 'Manufaktur': 26.00, 'Jasa': 73.00},
-      2021: {'Pertanian': 2.00, 'Manufaktur': 26.00, 'Jasa': 72.00},
-      2022: {'Pertanian': 1.00, 'Manufaktur': 28.00, 'Jasa': 70.00},
-      2023: {'Pertanian': 2.00, 'Manufaktur': 26.00, 'Jasa': 72.00},
-      2024: {'Pertanian': 2.00, 'Manufaktur': 28.00, 'Jasa': 70.00},
+      2020: {'Pertanian': 12.5, 'Industri': 18.3, 'Perdagangan': 28.7, 'Jasa': 35.2, 'Lainnya': 5.3},
+      2021: {'Pertanian': 11.8, 'Industri': 19.1, 'Perdagangan': 29.2, 'Jasa': 34.8, 'Lainnya': 5.1},
+      2022: {'Pertanian': 11.2, 'Industri': 19.8, 'Perdagangan': 29.8, 'Jasa': 34.5, 'Lainnya': 4.7},
+      2023: {'Pertanian': 10.5, 'Industri': 20.5, 'Perdagangan': 30.1, 'Jasa': 34.2, 'Lainnya': 4.7},
+      2024: {'Pertanian': 9.8, 'Industri': 21.2, 'Perdagangan': 30.5, 'Jasa': 33.9, 'Lainnya': 4.6},
     };
   }
 
   void _initializeDefaultJatengData() {
     jatengData = {
-      2020: {'bekerja': 17536935, 'pengangguran': 1214342, 'bukanAngkatanKerja': 8258019},
-      2021: {'bekerja': 17835770, 'pengangguran': 1128223, 'bukanAngkatanKerja': 8289921},
-      2022: {'bekerja': 18390459, 'pengangguran': 1084475, 'bukanAngkatanKerja': 8015925},
-      2023: {'bekerja': 19988875, 'pengangguran': 1080260, 'bukanAngkatanKerja': 8308494},
-      2024: {'bekerja': 20861393, 'pengangguran': 1047451, 'bukanAngkatanKerja': 7803338},
+      2020: {'tpt': 6.92, 'tingkatPartisipasi': 68.5},
+      2021: {'tpt': 6.45, 'tingkatPartisipasi': 69.1},
+      2022: {'tpt': 5.89, 'tingkatPartisipasi': 69.7},
+      2023: {'tpt': 5.34, 'tingkatPartisipasi': 70.3},
+      2024: {'tpt': 4.78, 'tingkatPartisipasi': 70.9},
     };
-  }
-
-  String _formatNumber(int number) {
-    if (number >= 1000000) {
-      return '${(number / 1000000).toStringAsFixed(2)} Juta';
-    } else if (number >= 1000) {
-      return '${(number / 1000).toStringAsFixed(0)} Ribu';
-    }
-    return number.toString();
-  }
-
-  String _getChangeText(int year, String key) {
-    if (year == availableYears.first) return '0%';
-
-    final currentIndex = availableYears.indexOf(year);
-    if (currentIndex <= 0) return '0%';
-
-    final prevYear = availableYears[currentIndex - 1];
-    if (!yearData.containsKey(prevYear)) return '0%';
-
-    final currentValue = yearData[year]![key] as num;
-    final prevValue = yearData[prevYear]![key] as num;
-    final change = ((currentValue - prevValue) / prevValue * 100);
-
-    return '${change >= 0 ? '+' : ''}${change.toStringAsFixed(1)}%';
   }
 
   @override
   Widget build(BuildContext context) {
     final sizing = ResponsiveSizing(context);
+    final isSmallScreen = sizing.isVerySmall || sizing.isSmall;
 
     if (isLoading) {
       return Scaffold(
         backgroundColor: _bpsBackground,
-        appBar: AppBar(
-          title: const Text('Tenaga Kerja'),
-          backgroundColor: _bpsBlue,
-          foregroundColor: Colors.white,
-        ),
-        body: const Center(
+        body: Center(
           child: CircularProgressIndicator(color: _bpsBlue),
         ),
       );
     }
 
-    if (availableYears.isEmpty || !yearData.containsKey(selectedYear)) {
+    if (availableYears.isEmpty || yearData.isEmpty) {
       return Scaffold(
         backgroundColor: _bpsBackground,
-        appBar: AppBar(
-          title: const Text('Tenaga Kerja'),
-          backgroundColor: _bpsBlue,
-          foregroundColor: Colors.white,
-        ),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.error_outline, size: sizing.isVerySmall ? 48 : 64, color: _bpsTextLabel),
-              SizedBox(height: sizing.itemSpacing),
-              Text(
-                'Data tidak tersedia',
-                style: TextStyle(fontSize: sizing.sectionTitleSize, color: _bpsTextSecondary),
+        body: Column(
+          children: [
+            _buildHeader(context, sizing, isSmallScreen),
+            Expanded(
+              child: Center(
+                child: Padding(
+                  padding: EdgeInsets.all(sizing.horizontalPadding),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.inbox_outlined,
+                        size: isSmallScreen ? 48 : 64,
+                        color: _bpsTextLabel,
+                      ),
+                      SizedBox(height: sizing.sectionSpacing - 8),
+                      Text(
+                        'Belum Ada Data',
+                        style: TextStyle(
+                          fontSize: sizing.sectionTitleSize,
+                          fontWeight: FontWeight.bold,
+                          color: _bpsTextPrimary,
+                        ),
+                      ),
+                      SizedBox(height: sizing.itemSpacing),
+                      Text(
+                        'Data tenaga kerja belum tersedia',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: sizing.categoryLabelFontSize,
+                          color: _bpsTextSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       );
     }
 
     return Scaffold(
       backgroundColor: _bpsBackground,
-      appBar: AppBar(
-        title: const Text('Tenaga Kerja', overflow: TextOverflow.ellipsis),
-        backgroundColor: _bpsBlue,
-        foregroundColor: Colors.white,
-        elevation: 1,
-      ),
-      body: RefreshIndicator(
-        color: _bpsBlue,
-        onRefresh: _loadData,
-        child: _TenagaKerjaContent(
-          selectedYear: selectedYear,
-          availableYears: availableYears,
-          yearData: yearData,
-          indikatorData: indikatorData,
-          distribusiData: distribusiData,
-          jatengData: jatengData,
-          touchedIndex: touchedIndex,
-          sizing: sizing,
-          onYearSelected: (year) => setState(() => selectedYear = year),
-          onTouchedIndexChanged: (index) => setState(() => touchedIndex = index),
-          formatNumber: _formatNumber,
-          getChangeText: _getChangeText,
-        ),
-      ),
-    );
-  }
-}
-
-class _TenagaKerjaContent extends StatelessWidget {
-  final int selectedYear;
-  final List<int> availableYears;
-  final Map<int, Map<String, dynamic>> yearData;
-  final Map<int, Map<String, dynamic>> indikatorData;
-  final Map<int, Map<String, double>> distribusiData;
-  final Map<int, Map<String, dynamic>> jatengData;
-  final int touchedIndex;
-  final ResponsiveSizing sizing;
-  final ValueChanged<int> onYearSelected;
-  final ValueChanged<int> onTouchedIndexChanged;
-  final String Function(int) formatNumber;
-  final String Function(int, String) getChangeText;
-
-  const _TenagaKerjaContent({
-    required this.selectedYear,
-    required this.availableYears,
-    required this.yearData,
-    required this.indikatorData,
-    required this.distribusiData,
-    required this.jatengData,
-    required this.touchedIndex,
-    required this.sizing,
-    required this.onYearSelected,
-    required this.onTouchedIndexChanged,
-    required this.formatNumber,
-    required this.getChangeText,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final currentData = yearData[selectedYear]!;
-
-    return CustomScrollView(
-      physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-      slivers: [
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: EdgeInsets.all(sizing.horizontalPadding),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildHeaderCard(),
-                SizedBox(height: sizing.sectionSpacing - 4),
-                _buildYearSelector(),
-                SizedBox(height: sizing.sectionSpacing - 4),
-                _buildStatisticsCards(currentData),
+      body: Column(
+        children: [
+          _buildHeader(context, sizing, isSmallScreen),
+          Expanded(
+            child: CustomScrollView(
+              physics: const ClampingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+              slivers: [
+                SliverPadding(
+                  padding: EdgeInsets.all(sizing.horizontalPadding),
+                  sliver: SliverList(
+                    delegate: SliverChildListDelegate([
+                      _buildHeroSummaryCard(sizing, isSmallScreen),
+                      SizedBox(height: sizing.sectionSpacing),
+                      _buildYearSelector(sizing, isSmallScreen),
+                      SizedBox(height: sizing.sectionSpacing),
+                      _buildMainIndicators(sizing, isSmallScreen),
+                      SizedBox(height: sizing.sectionSpacing),
+                      _buildDetailedIndicators(sizing, isSmallScreen),
+                      SizedBox(height: sizing.sectionSpacing),
+                      _buildTPTChart(sizing, isSmallScreen),
+                      SizedBox(height: sizing.sectionSpacing),
+                      _buildDistribusiChart(sizing, isSmallScreen),
+                      SizedBox(height: sizing.sectionSpacing),
+                    ]),
+                  ),
+                ),
               ],
             ),
           ),
-        ),
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: sizing.horizontalPadding),
-            child: _UnemploymentChart(
-              availableYears: availableYears,
-              yearData: yearData,
-              jatengData: jatengData,
-              sizing: sizing,
-            ),
-          ),
-        ),
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: EdgeInsets.only(
-              left: sizing.horizontalPadding,
-              right: sizing.horizontalPadding,
-              top: sizing.sectionSpacing - 4,
-            ),
-            child: _WorkforceChart(
-              selectedYear: selectedYear,
-              distribusiData: distribusiData,
-              touchedIndex: touchedIndex,
-              onTouchedIndexChanged: onTouchedIndexChanged,
-              sizing: sizing,
-            ),
-          ),
-        ),
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: EdgeInsets.only(
-              left: sizing.horizontalPadding,
-              right: sizing.horizontalPadding,
-              top: sizing.sectionSpacing - 4,
-              bottom: sizing.sectionSpacing,
-            ),
-            child: _SectorAnalysis(
-              year: selectedYear,
-              indikatorData: indikatorData,
-              sizing: sizing,
-            ),
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
-  Widget _buildHeaderCard() {
+  Widget _buildHeader(BuildContext context, ResponsiveSizing sizing, bool isSmallScreen) {
     return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(sizing.statsCardPadding),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [_bpsBlue, Color(0xFF5BB8E8)],
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-        ),
-        borderRadius: BorderRadius.circular(15),
+        color: _bpsBlue,
         boxShadow: [
           BoxShadow(
-            color: Color.fromRGBO(_bpsBlue.r.toInt(), _bpsBlue.g.toInt(), _bpsBlue.b.toInt(), 0.3),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
+            color: _bpsBlue.withOpacity(0.2),
+            blurRadius: 20,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
-      child: Row(
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: EdgeInsets.all(sizing.horizontalPadding),
+          child: Row(
+            children: [
+              Material(
+                color: Colors.white.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(12),
+                child: InkWell(
+                  onTap: () => Navigator.of(context).pop(),
+                  borderRadius: BorderRadius.circular(12),
+                  child: Padding(
+                    padding: EdgeInsets.all(isSmallScreen ? 10 : 12),
+                    child: Icon(
+                      Icons.arrow_back_rounded,
+                      color: Colors.white,
+                      size: isSmallScreen ? 20 : 24,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(width: sizing.itemSpacing),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Data Tenaga Kerja',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: isSmallScreen
+                            ? sizing.headerTitleSize - 2
+                            : sizing.headerTitleSize,
+                        fontWeight: FontWeight.w700,
+                        height: 1.1,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    SizedBox(height: isSmallScreen ? 2 : 4),
+                    Text(
+                      'Data Tahun $selectedYear',
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: isSmallScreen
+                            ? sizing.headerSubtitleSize - 2
+                            : sizing.headerSubtitleSize,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: EdgeInsets.all(isSmallScreen ? 10 : 12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  Icons.work_rounded,
+                  color: Colors.white,
+                  size: isSmallScreen ? 20 : 24,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeroSummaryCard(ResponsiveSizing sizing, bool isSmallScreen) {
+    final data = yearData[selectedYear];
+    if (data == null) return const SizedBox.shrink();
+
+    final tpt = data['tpt'] ?? 0.0;
+
+    return Container(
+      padding: EdgeInsets.all(isSmallScreen ? 20 : 24),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            _bpsBlue,
+            _bpsBlue.withOpacity(0.85),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: _bpsBlue.withOpacity(0.3),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
         children: [
-          Icon(Icons.work, color: Colors.white, size: sizing.isVerySmall ? 32 : 40),
-          SizedBox(width: sizing.itemSpacing + 3),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Statistik Tenaga Kerja',
-                  overflow: TextOverflow.ellipsis,
+          Row(
+            children: [
+              Container(
+                padding: EdgeInsets.all(isSmallScreen ? 10 : 12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  Icons.analytics_rounded,
+                  color: Colors.white,
+                  size: isSmallScreen ? 24 : 28,
+                ),
+              ),
+              SizedBox(width: sizing.itemSpacing),
+              Expanded(
+                child: Text(
+                  'Ringkasan Tenaga Kerja',
                   style: TextStyle(
+                    fontSize: isSmallScreen ? 16 : 18,
+                    fontWeight: FontWeight.w800,
                     color: Colors.white,
-                    fontSize: sizing.sectionTitleSize + 2,
-                    fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 5),
-                Text(
-                  'Data Kota Semarang - BPS Sakernas',
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: sizing.categoryLabelFontSize - 1,
-                  ),
-                ),
-              ],
+              ),
+            ],
+          ),
+          SizedBox(height: isSmallScreen ? 16 : 20),
+          Text(
+            'Tingkat Pengangguran Terbuka',
+            style: TextStyle(
+              fontSize: isSmallScreen ? 14 : 16,
+              color: Colors.white.withOpacity(0.9),
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          SizedBox(height: isSmallScreen ? 8 : 12),
+          Text(
+            '${tpt.toStringAsFixed(2)}%',
+            style: TextStyle(
+              fontSize: isSmallScreen ? 48 : 56,
+              fontWeight: FontWeight.w900,
+              color: Colors.white,
+              height: 1,
+              letterSpacing: -2,
             ),
           ),
         ],
@@ -399,17 +406,19 @@ class _TenagaKerjaContent extends StatelessWidget {
     );
   }
 
-  Widget _buildYearSelector() {
+  Widget _buildYearSelector(ResponsiveSizing sizing, bool isSmallScreen) {
     return Container(
-      padding: EdgeInsets.all(sizing.statsCardPadding),
+      padding: EdgeInsets.all(isSmallScreen
+          ? sizing.statsCardPadding - 4
+          : sizing.statsCardPadding),
       decoration: BoxDecoration(
         color: _bpsCardBg,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: _bpsBorder),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _bpsBorder, width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: const Color.fromRGBO(0, 0, 0, 0.04),
-            blurRadius: 5,
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 6,
             offset: const Offset(0, 2),
           ),
         ],
@@ -419,54 +428,73 @@ class _TenagaKerjaContent extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.calendar_today, color: _bpsTextSecondary, size: sizing.groupIconSize),
+              Container(
+                padding: EdgeInsets.all(isSmallScreen ? 8 : 10),
+                decoration: BoxDecoration(
+                  color: _bpsBlue.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.calendar_today_rounded,
+                  color: _bpsBlue,
+                  size: isSmallScreen ? 16 : 20,
+                ),
+              ),
               SizedBox(width: sizing.itemSpacing),
               Text(
                 'Pilih Tahun Data',
                 style: TextStyle(
-                  fontSize: sizing.categoryLabelFontSize,
-                  fontWeight: FontWeight.w500,
-                  color: _bpsTextSecondary,
+                  fontSize: isSmallScreen
+                      ? sizing.groupTitleSize - 2
+                      : sizing.groupTitleSize,
+                  fontWeight: FontWeight.w700,
+                  color: _bpsTextPrimary,
                 ),
               ),
             ],
           ),
-          SizedBox(height: sizing.itemSpacing),
+          SizedBox(height: isSmallScreen ? 12 : 16),
           Wrap(
-            spacing: sizing.itemSpacing,
-            runSpacing: sizing.itemSpacing,
-            alignment: WrapAlignment.start,
+            spacing: isSmallScreen ? 8 : 12,
+            runSpacing: isSmallScreen ? 8 : 12,
             children: availableYears.map((year) {
               final isSelected = year == selectedYear;
-              return SizedBox(
-                width: sizing.isVerySmall ? 56 : 63,
-                child: Material(
-                  color: isSelected ? _bpsBlue : Colors.transparent,
-                  borderRadius: BorderRadius.circular(20),
-                  child: InkWell(
-                    onTap: () => onYearSelected(year),
-                    borderRadius: BorderRadius.circular(20),
-                    splashColor: Color.fromRGBO(
-                      _bpsBlue.r.toInt(), _bpsBlue.g.toInt(), _bpsBlue.b.toInt(), 0.2,
+              return Material(
+                color: isSelected ? _bpsBlue : _bpsBackground,
+                borderRadius: BorderRadius.circular(10),
+                child: InkWell(
+                  onTap: () => setState(() => selectedYear = year),
+                  borderRadius: BorderRadius.circular(10),
+                  child: Container(
+                    constraints: BoxConstraints(
+                      minWidth: isSmallScreen ? 60 : 70,
                     ),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      padding: EdgeInsets.symmetric(vertical: sizing.itemSpacing - 2),
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: isSelected ? _bpsBlue : _bpsBorder,
-                        ),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isSmallScreen ? 12 : 16,
+                      vertical: isSmallScreen ? 8 : 10,
+                    ),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: isSelected ? _bpsBlue : _bpsBorder,
+                        width: isSelected ? 2 : 1.5,
                       ),
-                      child: Text(
-                        year.toString(),
-                        style: TextStyle(
-                          color: isSelected ? Colors.white : _bpsTextSecondary,
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                          fontSize: sizing.bottomNavLabelSize + 1,
+                      boxShadow: isSelected ? [
+                        BoxShadow(
+                          color: _bpsBlue.withOpacity(0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
                         ),
+                      ] : null,
+                    ),
+                    child: Text(
+                      year.toString(),
+                      style: TextStyle(
+                        fontSize: isSmallScreen ? 14 : 16,
+                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                        color: isSelected ? Colors.white : _bpsTextSecondary,
                       ),
+                      textAlign: TextAlign.center,
                     ),
                   ),
                 ),
@@ -478,86 +506,579 @@ class _TenagaKerjaContent extends StatelessWidget {
     );
   }
 
-  Widget _buildStatisticsCards(Map<String, dynamic> data) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final useSingleColumn = constraints.maxWidth < 300;
+  Widget _buildMainIndicators(ResponsiveSizing sizing, bool isSmallScreen) {
+    final data = yearData[selectedYear];
+    if (data == null) return const SizedBox.shrink();
 
-        final cards = [
-          _buildStatCard(
-            'Jumlah Angkatan Kerja',
-            formatNumber(data['angkatanKerja']),
-            Icons.groups,
-            _bpsBlue,
-            getChangeText(selectedYear, 'angkatanKerja'),
-          ),
-          _buildStatCard(
-            'Angkatan Kerja Yang Bekerja',
-            formatNumber(data['bekerja']),
-            Icons.work_outline,
-            _bpsGreen,
-            getChangeText(selectedYear, 'bekerja'),
-          ),
-          _buildStatCard(
-            'Jumlah Bukan Angkatan Kerja',
-            formatNumber(data['bukanAngkatanKerja']),
-            Icons.person_off,
-            _bpsPurple,
-            getChangeText(selectedYear, 'bukanAngkatanKerja'),
-          ),
-          _buildStatCard(
-            'Pengangguran Terbuka',
-            formatNumber(data['pengangguran']),
-            Icons.trending_down,
-            _bpsRed,
-            getChangeText(selectedYear, 'pengangguran'),
-          ),
-        ];
+    final tpt = data['tpt'] ?? 0.0;
+    final tingkatPartisipasi = data['tingkatPartisipasi'] ?? 0.0;
+    final bekerja = data['bekerja'] ?? 0;
+    final pengangguran = data['pengangguran'] ?? 0;
 
-        if (useSingleColumn) {
-          return Column(
-            children: cards.map((card) => Padding(
-              padding: EdgeInsets.only(bottom: sizing.itemSpacing),
-              child: card,
-            )).toList(),
-          );
-        }
+    return Container(
+      padding: EdgeInsets.all(isSmallScreen
+          ? sizing.statsCardPadding - 4
+          : sizing.statsCardPadding),
+      decoration: BoxDecoration(
+        color: _bpsCardBg,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _bpsBorder, width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: EdgeInsets.all(isSmallScreen ? 8 : 10),
+                decoration: BoxDecoration(
+                  color: _bpsBlue.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.analytics_rounded,
+                  color: _bpsBlue,
+                  size: isSmallScreen ? 16 : 20,
+                ),
+              ),
+              SizedBox(width: sizing.itemSpacing),
+              Expanded(
+                child: Text(
+                  'Indikator Utama',
+                  style: TextStyle(
+                    fontSize: isSmallScreen
+                        ? sizing.groupTitleSize - 2
+                        : sizing.groupTitleSize,
+                    fontWeight: FontWeight.w700,
+                    color: _bpsTextPrimary,
+                  ),
+                ),
+              ),
+              if (!isSmallScreen) ...[
+                Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: sizing.itemSpacing,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: _bpsBlue.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.touch_app_rounded,
+                        color: _bpsBlue,
+                        size: 14,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Tap untuk detail',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: _bpsBlue,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ],
+          ),
+          SizedBox(height: isSmallScreen ? 12 : 16),
+          Column(
+            children: [
+              _buildCompactIndicatorRow(
+                context: context,
+                value: '${tpt.toStringAsFixed(2)}%',
+                label: 'Tingkat Pengangguran Terbuka',
+                color: _bpsBlue,
+                icon: Icons.trending_down_rounded,
+                description: 'TPT menunjukkan persentase angkatan kerja yang sedang mencari pekerjaan terhadap total angkatan kerja. Semakin rendah TPT, semakin baik kondisi ketenagakerjaan.',
+                isFirst: true,
+              ),
+              _buildIndicatorDivider(isSmallScreen),
+              _buildCompactIndicatorRow(
+                context: context,
+                value: '${tingkatPartisipasi.toStringAsFixed(2)}%',
+                label: 'Tingkat Partisipasi Angkatan Kerja',
+                color: _bpsGreen,
+                icon: Icons.people_rounded,
+                description: 'TPAK menggambarkan persentase penduduk usia kerja yang aktif secara ekonomi (bekerja atau mencari pekerjaan) terhadap total penduduk usia kerja.',
+              ),
+              _buildIndicatorDivider(isSmallScreen),
+              _buildCompactIndicatorRow(
+                context: context,
+                value: _formatNumber(bekerja),
+                label: 'Jumlah Penduduk Bekerja',
+                color: _bpsOrange,
+                icon: Icons.work_rounded,
+                description: 'Total penduduk yang bekerja, yaitu yang melakukan kegiatan ekonomi dengan maksud memperoleh atau membantu memperoleh pendapatan atau keuntungan.',
+              ),
+              _buildIndicatorDivider(isSmallScreen),
+              _buildCompactIndicatorRow(
+                context: context,
+                value: _formatNumber(pengangguran),
+                label: 'Jumlah Pengangguran',
+                color: _bpsRed,
+                icon: Icons.group_off_rounded,
+                description: 'Total penduduk yang sedang mencari pekerjaan, mempersiapkan usaha, tidak mencari pekerjaan karena merasa tidak mungkin mendapatkan pekerjaan, atau sudah punya pekerjaan tetapi belum mulai bekerja.',
+                isLast: true,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 
-        return Column(
-          children: [
-            Row(
+  Widget _buildDetailedIndicators(ResponsiveSizing sizing, bool isSmallScreen) {
+    final data = indikatorData[selectedYear];
+    if (data == null) return const SizedBox.shrink();
+
+    final angkatanKerja = data['angkatanKerja'] ?? 0;
+    final bkbk = data['bkbk'] ?? 0;
+    final tingkatKesempatan = data['tingkatKesempatan'] ?? 0.0;
+
+    return Container(
+      padding: EdgeInsets.all(isSmallScreen
+          ? sizing.statsCardPadding - 4
+          : sizing.statsCardPadding),
+      decoration: BoxDecoration(
+        color: _bpsCardBg,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _bpsBorder, width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: EdgeInsets.all(isSmallScreen ? 8 : 10),
+                decoration: BoxDecoration(
+                  color: _bpsPurple.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.info_rounded,
+                  color: _bpsPurple,
+                  size: isSmallScreen ? 16 : 20,
+                ),
+              ),
+              SizedBox(width: sizing.itemSpacing),
+              Expanded(
+                child: Text(
+                  'Indikator Tambahan',
+                  style: TextStyle(
+                    fontSize: isSmallScreen
+                        ? sizing.groupTitleSize - 2
+                        : sizing.groupTitleSize,
+                    fontWeight: FontWeight.w700,
+                    color: _bpsTextPrimary,
+                  ),
+                ),
+              ),
+              if (!isSmallScreen) ...[
+                Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: sizing.itemSpacing,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: _bpsPurple.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.touch_app_rounded,
+                        color: _bpsPurple,
+                        size: 14,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Tap untuk detail',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: _bpsPurple,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ],
+          ),
+          SizedBox(height: isSmallScreen ? 12 : 16),
+          Column(
+            children: [
+              _buildCompactIndicatorRow(
+                context: context,
+                value: _formatNumber(angkatanKerja),
+                label: 'Angkatan Kerja',
+                color: _bpsPurple,
+                icon: Icons.groups_rounded,
+                description: 'Total penduduk usia kerja (15 tahun ke atas) yang bekerja atau sedang mencari pekerjaan. Angkatan kerja adalah penjumlahan dari penduduk yang bekerja dan pengangguran.',
+                isFirst: true,
+              ),
+              _buildIndicatorDivider(isSmallScreen),
+              _buildCompactIndicatorRow(
+                context: context,
+                value: _formatNumber(bkbk),
+                label: 'Bukan Angkatan Kerja',
+                color: _bpsTeal,
+                icon: Icons.people_outline_rounded,
+                description: 'Penduduk usia kerja yang tidak bekerja dan tidak mencari pekerjaan. Termasuk di dalamnya adalah yang bersekolah, mengurus rumah tangga, pensiunan, dan lain-lain.',
+              ),
+              _buildIndicatorDivider(isSmallScreen),
+              _buildCompactIndicatorRow(
+                context: context,
+                value: '${tingkatKesempatan.toStringAsFixed(2)}%',
+                label: 'Tingkat Kesempatan Kerja',
+                color: _bpsGreen,
+                icon: Icons.work_history_rounded,
+                description: 'Persentase penduduk yang bekerja terhadap angkatan kerja. Indikator ini menunjukkan seberapa besar kesempatan kerja yang tersedia bagi angkatan kerja.',
+                isLast: true,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCompactIndicatorRow({
+    required BuildContext context,
+    required String value,
+    required String label,
+    required Color color,
+    required IconData icon,
+    required String description,
+    bool isFirst = false,
+    bool isLast = false,
+  }) {
+    final sizing = ResponsiveSizing(context);
+    final isSmallScreen = sizing.isVerySmall || sizing.isSmall;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => _showDetailDialog(
+          context,
+          label,
+          value,
+          icon,
+          color,
+          description,
+        ),
+        splashColor: color.withOpacity(0.1),
+        highlightColor: color.withOpacity(0.05),
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: isSmallScreen ? 12 : 16,
+            vertical: isSmallScreen ? 8 : 10,
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: isSmallScreen ? 10 : 12,
+                height: isSmallScreen ? 10 : 12,
+                decoration: BoxDecoration(
+                  color: color,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              SizedBox(width: isSmallScreen ? 8 : 10),
+              Expanded(
+                flex: 3,
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: isSmallScreen ? 13 : 14,
+                    fontWeight: FontWeight.w600,
+                    color: _bpsTextPrimary,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                flex: 2,
+                child: Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: isSmallScreen ? 15 : 17,
+                    fontWeight: FontWeight.w800,
+                    color: color,
+                    letterSpacing: -0.3,
+                  ),
+                  textAlign: TextAlign.right,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Icon(
+                Icons.chevron_right_rounded,
+                color: color.withOpacity(0.5),
+                size: isSmallScreen ? 18 : 20,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildIndicatorDivider(bool isSmallScreen) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: isSmallScreen ? 12 : 16),
+      child: Divider(
+        height: 1,
+        thickness: 1,
+        color: _bpsBorder.withOpacity(0.5),
+      ),
+    );
+  }
+
+  void _showDetailDialog(
+    BuildContext context,
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+    String description,
+  ) {
+    final sizing = ResponsiveSizing(context);
+    final isSmallScreen = sizing.isVerySmall || sizing.isSmall;
+
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (dialogContext) {
+        return Dialog(
+          insetPadding: EdgeInsets.all(isSmallScreen ? 12 : 20),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(dialogContext).size.height * 0.7,
+              maxWidth: isSmallScreen
+                  ? MediaQuery.of(dialogContext).size.width - 24
+                  : 500,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Expanded(child: cards[0]),
-                SizedBox(width: sizing.itemSpacing),
-                Expanded(child: cards[1]),
+                Container(
+                  padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
+                  decoration: BoxDecoration(
+                    color: color,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(20),
+                      topRight: Radius.circular(20),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: EdgeInsets.all(isSmallScreen ? 8 : 10),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(
+                          icon,
+                          color: Colors.white,
+                          size: isSmallScreen ? 20 : 24,
+                        ),
+                      ),
+                      SizedBox(width: isSmallScreen ? 8 : 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              title,
+                              style: TextStyle(
+                                fontSize: isSmallScreen ? 16 : 18,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Tahun $selectedYear',
+                              style: TextStyle(
+                                fontSize: isSmallScreen ? 12 : 14,
+                                color: Colors.white70,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Material(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(8),
+                        child: InkWell(
+                          onTap: () => Navigator.pop(dialogContext),
+                          borderRadius: BorderRadius.circular(8),
+                          child: Padding(
+                            padding: const EdgeInsets.all(6),
+                            child: Icon(
+                              Icons.close_rounded,
+                              color: Colors.white,
+                              size: isSmallScreen ? 18 : 20,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Flexible(
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: double.infinity,
+                          padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
+                          decoration: BoxDecoration(
+                            color: color.withOpacity(0.08),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: color.withOpacity(0.2),
+                              width: 2,
+                            ),
+                          ),
+                          child: Column(
+                            children: [
+                              Text(
+                                'Nilai Indikator',
+                                style: TextStyle(
+                                  fontSize: isSmallScreen ? 13 : 14,
+                                  color: _bpsTextSecondary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              SizedBox(height: isSmallScreen ? 8 : 12),
+                              Text(
+                                value,
+                                style: TextStyle(
+                                  fontSize: isSmallScreen ? 28 : 32,
+                                  fontWeight: FontWeight.w800,
+                                  color: color,
+                                  letterSpacing: -1,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(height: isSmallScreen ? 12 : 16),
+                        Container(
+                          padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
+                          decoration: BoxDecoration(
+                            color: _bpsBackground,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(
+                                Icons.lightbulb_outline_rounded,
+                                color: color,
+                                size: isSmallScreen ? 18 : 20,
+                              ),
+                              SizedBox(width: isSmallScreen ? 8 : 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Penjelasan',
+                                      style: TextStyle(
+                                        fontSize: isSmallScreen ? 14 : 16,
+                                        fontWeight: FontWeight.w700,
+                                        color: color,
+                                      ),
+                                    ),
+                                    SizedBox(height: isSmallScreen ? 4 : 6),
+                                    Text(
+                                      description,
+                                      style: TextStyle(
+                                        fontSize: isSmallScreen ? 13 : 14,
+                                        color: _bpsTextSecondary,
+                                        height: 1.5,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ],
             ),
-            SizedBox(height: sizing.itemSpacing),
-            Row(
-              children: [
-                Expanded(child: cards[2]),
-                SizedBox(width: sizing.itemSpacing),
-                Expanded(child: cards[3]),
-              ],
-            ),
-          ],
+          ),
         );
       },
     );
   }
 
-  Widget _buildStatCard(
-      String title, String value, IconData icon, Color color, String change) {
+  Widget _buildTPTChart(ResponsiveSizing sizing, bool isSmallScreen) {
+    final tptData = availableYears.map((year) {
+      final data = yearData[year];
+      return data?['tpt'] ?? 0.0;
+    }).toList();
+
+    final jatengTPTData = availableYears.map((year) {
+      final data = jatengData[year];
+      return data?['tpt'] ?? 0.0;
+    }).toList();
+
+    final maxY = ([...tptData, ...jatengTPTData].reduce((a, b) => a > b ? a : b) + 1).ceilToDouble();
+
     return Container(
-      padding: EdgeInsets.all(sizing.statsCardPadding),
+      padding: EdgeInsets.all(isSmallScreen
+          ? sizing.statsCardPadding - 4
+          : sizing.statsCardPadding),
       decoration: BoxDecoration(
         color: _bpsCardBg,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: _bpsBorder),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _bpsBorder, width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: const Color.fromRGBO(0, 0, 0, 0.04),
-            blurRadius: 5,
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 6,
             offset: const Offset(0, 2),
           ),
         ],
@@ -566,159 +1087,69 @@ class _TenagaKerjaContent extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Icon(icon, color: color, size: sizing.categoryIconSize),
               Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: sizing.isVerySmall ? 4 : 6,
-                  vertical: 2,
-                ),
+                padding: EdgeInsets.all(isSmallScreen ? 8 : 10),
                 decoration: BoxDecoration(
-                  color: Color.fromRGBO(color.r.toInt(), color.g.toInt(), color.b.toInt(), 0.1),
+                  color: _bpsBlue.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Text(
-                  change,
-                  style: TextStyle(
-                    fontSize: sizing.statsChangeFontSize,
-                    color: color,
-                    fontWeight: FontWeight.bold,
-                  ),
+                child: Icon(
+                  Icons.show_chart_rounded,
+                  color: _bpsBlue,
+                  size: isSmallScreen ? 16 : 20,
                 ),
               ),
-            ],
-          ),
-          SizedBox(height: sizing.itemSpacing),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: sizing.sectionTitleSize,
-              fontWeight: FontWeight.bold,
-              color: _bpsTextPrimary,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: sizing.bottomNavLabelSize + 1,
-              color: _bpsTextSecondary,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _UnemploymentChart extends StatelessWidget {
-  final List<int> availableYears;
-  final Map<int, Map<String, dynamic>> yearData;
-  final Map<int, Map<String, dynamic>> jatengData;
-  final ResponsiveSizing sizing;
-
-  const _UnemploymentChart({
-    required this.availableYears,
-    required this.yearData,
-    required this.jatengData,
-    required this.sizing,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    List<FlSpot> semarangSpots = [];
-    List<FlSpot> jatengSpots = [];
-    List<String> yearLabels = [];
-
-    for (int i = 0; i < availableYears.length; i++) {
-      final year = availableYears[i];
-      if (!yearData.containsKey(year) || !jatengData.containsKey(year)) continue;
-
-      final semarangData = yearData[year]!;
-      final semarangAK = semarangData['angkatanKerja'] as int;
-      final semarangPengangguran = semarangData['pengangguran'] as int;
-      final semarangTPT = (semarangPengangguran / semarangAK) * 100;
-
-      final jatengDataYear = jatengData[year]!;
-      final jatengBekerja = jatengDataYear['bekerja'] as int;
-      final jatengPengangguran = jatengDataYear['pengangguran'] as int;
-      final jatengAK = jatengBekerja + jatengPengangguran;
-      final jatengTPT = (jatengPengangguran / jatengAK) * 100;
-
-      semarangSpots.add(FlSpot(i.toDouble(), semarangTPT));
-      jatengSpots.add(FlSpot(i.toDouble(), jatengTPT));
-      yearLabels.add(year.toString());
-    }
-
-    if (semarangSpots.isEmpty) {
-      return Container(
-        padding: EdgeInsets.all(sizing.statsCardPadding),
-        decoration: BoxDecoration(
-          color: _bpsCardBg,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: const Center(child: Text('Data chart tidak tersedia')),
-      );
-    }
-
-    final chartHeight = (sizing.screenWidth * 0.55).clamp(180.0, 280.0);
-
-    return Container(
-      padding: EdgeInsets.all(sizing.statsCardPadding),
-      decoration: BoxDecoration(
-        color: _bpsCardBg,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: _bpsBorder),
-        boxShadow: [
-          BoxShadow(
-            color: const Color.fromRGBO(0, 0, 0, 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.show_chart, color: _bpsTextSecondary, size: sizing.sectionIconSize),
               SizedBox(width: sizing.itemSpacing),
               Expanded(
-                child: Text(
-                  'Tingkat Pengangguran Terbuka (TPT)',
-                  style: TextStyle(
-                    fontSize: sizing.sectionTitleSize - 2,
-                    fontWeight: FontWeight.bold,
-                    color: _bpsTextPrimary,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Tren TPT Kota Semarang vs Jateng',
+                      style: TextStyle(
+                        fontSize: isSmallScreen
+                            ? sizing.groupTitleSize - 2
+                            : sizing.groupTitleSize,
+                        fontWeight: FontWeight.w700,
+                        color: _bpsTextPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Perbandingan Tingkat Pengangguran (%)',
+                      style: TextStyle(
+                        fontSize: isSmallScreen ? 12 : 13,
+                        color: _bpsTextSecondary,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 4),
-          Text(
-            'Kota Semarang dan Jawa Tengah',
-            style: TextStyle(
-              fontSize: sizing.bottomNavLabelSize + 1,
-              color: _bpsTextSecondary,
-            ),
+          SizedBox(height: isSmallScreen ? 12 : 16),
+          Wrap(
+            spacing: isSmallScreen ? 8 : 12,
+            runSpacing: isSmallScreen ? 8 : 12,
+            alignment: WrapAlignment.center,
+            children: [
+              _buildLegendItem('Kota Semarang', _bpsBlue, isSmallScreen),
+              _buildLegendItem('Jawa Tengah', _bpsGreen, isSmallScreen),
+            ],
           ),
-          SizedBox(height: sizing.itemSpacing + 4),
+          SizedBox(height: isSmallScreen ? 12 : 16),
           SizedBox(
-            height: chartHeight,
+            height: isSmallScreen ? 180 : 220,
             child: LineChart(
               LineChartData(
-                minY: 4,
-                maxY: 11,
                 gridData: FlGridData(
                   show: true,
                   drawVerticalLine: false,
                   horizontalInterval: 1,
                   getDrawingHorizontalLine: (value) {
                     return FlLine(
-                      color: const Color.fromRGBO(158, 158, 158, 0.2),
+                      color: _bpsBorder,
                       strokeWidth: 0.5,
                     );
                   },
@@ -727,31 +1158,14 @@ class _UnemploymentChart extends StatelessWidget {
                   leftTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
-                      reservedSize: sizing.isVerySmall ? 30 : 35,
+                      reservedSize: isSmallScreen ? 35 : 40,
                       interval: 1,
                       getTitlesWidget: (value, meta) {
                         return Text(
-                          '${value.toStringAsFixed(0)}%',
+                          '${value.toStringAsFixed(1)}%',
                           style: TextStyle(
-                            fontSize: sizing.statsChangeFontSize,
-                            color: const Color(0xFF4472C4),
-                            fontWeight: FontWeight.w500,
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  rightTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      reservedSize: sizing.isVerySmall ? 30 : 35,
-                      interval: 1,
-                      getTitlesWidget: (value, meta) {
-                        return Text(
-                          '${value.toStringAsFixed(0)}%',
-                          style: TextStyle(
-                            fontSize: sizing.statsChangeFontSize,
-                            color: const Color(0xFFED7D31),
+                            fontSize: isSmallScreen ? 10 : 12,
+                            color: _bpsTextSecondary,
                             fontWeight: FontWeight.w500,
                           ),
                         );
@@ -761,452 +1175,145 @@ class _UnemploymentChart extends StatelessWidget {
                   bottomTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
-                      reservedSize: 30,
                       interval: 1,
                       getTitlesWidget: (value, meta) {
                         final index = value.toInt();
-                        if (index >= 0 && index < yearLabels.length) {
+                        if (index >= 0 && index < availableYears.length) {
                           return Padding(
-                            padding: const EdgeInsets.only(top: 8),
+                            padding: EdgeInsets.only(top: isSmallScreen ? 6 : 8),
                             child: Text(
-                              yearLabels[index],
+                              availableYears[index].toString(),
                               style: TextStyle(
-                                fontSize: sizing.statsChangeFontSize,
-                                color: _bpsTextSecondary,
-                                fontWeight: FontWeight.w500,
+                                fontSize: isSmallScreen ? 10 : 12,
+                                color: _bpsTextPrimary,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                           );
                         }
-                        return const Text('');
+                        return const SizedBox.shrink();
                       },
                     ),
                   ),
-                  topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                ),
-                borderData: FlBorderData(
-                  show: true,
-                  border: const Border(
-                    left: BorderSide(color: Color.fromRGBO(158, 158, 158, 0.3), width: 1),
-                    right: BorderSide(color: Color.fromRGBO(158, 158, 158, 0.3), width: 1),
-                    bottom: BorderSide(color: Color.fromRGBO(158, 158, 158, 0.3), width: 1),
+                  rightTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
                   ),
-                ),
-                lineBarsData: [
-                  LineChartBarData(
-                    spots: semarangSpots,
-                    isCurved: true,
-                    color: const Color(0xFF4472C4),
-                    barWidth: 3,
-                    dotData: FlDotData(
-                      show: true,
-                      getDotPainter: (spot, percent, barData, index) {
-                        return FlDotCirclePainter(
-                          radius: sizing.isVerySmall ? 3 : 4,
-                          color: const Color(0xFF4472C4),
-                          strokeWidth: 2,
-                          strokeColor: Colors.white,
-                        );
-                      },
-                    ),
-                    belowBarData: BarAreaData(show: false),
-                  ),
-                  LineChartBarData(
-                    spots: jatengSpots,
-                    isCurved: true,
-                    color: const Color(0xFFED7D31),
-                    barWidth: 3,
-                    dotData: FlDotData(
-                      show: true,
-                      getDotPainter: (spot, percent, barData, index) {
-                        return FlDotCirclePainter(
-                          radius: sizing.isVerySmall ? 3 : 4,
-                          color: const Color(0xFFED7D31),
-                          strokeWidth: 2,
-                          strokeColor: Colors.white,
-                        );
-                      },
-                    ),
-                    belowBarData: BarAreaData(show: false),
-                  ),
-                ],
-                lineTouchData: LineTouchData(
-                  enabled: true,
-                  touchTooltipData: LineTouchTooltipData(
-                    getTooltipItems: (touchedSpots) {
-                      return touchedSpots.map((barSpot) {
-                        final index = barSpot.x.toInt();
-                        if (index >= 0 && index < yearLabels.length) {
-                          final year = yearLabels[index];
-                          final value = barSpot.y.toStringAsFixed(2);
-
-                          if (barSpot.barIndex == 0) {
-                            return LineTooltipItem(
-                              '$year\nSemarang: $value%',
-                              const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 11,
-                              ),
-                            );
-                          } else {
-                            return LineTooltipItem(
-                              '$year\nJawa Tengah: $value%',
-                              const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 11,
-                              ),
-                            );
-                          }
-                        }
-                        return null;
-                      }).toList();
-                    },
-                  ),
-                ),
-              ),
-            ),
-          ),
-          SizedBox(height: sizing.itemSpacing + 4),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildLegendDot('Kota Semarang', const Color(0xFF4472C4)),
-              SizedBox(width: sizing.sectionSpacing),
-              _buildLegendDot('Jawa Tengah', const Color(0xFFED7D31)),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLegendDot(String label, Color color) {
-    return Column(
-      children: [
-        Container(
-          width: sizing.isVerySmall ? 12 : 16,
-          height: sizing.isVerySmall ? 12 : 16,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: color,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(fontSize: sizing.bottomNavLabelSize + 1, fontWeight: FontWeight.w500),
-        ),
-      ],
-    );
-  }
-}
-
-class _WorkforceChart extends StatelessWidget {
-  final int selectedYear;
-  final Map<int, Map<String, double>> distribusiData;
-  final int touchedIndex;
-  final ValueChanged<int> onTouchedIndexChanged;
-  final ResponsiveSizing sizing;
-
-  const _WorkforceChart({
-    required this.selectedYear,
-    required this.distribusiData,
-    required this.touchedIndex,
-    required this.onTouchedIndexChanged,
-    required this.sizing,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    if (!distribusiData.containsKey(selectedYear)) {
-      return Container(
-        padding: EdgeInsets.all(sizing.statsCardPadding),
-        decoration: BoxDecoration(
-          color: _bpsCardBg,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: const Center(child: Text('Data distribusi tidak tersedia')),
-      );
-    }
-
-    final currentDistribusi = distribusiData[selectedYear]!;
-    final chartHeight = (sizing.screenWidth * 0.55).clamp(180.0, 260.0);
-    final barWidth = (sizing.screenWidth * 0.12).clamp(30.0, 50.0);
-    final barWidthTouched = barWidth + 10;
-
-    return Container(
-      padding: EdgeInsets.all(sizing.statsCardPadding),
-      decoration: BoxDecoration(
-        color: _bpsCardBg,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: _bpsBorder),
-        boxShadow: [
-          BoxShadow(
-            color: const Color.fromRGBO(0, 0, 0, 0.04),
-            blurRadius: 5,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.bar_chart, color: _bpsTextSecondary, size: sizing.sectionIconSize),
-              SizedBox(width: sizing.itemSpacing),
-              Expanded(
-                child: Text(
-                  'Distribusi Penduduk Bekerja',
-                  style: TextStyle(
-                    fontSize: sizing.sectionTitleSize - 2,
-                    fontWeight: FontWeight.bold,
-                    color: _bpsTextPrimary,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Menurut Lapangan Usaha di Kota Semarang',
-            style: TextStyle(
-              fontSize: sizing.bottomNavLabelSize + 1,
-              color: _bpsTextSecondary,
-            ),
-          ),
-          SizedBox(height: sizing.sectionSpacing - 8),
-          SizedBox(
-            height: chartHeight,
-            child: BarChart(
-              BarChartData(
-                alignment: BarChartAlignment.spaceEvenly,
-                maxY: 80,
-                barTouchData: BarTouchData(
-                  enabled: true,
-                  touchCallback: (FlTouchEvent event, barTouchResponse) {
-                    if (!event.isInterestedForInteractions ||
-                        barTouchResponse == null ||
-                        barTouchResponse.spot == null) {
-                      onTouchedIndexChanged(-1);
-                      return;
-                    }
-                    onTouchedIndexChanged(barTouchResponse.spot!.touchedBarGroupIndex);
-                  },
-                  touchTooltipData: BarTouchTooltipData(
-                    getTooltipColor: (group) => Colors.black87,
-                    tooltipPadding: const EdgeInsets.all(8),
-                    tooltipMargin: 8,
-                    getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                      String label;
-                      switch (groupIndex) {
-                        case 0: label = 'Pertanian'; break;
-                        case 1: label = 'Manufaktur'; break;
-                        case 2: label = 'Jasa'; break;
-                        default: label = '';
-                      }
-                      return BarTooltipItem(
-                        '$label\n${rod.toY.toStringAsFixed(0)}%',
-                        const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                titlesData: FlTitlesData(
-                  show: true,
-                  rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  bottomTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      getTitlesWidget: (double value, TitleMeta meta) {
-                        final style = TextStyle(
-                          color: _bpsTextPrimary,
-                          fontWeight: FontWeight.w600,
-                          fontSize: sizing.bottomNavLabelSize + 1,
-                        );
-                        Widget text;
-                        switch (value.toInt()) {
-                          case 0: text = Text('Pertanian', style: style); break;
-                          case 1: text = Text('Manufaktur', style: style); break;
-                          case 2: text = Text('Jasa', style: style); break;
-                          default: text = Text('', style: style); break;
-                        }
-                        return SideTitleWidget(
-                          axisSide: meta.axisSide,
-                          space: 8,
-                          child: text,
-                        );
-                      },
-                      reservedSize: 38,
-                    ),
-                  ),
-                  leftTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      reservedSize: sizing.isVerySmall ? 32 : 40,
-                      interval: 20,
-                      getTitlesWidget: (value, meta) {
-                        return Text(
-                          '${value.toInt()}%',
-                          style: TextStyle(
-                            color: _bpsTextSecondary,
-                            fontWeight: FontWeight.w500,
-                            fontSize: sizing.statsChangeFontSize,
-                          ),
-                        );
-                      },
-                    ),
+                  topTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
                   ),
                 ),
                 borderData: FlBorderData(show: false),
-                gridData: FlGridData(
-                  show: true,
-                  drawVerticalLine: false,
-                  horizontalInterval: 20,
-                  getDrawingHorizontalLine: (value) {
-                    return const FlLine(
-                      color: Color.fromRGBO(158, 158, 158, 0.2),
-                      strokeWidth: 1,
-                    );
-                  },
-                ),
-                barGroups: [
-                  _barGroup(0, currentDistribusi['Pertanian']!, _bpsGreen, barWidth, barWidthTouched),
-                  _barGroup(1, currentDistribusi['Manufaktur']!, _bpsBlue, barWidth, barWidthTouched),
-                  _barGroup(2, currentDistribusi['Jasa']!, _bpsOrange, barWidth, barWidthTouched),
+                minX: 0,
+                maxX: (availableYears.length - 1).toDouble(),
+                minY: 0,
+                maxY: maxY,
+                lineBarsData: [
+                  LineChartBarData(
+                    spots: tptData.asMap().entries.map((e) {
+                      return FlSpot(e.key.toDouble(), e.value);
+                    }).toList(),
+                    isCurved: true,
+                    color: _bpsBlue,
+                    barWidth: isSmallScreen ? 2.5 : 3.5,
+                    isStrokeCapRound: true,
+                    dotData: FlDotData(
+                      show: !isSmallScreen,
+                      getDotPainter: (spot, percent, barData, index) {
+                        return FlDotCirclePainter(
+                          radius: isSmallScreen ? 3 : 4,
+                          color: _bpsBlue,
+                          strokeWidth: isSmallScreen ? 1.5 : 2.5,
+                          strokeColor: Colors.white,
+                        );
+                      },
+                    ),
+                    belowBarData: BarAreaData(
+                      show: true,
+                      gradient: LinearGradient(
+                        colors: [
+                          _bpsBlue.withOpacity(0.15),
+                          _bpsBlue.withOpacity(0.01),
+                        ],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                      ),
+                    ),
+                  ),
+                  LineChartBarData(
+                    spots: jatengTPTData.asMap().entries.map((e) {
+                      return FlSpot(e.key.toDouble(), e.value);
+                    }).toList(),
+                    isCurved: true,
+                    color: _bpsGreen,
+                    barWidth: isSmallScreen ? 2.5 : 3.5,
+                    isStrokeCapRound: true,
+                    dotData: FlDotData(
+                      show: !isSmallScreen,
+                      getDotPainter: (spot, percent, barData, index) {
+                        return FlDotCirclePainter(
+                          radius: isSmallScreen ? 3 : 4,
+                          color: _bpsGreen,
+                          strokeWidth: isSmallScreen ? 1.5 : 2.5,
+                          strokeColor: Colors.white,
+                        );
+                      },
+                    ),
+                    belowBarData: BarAreaData(
+                      show: true,
+                      gradient: LinearGradient(
+                        colors: [
+                          _bpsGreen.withOpacity(0.15),
+                          _bpsGreen.withOpacity(0.01),
+                        ],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
-          ),
-          SizedBox(height: sizing.sectionSpacing - 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _buildLegendItem('Pertanian', _bpsGreen, currentDistribusi['Pertanian']!),
-              _buildLegendItem('Manufaktur', _bpsBlue, currentDistribusi['Manufaktur']!),
-              _buildLegendItem('Jasa', _bpsOrange, currentDistribusi['Jasa']!),
-            ],
           ),
         ],
       ),
     );
   }
 
-  BarChartGroupData _barGroup(int x, double toY, Color color, double width, double widthTouched) {
-    return BarChartGroupData(
-      x: x,
-      barRods: [
-        BarChartRodData(
-          toY: toY,
-          color: color,
-          width: touchedIndex == x ? widthTouched : width,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(6),
-            topRight: Radius.circular(6),
-          ),
-          backDrawRodData: BackgroundBarChartRodData(
-            show: true,
-            toY: 80,
-            color: const Color.fromRGBO(158, 158, 158, 0.1),
-          ),
-        ),
-      ],
-      showingTooltipIndicators: touchedIndex == x ? [0] : [],
-    );
-  }
+  Widget _buildDistribusiChart(ResponsiveSizing sizing, bool isSmallScreen) {
+    final data = distribusiData[selectedYear];
+    if (data == null) return const SizedBox.shrink();
 
-  Widget _buildLegendItem(String label, Color color, double percentage) {
-    return Column(
-      children: [
-        Container(
-          width: sizing.isVerySmall ? 16 : 20,
-          height: sizing.isVerySmall ? 16 : 20,
-          decoration: BoxDecoration(
-            color: color,
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: Color.fromRGBO(color.r.toInt(), color.g.toInt(), color.b.toInt(), 0.3),
-                blurRadius: 4,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: sizing.bottomNavLabelSize + 1,
-            fontWeight: FontWeight.w600,
-            color: _bpsTextPrimary,
-          ),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          '${percentage.toStringAsFixed(0)}%',
-          style: TextStyle(
-            fontSize: sizing.bottomNavLabelSize,
-            fontWeight: FontWeight.w500,
-            color: _bpsTextSecondary,
-          ),
-        ),
-      ],
-    );
-  }
-}
+    final sections = data.entries.map((entry) {
+      final index = data.keys.toList().indexOf(entry.key);
+      final isTouched = index == touchedIndex;
+      final fontSize = isTouched ? (isSmallScreen ? 14.0 : 16.0) : (isSmallScreen ? 11.0 : 12.0);
+      final radius = isTouched ? (isSmallScreen ? 65.0 : 75.0) : (isSmallScreen ? 55.0 : 65.0);
 
-class _SectorAnalysis extends StatelessWidget {
-  final int year;
-  final Map<int, Map<String, dynamic>> indikatorData;
-  final ResponsiveSizing sizing;
-
-  const _SectorAnalysis({
-    required this.year,
-    required this.indikatorData,
-    required this.sizing,
-  });
-
-  static const Map<int, double> _dependencyRatio = {
-    2020: 28.52,
-    2021: 28.59,
-    2022: 28.68,
-    2023: 28.77,
-    2024: 28.91,
-  };
-
-  @override
-  Widget build(BuildContext context) {
-    if (!indikatorData.containsKey(year)) {
-      return Container(
-        padding: EdgeInsets.all(sizing.statsCardPadding),
-        decoration: BoxDecoration(
-          color: _bpsCardBg,
-          borderRadius: BorderRadius.circular(12),
+      return PieChartSectionData(
+        color: _getSectorColor(entry.key),
+        value: entry.value,
+        title: '${entry.value.toStringAsFixed(1)}%',
+        radius: radius,
+        titleStyle: TextStyle(
+          fontSize: fontSize,
+          fontWeight: FontWeight.w700,
+          color: Colors.white,
         ),
-        child: const Center(child: Text('Data indikator tidak tersedia')),
       );
-    }
-
-    final indikator = indikatorData[year]!;
+    }).toList();
 
     return Container(
-      padding: EdgeInsets.all(sizing.statsCardPadding),
+      padding: EdgeInsets.all(isSmallScreen
+          ? sizing.statsCardPadding - 4
+          : sizing.statsCardPadding),
       decoration: BoxDecoration(
         color: _bpsCardBg,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: _bpsBorder),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _bpsBorder, width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: const Color.fromRGBO(0, 0, 0, 0.04),
-            blurRadius: 5,
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 6,
             offset: const Offset(0, 2),
           ),
         ],
@@ -1214,109 +1321,153 @@ class _SectorAnalysis extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Indikator Ketenagakerjaan',
-            style: TextStyle(
-              fontSize: sizing.sectionTitleSize - 2,
-              fontWeight: FontWeight.bold,
-              color: _bpsTextPrimary,
+          Row(
+            children: [
+              Container(
+                padding: EdgeInsets.all(isSmallScreen ? 8 : 10),
+                decoration: BoxDecoration(
+                  color: _bpsOrange.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.pie_chart_rounded,
+                  color: _bpsOrange,
+                  size: isSmallScreen ? 16 : 20,
+                ),
+              ),
+              SizedBox(width: sizing.itemSpacing),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Distribusi Lapangan Usaha',
+                      style: TextStyle(
+                        fontSize: isSmallScreen
+                            ? sizing.groupTitleSize - 2
+                            : sizing.groupTitleSize,
+                        fontWeight: FontWeight.w700,
+                        color: _bpsTextPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Persentase Tenaga Kerja per Sektor',
+                      style: TextStyle(
+                        fontSize: isSmallScreen ? 12 : 13,
+                        color: _bpsTextSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: isSmallScreen ? 12 : 16),
+          SizedBox(
+            height: isSmallScreen ? 180 : 220,
+            child: PieChart(
+              PieChartData(
+                pieTouchData: PieTouchData(
+                  touchCallback: (FlTouchEvent event, pieTouchResponse) {
+                    setState(() {
+                      if (!event.isInterestedForInteractions ||
+                          pieTouchResponse == null ||
+                          pieTouchResponse.touchedSection == null) {
+                        touchedIndex = -1;
+                        return;
+                      }
+                      touchedIndex = pieTouchResponse.touchedSection!.touchedSectionIndex;
+                    });
+                  },
+                ),
+                borderData: FlBorderData(show: false),
+                sectionsSpace: 2,
+                centerSpaceRadius: isSmallScreen ? 20 : 30,
+                sections: sections,
+              ),
             ),
           ),
-          SizedBox(height: sizing.itemSpacing + 3),
-          _buildAnalysisItem(
-            'Tingkat Pengangguran Terbuka (TPT)',
-            '${indikator['tptTotal']}%',
-            'Laki-laki: ${indikator['tptLaki']}% | Perempuan: ${indikator['tptPerempuan']}%',
-            Icons.trending_down,
-            _bpsRed,
+          SizedBox(height: isSmallScreen ? 12 : 16),
+          Wrap(
+            spacing: isSmallScreen ? 8 : 12,
+            runSpacing: isSmallScreen ? 8 : 12,
+            alignment: WrapAlignment.center,
+            children: data.keys.map((sector) {
+              return _buildLegendItem(
+                sector,
+                _getSectorColor(sector),
+                isSmallScreen,
+              );
+            }).toList(),
           ),
-          SizedBox(height: sizing.itemSpacing),
-          _buildAnalysisItem(
-            'Tingkat Partisipasi Angkatan Kerja (TPAK)',
-            '${indikator['tpakTotal']}%',
-            'Laki-laki: ${indikator['tpakLaki']}% | Perempuan: ${indikator['tpakPerempuan']}%',
-            Icons.trending_up,
-            _bpsBlue,
-          ),
-          SizedBox(height: sizing.itemSpacing),
-          _buildAnalysisItem(
-            'Tingkat Kesempatan Kerja (TKK)',
-            '${indikator['tkkTotal']}%',
-            'Laki-laki: ${indikator['tkkLaki']}% | Perempuan: ${indikator['tkkPerempuan']}%',
-            Icons.work_outline,
-            _bpsGreen,
-          ),
-          if (_dependencyRatio.containsKey(year)) ...[
-            SizedBox(height: sizing.itemSpacing),
-            _buildAnalysisItem(
-              'Angka Ketergantungan',
-              '${_dependencyRatio[year]!.toStringAsFixed(2)}',
-              'Rasio ketergantungan penduduk Kota Semarang',
-              Icons.info_outline,
-              _bpsPurple,
-            ),
-          ],
         ],
       ),
     );
   }
 
-  Widget _buildAnalysisItem(String title, String value, String description,
-      IconData icon, Color color) {
+  Widget _buildLegendItem(String label, Color color, bool isSmallScreen) {
     return Container(
-      padding: EdgeInsets.all(sizing.itemSpacing + 2),
+      padding: EdgeInsets.symmetric(
+        horizontal: isSmallScreen ? 10 : 12,
+        vertical: isSmallScreen ? 6 : 8,
+      ),
       decoration: BoxDecoration(
-        color: Color.fromRGBO(color.r.toInt(), color.g.toInt(), color.b.toInt(), 0.05),
-        borderRadius: BorderRadius.circular(8),
+        color: color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: Color.fromRGBO(color.r.toInt(), color.g.toInt(), color.b.toInt(), 0.2),
+          color: color.withOpacity(0.3),
+          width: 1.5,
         ),
       ),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            padding: EdgeInsets.all(sizing.itemSpacing - 2),
+            width: isSmallScreen ? 8 : 10,
+            height: isSmallScreen ? 8 : 10,
             decoration: BoxDecoration(
-              color: Color.fromRGBO(color.r.toInt(), color.g.toInt(), color.b.toInt(), 0.1),
-              borderRadius: BorderRadius.circular(8),
+              color: color,
+              shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: color, size: sizing.sectionIconSize),
           ),
-          SizedBox(width: sizing.itemSpacing),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: sizing.categoryLabelFontSize - 1,
-                    fontWeight: FontWeight.bold,
-                    color: _bpsTextPrimary,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  value,
-                  style: TextStyle(
-                    fontSize: sizing.sectionTitleSize - 2,
-                    fontWeight: FontWeight.bold,
-                    color: color,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  description,
-                  style: TextStyle(
-                    fontSize: sizing.statsChangeFontSize + 1,
-                    color: _bpsTextSecondary,
-                  ),
-                ),
-              ],
+          SizedBox(width: isSmallScreen ? 4 : 6),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: isSmallScreen ? 12 : 13,
+              color: color,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],
       ),
     );
+  }
+
+  Color _getSectorColor(String sector) {
+    switch (sector) {
+      case 'Pertanian':
+        return _bpsGreen;
+      case 'Industri':
+        return _bpsBlue;
+      case 'Perdagangan':
+        return _bpsOrange;
+      case 'Jasa':
+        return _bpsPurple;
+      case 'Lainnya':
+        return _bpsTeal;
+      default:
+        return _bpsTextSecondary;
+    }
+  }
+
+  String _formatNumber(int number) {
+    if (number >= 1000000) {
+      return '${(number / 1000000).toStringAsFixed(2)}M';
+    } else if (number >= 1000) {
+      return '${(number / 1000).toStringAsFixed(1)}K';
+    }
+    return number.toString();
   }
 }
