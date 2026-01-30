@@ -1,55 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'dart:ui';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
+import 'responsive_sizing.dart';
+
+// BPS Color Palette (matching kemiskinana_screen.dart)
+const Color _bpsBlue = Color(0xFF2E99D6);
+const Color _bpsOrange = Color(0xFFE88D34);
+const Color _bpsGreen = Color(0xFF7DBD42);
+const Color _bpsRed = Color(0xFFEF4444);
+const Color _bpsPurple = Color(0xFF7B1FA2);
+const Color _bpsBackground = Color(0xFFF5F5F5);
+const Color _bpsCardBg = Color(0xFFFFFFFF);
+const Color _bpsTextPrimary = Color(0xFF333333);
+const Color _bpsTextSecondary = Color(0xFF808080);
+const Color _bpsTextLabel = Color(0xFFA0A0A0);
+const Color _bpsBorder = Color(0xFFE0E0E0);
+const Color _bpsTeal = Color(0xFF1ABC9C);
 
 class IPGData {
   final int year;
-  final double? uhh; // Umur Harapan Hidup
-  final double? hls; // Harapan Lama Sekolah
-  final double? rls; // Rata-rata Lama Sekolah
-  final double? ppp; // Pengeluaran per Kapita
-  final double? ikg; // Indeks Ketimpangan Gender
-  final double? ipg; // Indeks Pembangunan Gender
-  final double? uhhMale; // UHH Laki-laki
-  final double? uhhFemale; // UHH Perempuan
-  final double? hlsMale; // HLS Laki-laki
-  final double? hlsFemale; // HLS Perempuan
-  final double? rlsMale; // RLS Laki-laki
-  final double? rlsFemale; // RLS Perempuan
-  final double? pppMale; // PPP Laki-laki
-  final double? pppFemale; // PPP Perempuan
-  final double? ipmMale; // IPM Laki-laki
-  final double? ipmFemale; // IPM Perempuan
+  final double? uhh, hls, rls, ppp, ikg, ipg;
+  final double? uhhMale, uhhFemale, hlsMale, hlsFemale, rlsMale, rlsFemale, pppMale, pppFemale, ipmMale, ipmFemale;
 
-  IPGData({
-    required this.year,
-    this.uhh,
-    this.hls,
-    this.rls,
-    this.ppp,
-    this.ikg,
-    this.ipg,
-    this.uhhMale,
-    this.uhhFemale,
-    this.hlsMale,
-    this.hlsFemale,
-    this.rlsMale,
-    this.rlsFemale,
-    this.pppMale,
-    this.pppFemale,
-    this.ipmMale,
-    this.ipmFemale,
-  });
+  IPGData({required this.year, this.uhh, this.hls, this.rls, this.ppp, this.ikg, this.ipg, this.uhhMale, this.uhhFemale, this.hlsMale, this.hlsFemale, this.rlsMale, this.rlsFemale, this.pppMale, this.pppFemale, this.ipmMale, this.ipmFemale});
 
   String get ipgFormatted => ipg != null ? ipg!.toStringAsFixed(1) : 'N/A';
   String get ikgFormatted => ikg != null ? (ikg! * 100).toStringAsFixed(1) : 'N/A';
-  String get uhhFormatted => uhh != null ? uhh!.toStringAsFixed(1) : 'N/A';
-  String get hlsFormatted => hls != null ? hls!.toStringAsFixed(1) : 'N/A';
-  String get rlsFormatted => rls != null ? rls!.toStringAsFixed(1) : 'N/A';
-  String get pppFormatted => ppp != null ? (ppp! / 1000).toStringAsFixed(0) : 'N/A';
-
-  // Gender specific formatted values
   String get uhhMaleFormatted => uhhMale != null ? uhhMale!.toStringAsFixed(1) : 'N/A';
   String get uhhFemaleFormatted => uhhFemale != null ? uhhFemale!.toStringAsFixed(1) : 'N/A';
   String get hlsMaleFormatted => hlsMale != null ? hlsMale!.toStringAsFixed(1) : 'N/A';
@@ -58,12 +35,48 @@ class IPGData {
   String get rlsFemaleFormatted => rlsFemale != null ? rlsFemale!.toStringAsFixed(1) : 'N/A';
   String get pppMaleFormatted => pppMale != null ? (pppMale! / 1000).toStringAsFixed(0) : 'N/A';
   String get pppFemaleFormatted => pppFemale != null ? (pppFemale! / 1000).toStringAsFixed(0) : 'N/A';
-  
-  // Gender percentage calculation for each indicator
-  double get uhhGap => (uhhMale != null && uhhFemale != null && uhhMale! > 0) 
-      ? ((uhhFemale! - uhhMale!) / uhhMale! * 100) : 0.0;
-  double get hlsGap => (hlsMale != null && hlsFemale != null && hlsMale! > 0) 
-      ? ((hlsFemale! - hlsMale!) / hlsMale! * 100) : 0.0;
+
+  factory IPGData.fromMap(int year, Map<String, dynamic> map) {
+    return IPGData(
+      year: year,
+      uhh: _avg(map['UHH_Laki'], map['UHH_Perempuan']),
+      hls: _avg(map['HLS_Laki'], map['HLS_Perempuan']),
+      rls: _avg(map['RLS_Laki'], map['RLS_Perempuan']),
+      ppp: _avg(map['PPP_Laki'], map['PPP_Perempuan']),
+      ipg: (map['IPG'] as num?)?.toDouble(),
+      ikg: (map['IKG'] as num?)?.toDouble(),
+      uhhMale: (map['UHH_Laki'] as num?)?.toDouble(),
+      uhhFemale: (map['UHH_Perempuan'] as num?)?.toDouble(),
+      hlsMale: (map['HLS_Laki'] as num?)?.toDouble(),
+      hlsFemale: (map['HLS_Perempuan'] as num?)?.toDouble(),
+      rlsMale: (map['RLS_Laki'] as num?)?.toDouble(),
+      rlsFemale: (map['RLS_Perempuan'] as num?)?.toDouble(),
+      pppMale: (map['PPP_Laki'] as num?)?.toDouble(),
+      pppFemale: (map['PPP_Perempuan'] as num?)?.toDouble(),
+      ipmMale: (map['IPM_Laki'] as num?)?.toDouble(),
+      ipmFemale: (map['IPM_Perempuan'] as num?)?.toDouble(),
+    );
+  }
+
+  static double? _avg(dynamic a, dynamic b) {
+    if (a == null || b == null) return null;
+    return ((a as num).toDouble() + (b as num).toDouble()) / 2;
+  }
+
+  Map<String, dynamic> toMap() => {
+    'UHH_Laki': uhhMale,
+    'UHH_Perempuan': uhhFemale,
+    'HLS_Laki': hlsMale,
+    'HLS_Perempuan': hlsFemale,
+    'RLS_Laki': rlsMale,
+    'RLS_Perempuan': rlsFemale,
+    'PPP_Laki': pppMale,
+    'PPP_Perempuan': pppFemale,
+    'IPM_Laki': ipmMale,
+    'IPM_Perempuan': ipmFemale,
+    'IPG': ipg,
+    'IKG': ikg,
+  };
 }
 
 class IPGScreen extends StatefulWidget {
@@ -85,600 +98,264 @@ class _IPGScreenState extends State<IPGScreen> {
     _loadIPGData();
   }
 
-  void _loadIPGData() {
-    // Data manual IPG dari tahun 2020-2024
-    final List<Map<String, dynamic>> rawData = [
-      {
-        "Tahun": 2020,
-        "UHH_Laki": 71.5,
-        "UHH_Perempuan": 75.2,
-        "HLS_Laki": 12.8,
-        "HLS_Perempuan": 13.1,
-        "RLS_Laki": 11.42,
-        "RLS_Perempuan": 10.16,
-        "PPP_Laki": 16128.0,
-        "PPP_Perempuan": 14287.0,
-        "IPM_Laki": 85.22,
-        "IPM_Perempuan": 81.38,
-        "IPG": 95.49,
-        "IKG": 0.045,
-      },
-      {
-        "Tahun": 2021,
-        "UHH_Laki": 71.6,
-        "UHH_Perempuan": 75.3,
-        "HLS_Laki": 12.9,
-        "HLS_Perempuan": 13.2,
-        "RLS_Laki": 11.50,
-        "RLS_Perempuan": 10.25,
-        "PPP_Laki": 16450.0,
-        "PPP_Perempuan": 14520.0,
-        "IPM_Laki": 85.65,
-        "IPM_Perempuan": 81.82,
-        "IPG": 95.67,
-        "IKG": 0.044,
-      },
-      {
-        "Tahun": 2022,
-        "UHH_Laki": 71.7,
-        "UHH_Perempuan": 75.4,
-        "HLS_Laki": 13.0,
-        "HLS_Perempuan": 13.3,
-        "RLS_Laki": 11.58,
-        "RLS_Perempuan": 10.34,
-        "PPP_Laki": 16780.0,
-        "PPP_Perempuan": 14760.0,
-        "IPM_Laki": 86.08,
-        "IPM_Perempuan": 82.26,
-        "IPG": 95.93,
-        "IKG": 0.043,
-      },
-      {
-        "Tahun": 2023,
-        "UHH_Laki": 71.8,
-        "UHH_Perempuan": 75.5,
-        "HLS_Laki": 13.1,
-        "HLS_Perempuan": 13.4,
-        "RLS_Laki": 11.66,
-        "RLS_Perempuan": 10.43,
-        "PPP_Laki": 17120.0,
-        "PPP_Perempuan": 15010.0,
-        "IPM_Laki": 86.51,
-        "IPM_Perempuan": 82.70,
-        "IPG": 95.96,
-        "IKG": 0.042,
-      },
-      {
-        "Tahun": 2024,
-        "UHH_Laki": 71.9,
-        "UHH_Perempuan": 75.6,
-        "HLS_Laki": 13.2,
-        "HLS_Perempuan": 13.5,
-        "RLS_Laki": 11.74,
-        "RLS_Perempuan": 10.52,
-        "PPP_Laki": 17470.0,
-        "PPP_Perempuan": 15270.0,
-        "IPM_Laki": 86.94,
-        "IPM_Perempuan": 83.14,
-        "IPG": 95.37,
-        "IKG": 0.041,
-      },
-    ];
+  Future<void> _loadIPGData() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final savedData = prefs.getString('ipg_data');
 
-    Map<int, IPGData> processedData = {};
-
-    for (var row in rawData) {
-      final int year = row["Tahun"] as int;
-
-      processedData[year] = IPGData(
-        year: year,
-
-        // rata-rata
-        uhh: ((row["UHH_Laki"] + row["UHH_Perempuan"]) / 2).toDouble(),
-        hls: ((row["HLS_Laki"] + row["HLS_Perempuan"]) / 2).toDouble(),
-        rls: ((row["RLS_Laki"] + row["RLS_Perempuan"]) / 2).toDouble(),
-        ppp: ((row["PPP_Laki"] + row["PPP_Perempuan"]) / 2).toDouble(),
-
-        // indeks
-        ipg: (row["IPG"] as num).toDouble(),
-        ikg: (row["IKG"] as num).toDouble(),
-
-        // nilai per gender
-        uhhMale: (row["UHH_Laki"] as num).toDouble(),
-        uhhFemale: (row["UHH_Perempuan"] as num).toDouble(),
-        hlsMale: (row["HLS_Laki"] as num).toDouble(),
-        hlsFemale: (row["HLS_Perempuan"] as num).toDouble(),
-        rlsMale: (row["RLS_Laki"] as num).toDouble(),
-        rlsFemale: (row["RLS_Perempuan"] as num).toDouble(),
-        pppMale: (row["PPP_Laki"] as num).toDouble(),
-        pppFemale: (row["PPP_Perempuan"] as num).toDouble(),
-
-        // tambahan: IPM
-        ipmMale: (row["IPM_Laki"] as num).toDouble(),
-        ipmFemale: (row["IPM_Perempuan"] as num).toDouble(),
-      );
-    }
-
-    // Simulate loading delay
-    Future.delayed(const Duration(milliseconds: 500), () {
       if (mounted) {
         setState(() {
-          ipgDataByYear = processedData;
-          availableYears = processedData.keys.toList()..sort();
-          if (availableYears.isNotEmpty) {
-            selectedYear = availableYears.last;
+          if (savedData != null) {
+            final decoded = json.decode(savedData) as Map<String, dynamic>;
+            ipgDataByYear = decoded.map((key, value) =>
+              MapEntry(
+                int.parse(key),
+                IPGData.fromMap(int.parse(key), Map<String, dynamic>.from(value as Map)),
+              ),
+            );
+          } else {
+            final List<Map<String, dynamic>> rawData = [
+              {"Tahun": 2020, "UHH_Laki": 71.5, "UHH_Perempuan": 75.2, "HLS_Laki": 12.8, "HLS_Perempuan": 13.1, "RLS_Laki": 11.42, "RLS_Perempuan": 10.16, "PPP_Laki": 16128.0, "PPP_Perempuan": 14287.0, "IPM_Laki": 85.22, "IPM_Perempuan": 81.38, "IPG": 95.49, "IKG": 0.045},
+              {"Tahun": 2021, "UHH_Laki": 71.6, "UHH_Perempuan": 75.3, "HLS_Laki": 12.9, "HLS_Perempuan": 13.2, "RLS_Laki": 11.50, "RLS_Perempuan": 10.25, "PPP_Laki": 16450.0, "PPP_Perempuan": 14520.0, "IPM_Laki": 85.65, "IPM_Perempuan": 81.82, "IPG": 95.67, "IKG": 0.044},
+              {"Tahun": 2022, "UHH_Laki": 71.7, "UHH_Perempuan": 75.4, "HLS_Laki": 13.0, "HLS_Perempuan": 13.3, "RLS_Laki": 11.58, "RLS_Perempuan": 10.34, "PPP_Laki": 16780.0, "PPP_Perempuan": 14760.0, "IPM_Laki": 86.08, "IPM_Perempuan": 82.26, "IPG": 95.93, "IKG": 0.043},
+              {"Tahun": 2023, "UHH_Laki": 71.8, "UHH_Perempuan": 75.5, "HLS_Laki": 13.1, "HLS_Perempuan": 13.4, "RLS_Laki": 11.66, "RLS_Perempuan": 10.43, "PPP_Laki": 17120.0, "PPP_Perempuan": 15010.0, "IPM_Laki": 86.51, "IPM_Perempuan": 82.70, "IPG": 95.96, "IKG": 0.042},
+              {"Tahun": 2024, "UHH_Laki": 71.9, "UHH_Perempuan": 75.6, "HLS_Laki": 13.2, "HLS_Perempuan": 13.5, "RLS_Laki": 11.74, "RLS_Perempuan": 10.52, "PPP_Laki": 17470.0, "PPP_Perempuan": 15270.0, "IPM_Laki": 86.94, "IPM_Perempuan": 83.14, "IPG": 95.37, "IKG": 0.041},
+            ];
+
+            Map<int, IPGData> processedData = {};
+            for (var row in rawData) {
+              final int year = row["Tahun"] as int;
+              processedData[year] = IPGData(
+                year: year,
+                uhh: ((row["UHH_Laki"] + row["UHH_Perempuan"]) / 2).toDouble(),
+                hls: ((row["HLS_Laki"] + row["HLS_Perempuan"]) / 2).toDouble(),
+                rls: ((row["RLS_Laki"] + row["RLS_Perempuan"]) / 2).toDouble(),
+                ppp: ((row["PPP_Laki"] + row["PPP_Perempuan"]) / 2).toDouble(),
+                ipg: (row["IPG"] as num).toDouble(),
+                ikg: (row["IKG"] as num).toDouble(),
+                uhhMale: (row["UHH_Laki"] as num).toDouble(),
+                uhhFemale: (row["UHH_Perempuan"] as num).toDouble(),
+                hlsMale: (row["HLS_Laki"] as num).toDouble(),
+                hlsFemale: (row["HLS_Perempuan"] as num).toDouble(),
+                rlsMale: (row["RLS_Laki"] as num).toDouble(),
+                rlsFemale: (row["RLS_Perempuan"] as num).toDouble(),
+                pppMale: (row["PPP_Laki"] as num).toDouble(),
+                pppFemale: (row["PPP_Perempuan"] as num).toDouble(),
+                ipmMale: (row["IPM_Laki"] as num).toDouble(),
+                ipmFemale: (row["IPM_Perempuan"] as num).toDouble(),
+              );
+            }
+            ipgDataByYear = processedData;
           }
+
+          availableYears = ipgDataByYear.keys.toList()..sort();
+          if (availableYears.isNotEmpty) selectedYear = availableYears.last;
           isLoading = false;
         });
       }
-    });
+    } catch (e) {
+      debugPrint('Error loading IPG data: $e');
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
+    }
   }
 
   IPGData get currentIPGData {
-    if (ipgDataByYear.isEmpty) {
-      return IPGData(year: selectedYear);
-    }
+    if (ipgDataByYear.isEmpty) return IPGData(year: selectedYear);
     return ipgDataByYear[selectedYear] ?? ipgDataByYear[availableYears.last]!;
-  }
-
-  Future<void> _downloadPDFFromGoogleSheets() async {
-    const String pdfUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSH3FNCskAXqg0lRfl44sS7omSzIkAX-csRfyud4PBlN0Wv-aTFAKjLXAlPiJg0ng/pub?output=pdf';
-    
-    try {
-      final Uri url = Uri.parse(pdfUrl);
-      if (await canLaunchUrl(url)) {
-        await launchUrl(url, mode: LaunchMode.externalApplication);
-      } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Tidak dapat membuka link download PDF'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error mengakses PDF: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (isLoading) {
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text('Indeks Pembangunan Gender'),
-          backgroundColor: const Color(0xFF7B1FA2),
-          foregroundColor: Colors.white,
-          elevation: 0,
-        ),
-        body: const Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CircularProgressIndicator(color: Color(0xFF7B1FA2)),
-              SizedBox(height: 16),
-              Text('Memuat data IPG...', style: TextStyle(color: Colors.grey)),
-            ],
-          ),
-        ),
-      );
-    }
+    final sizing = ResponsiveSizing(context);
+    final isSmallScreen = sizing.isVerySmall || sizing.isSmall;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Indeks Pembangunan Gender'),
-        backgroundColor: const Color(0xFF7B1FA2),
-        foregroundColor: const Color.fromARGB(255, 235, 216, 235),
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.info_outline),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Data yang ditampilkan bersumber dari data statistik resmi.'),
-                ),
-              );
-            },
-            tooltip: 'Sumber Data',
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildHeaderCard(),
-            const SizedBox(height: 20),
-            _buildYearSelector(),
-            const SizedBox(height: 20),
-            _buildIPGStats(),
-            const SizedBox(height: 20),
-            _buildGenderComparison(),
-            const SizedBox(height: 20),
-            _buildIPGChart(),
-            const SizedBox(height: 20),
-            _buildIPGDescription(),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHeaderCard() {
-    final data = currentIPGData;
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF7B1FA2), Color(0xFF9C27B0)],
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-        ),
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.purple.withOpacity(0.3),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: Row(
+      backgroundColor: _bpsBackground,
+      body: Column(
         children: [
-          const Icon(Icons.balance, color: Colors.white, size: 40),
-          const SizedBox(width: 15),
+          _buildHeader(context, sizing, isSmallScreen),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Indeks Pembangunan Gender',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 5),
-                Text(
-                  'Data IPG tahun ${data.year}',
-                  style: const TextStyle(color: Colors.white70, fontSize: 14),
-                ),
-              ],
-            ),
+            child: isLoading
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const CircularProgressIndicator(color: _bpsBlue),
+                        SizedBox(height: sizing.sectionSpacing - 8),
+                        Text(
+                          'Memuat data IPG...',
+                          style: TextStyle(
+                            fontSize: sizing.categoryLabelFontSize,
+                            color: _bpsTextSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : ipgDataByYear.isEmpty
+                    ? Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(sizing.horizontalPadding),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.inbox_outlined,
+                                size: isSmallScreen ? 48 : 64,
+                                color: _bpsTextLabel,
+                              ),
+                              SizedBox(height: sizing.sectionSpacing - 8),
+                              Text(
+                                'Belum Ada Data',
+                                style: TextStyle(
+                                  fontSize: sizing.sectionTitleSize,
+                                  fontWeight: FontWeight.bold,
+                                  color: _bpsTextPrimary,
+                                ),
+                              ),
+                              SizedBox(height: sizing.itemSpacing),
+                              Text(
+                                'Data IPG belum tersedia',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: sizing.categoryLabelFontSize,
+                                  color: _bpsTextSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    : CustomScrollView(
+                        physics: const ClampingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+                        slivers: [
+                          SliverPadding(
+                            padding: EdgeInsets.all(sizing.horizontalPadding),
+                            sliver: SliverList(
+                              delegate: SliverChildListDelegate([
+                                _buildYearSelector(sizing, isSmallScreen),
+                                SizedBox(height: sizing.sectionSpacing),
+                                _buildMainIndicators(sizing, isSmallScreen),
+                                SizedBox(height: sizing.sectionSpacing),
+                                _buildGenderComparison(sizing, isSmallScreen),
+                                SizedBox(height: sizing.sectionSpacing),
+                                _buildIPGChart(sizing, isSmallScreen),
+                                SizedBox(height: sizing.sectionSpacing),
+                                _buildInfoCard(sizing, isSmallScreen),
+                                SizedBox(height: sizing.sectionSpacing),
+                              ]),
+                            ),
+                          ),
+                        ],
+                      ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildYearSelector() {
-  return Container(
-    padding: const EdgeInsets.all(16),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(12),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.grey.withOpacity(0.1),
-          blurRadius: 5,
-          offset: const Offset(0, 2),
-        ),
-      ],
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          // ... (kode judul tidak berubah)
-          children: [
-            Icon(Icons.calendar_today, color: Colors.grey[600], size: 18),
-            const SizedBox(width: 8),
-            Text(
-              'Pilih Tahun Data',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: Colors.grey[700],
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          alignment: WrapAlignment.start,
-          children: availableYears.map((year) {
-            final isSelected = year == selectedYear;
-            return SizedBox(
-              // PENYESUAIAN: Coba kecilkan nilai width di sini
-              // Ubah angka 68 ini sesuai selera Anda (misal: 65, 70, dst)
-              width: 63,
-              child: GestureDetector(
-                onTap: () => setState(() {
-                  selectedYear = year;
-                }),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: isSelected ? const Color.fromARGB(255, 123, 31, 162) : Colors.grey[100],
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: isSelected ? const Color.fromARGB(255, 123, 31, 162) : Colors.grey[300]!,
-                    ),
-                  ),
-                  child: Text(
-                    year.toString(),
-                    style: TextStyle(
-                      color: isSelected ? Colors.white : Colors.grey[700],
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                      fontSize: 12,
-                    ),
-                  ),
-                ),
-              ),
-            );
-          }).toList(),
-        ),
-      ],
-    ),
-  );
-}
-
-  Widget _buildIPGStats() {
-    final data = currentIPGData;
-    return Row(
-      children: [
-        Expanded(
-          child: _buildStatCard(
-            'IPG (Indeks)',
-            data.ipgFormatted,
-            'Pembangunan Gender',
-            Icons.balance,
-            Colors.purple,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _buildStatCard(
-            'IKG (Indeks)',
-            '${data.ikgFormatted}%',
-            'Ketimpangan Gender',
-            Icons.equalizer,
-            Colors.blue,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildStatCard(String title, String value, String subtitle, IconData icon, Color color) {
+  Widget _buildHeader(BuildContext context, ResponsiveSizing sizing, bool isSmallScreen) {
     return Container(
-      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        color: _bpsBlue,
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            blurRadius: 5,
-            offset: const Offset(0, 2),
+            color: _bpsBlue.withOpacity(0.2),
+            blurRadius: 20,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, color: color, size: 24),
-          const SizedBox(height: 12),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey[800],
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            title,
-            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            subtitle,
-            style: TextStyle(
-              fontSize: 10,
-              color: color,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildGenderComparison() {
-    final data = currentIPGData;
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            blurRadius: 5,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Perbandingan Gender Tahun ${data.year}',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey[800],
-            ),
-          ),
-          const SizedBox(height: 20),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: EdgeInsets.all(sizing.horizontalPadding),
+          child: Row(
             children: [
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.blue[50],
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.blue[200]!),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Icon(Icons.male, color: Colors.blue[600], size: 24),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Laki-laki',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue[800],
-                        ),
-                      ),
-                      const Divider(height: 16),
-                      _buildComparisonRow('UHH:', '${data.uhhMaleFormatted} thn'),
-                      _buildComparisonRow('HLS:', '${data.hlsMaleFormatted} thn'),
-                      _buildComparisonRow('RLS:', '${data.rlsMaleFormatted} thn'),
-                      _buildComparisonRow('Pendapatan:', '${data.pppMaleFormatted} rb'),
-                    ],
+              Material(
+                color: Colors.white.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(12),
+                child: InkWell(
+                  onTap: () => Navigator.of(context).pop(),
+                  borderRadius: BorderRadius.circular(12),
+                  child: Padding(
+                    padding: EdgeInsets.all(isSmallScreen ? 10 : 12),
+                    child: Icon(
+                      Icons.arrow_back_rounded,
+                      color: Colors.white,
+                      size: isSmallScreen ? 20 : 24,
+                    ),
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: sizing.itemSpacing),
               Expanded(
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.pink[50],
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.pink[200]!),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Icon(Icons.female, color: Colors.pink[600], size: 24),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Perempuan',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.pink[800],
-                        ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Indeks Pembangunan Gender',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: isSmallScreen
+                            ? sizing.headerTitleSize - 2
+                            : sizing.headerTitleSize,
+                        fontWeight: FontWeight.w700,
+                        height: 1.1,
                       ),
-                      const Divider(height: 16),
-                      _buildComparisonRow('UHH:', '${data.uhhFemaleFormatted} thn'),
-                      _buildComparisonRow('HLS:', '${data.hlsFemaleFormatted} thn'),
-                      _buildComparisonRow('RLS:', '${data.rlsFemaleFormatted} thn'),
-                      _buildComparisonRow('Pendapatan:', '${data.pppFemaleFormatted} rb'),
-                    ],
-                  ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    SizedBox(height: isSmallScreen ? 2 : 4),
+                    Text(
+                      'Data Tahun $selectedYear',
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: isSmallScreen
+                            ? sizing.headerSubtitleSize - 2
+                            : sizing.headerSubtitleSize,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: EdgeInsets.all(isSmallScreen ? 10 : 12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  Icons.balance_rounded,
+                  color: Colors.white,
+                  size: isSmallScreen ? 20 : 24,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          // Add explanation about dual scale
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.amber[50],
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(color: Colors.amber[200]!),
-            ),
-            child: Text(
-              'Catatan: IPG (skala ~95-96) dan IKG (skala ~4-5%) ditampilkan dalam grafik yang sama dengan skala 0-100',
-              style: TextStyle(
-                fontSize: 10,
-                color: Colors.amber[800],
-                fontStyle: FontStyle.italic,
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _buildComparisonRow(String title, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 11,
-              color: Colors.grey[600],
-            ),
-          ),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey[800],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildIPGChart() {
-    // Prepare data for all years
-    List<FlSpot> ipgSpots = [];
-    List<FlSpot> ikgSpots = [];
-
-    for (int i = 0; i < availableYears.length; i++) {
-      final year = availableYears[i];
-      final yearData = ipgDataByYear[year];
-      if (yearData != null && yearData.ipg != null && yearData.ikg != null) {
-        ipgSpots.add(FlSpot(i.toDouble(), yearData.ipg!));
-        ikgSpots.add(FlSpot(i.toDouble(), yearData.ikg! * 100)); // Scale IKG to percentage
-      }
-    }
-
-    bool hasValidData = ipgSpots.isNotEmpty && ikgSpots.isNotEmpty;
-
+  Widget _buildYearSelector(ResponsiveSizing sizing, bool isSmallScreen) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(isSmallScreen
+          ? sizing.statsCardPadding - 4
+          : sizing.statsCardPadding),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        color: _bpsCardBg,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _bpsBorder, width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            blurRadius: 5,
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 6,
             offset: const Offset(0, 2),
           ),
         ],
@@ -689,472 +366,100 @@ class _IPGScreenState extends State<IPGScreen> {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: EdgeInsets.all(isSmallScreen ? 8 : 10),
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF7B1FA2), Color(0xFF9C27B0)],
-                  ),
+                  color: _bpsBlue.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(
-                  Icons.trending_up,
-                  color: Colors.white,
-                  size: 20,
+                child: Icon(
+                  Icons.calendar_today_rounded,
+                  color: _bpsBlue,
+                  size: isSmallScreen ? 16 : 20,
                 ),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  'Tren IPG & IKG (2020-2024)',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey[800],
-                  ),
+              SizedBox(width: sizing.itemSpacing),
+              Text(
+                'Pilih Tahun Data',
+                style: TextStyle(
+                  fontSize: isSmallScreen
+                      ? sizing.groupTitleSize - 2
+                      : sizing.groupTitleSize,
+                  fontWeight: FontWeight.w700,
+                  color: _bpsTextPrimary,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          if (hasValidData) ...[
-            Row(
-              children: [
-                Container(
-                  width: 14,
-                  height: 3,
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF7B1FA2), Color(0xFF9C27B0)],
+          SizedBox(height: isSmallScreen ? 12 : 16),
+          Wrap(
+            spacing: isSmallScreen ? 8 : 12,
+            runSpacing: isSmallScreen ? 8 : 12,
+            children: availableYears.map((year) {
+              final isSelected = year == selectedYear;
+              return Material(
+                color: isSelected ? _bpsBlue : _bpsBackground,
+                borderRadius: BorderRadius.circular(10),
+                child: InkWell(
+                  onTap: () => setState(() => selectedYear = year),
+                  borderRadius: BorderRadius.circular(10),
+                  child: Container(
+                    constraints: BoxConstraints(
+                      minWidth: isSmallScreen ? 60 : 70,
                     ),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'IPG (skala kiri)',
-                  style: TextStyle(fontSize: 11, color: Colors.grey[600]),
-                ),
-                const SizedBox(width: 16),
-                Container(
-                  width: 14,
-                  height: 3,
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFFFF9800), Color(0xFFFFB74D)],
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isSmallScreen ? 12 : 16,
+                      vertical: isSmallScreen ? 8 : 10,
                     ),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'IKG % (skala kanan)',
-                  style: TextStyle(fontSize: 11, color: Colors.grey[600]),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-          ],
-          SizedBox(
-            height: 300,
-            child: hasValidData
-                ? LineChart(
-                    LineChartData(
-                      minY: 94,
-                      maxY: 97,
-                      minX: 0,
-                      maxX: (availableYears.length - 1).toDouble(),
-                      gridData: FlGridData(
-                        show: true,
-                        drawVerticalLine: true,
-                        horizontalInterval: 0.5,
-                        verticalInterval: 1,
-                        getDrawingHorizontalLine: (value) {
-                          return FlLine(
-                            color: Colors.grey.withOpacity(0.12),
-                            strokeWidth: 1,
-                            dashArray: [5, 5],
-                          );
-                        },
-                        getDrawingVerticalLine: (value) {
-                          return FlLine(
-                            color: Colors.grey.withOpacity(0.08),
-                            strokeWidth: 1,
-                          );
-                        },
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: isSelected ? _bpsBlue : _bpsBorder,
+                        width: isSelected ? 2 : 1.5,
                       ),
-                      titlesData: FlTitlesData(
-                        leftTitles: AxisTitles(
-                          axisNameWidget: Padding(
-                            padding: const EdgeInsets.only(bottom: 8),
-                            child: Text(
-                              'IPG',
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.purple[700],
+                      boxShadow: isSelected
+                          ? [
+                              BoxShadow(
+                                color: _bpsBlue.withOpacity(0.3),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
                               ),
-                            ),
-                          ),
-                          sideTitles: SideTitles(
-                            showTitles: true,
-                            reservedSize: 42,
-                            interval: 0.5,
-                            getTitlesWidget: (value, meta) {
-                              return Padding(
-                                padding: const EdgeInsets.only(right: 4),
-                                child: Text(
-                                  value.toStringAsFixed(1),
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    color: Colors.purple[700],
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                        rightTitles: AxisTitles(
-                          axisNameWidget: Padding(
-                            padding: const EdgeInsets.only(bottom: 8),
-                            child: Text(
-                              'IKG %',
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.orange[700],
-                              ),
-                            ),
-                          ),
-                          sideTitles: SideTitles(
-                            showTitles: true,
-                            reservedSize: 42,
-                            interval: 0.5,
-                            getTitlesWidget: (value, meta) {
-                              // Map IPG scale (94-97) to IKG scale (3-6%)
-                              double ikgValue = 3.0 + ((value - 94.0) / 3.0) * 3.0;
-                              return Padding(
-                                padding: const EdgeInsets.only(left: 4),
-                                child: Text(
-                                  ikgValue.toStringAsFixed(1),
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    color: Colors.orange[700],
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                        bottomTitles: AxisTitles(
-                          sideTitles: SideTitles(
-                            showTitles: true,
-                            reservedSize: 32,
-                            interval: 1,
-                            getTitlesWidget: (value, meta) {
-                              int index = value.toInt();
-                              if (index >= 0 && index < availableYears.length) {
-                                bool isSelected = availableYears[index] == selectedYear;
-                                return Padding(
-                                  padding: const EdgeInsets.only(top: 8.0),
-                                  child: Text(
-                                    availableYears[index].toString(),
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: isSelected ? const Color(0xFF7B1FA2) : Colors.grey[600],
-                                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                                    ),
-                                  ),
-                                );
-                              }
-                              return const Text('');
-                            },
-                          ),
-                        ),
-                        topTitles: const AxisTitles(
-                          sideTitles: SideTitles(showTitles: false),
-                        ),
-                      ),
-                      borderData: FlBorderData(
-                        show: true,
-                        border: Border(
-                          left: BorderSide(color: Colors.purple.withOpacity(0.3), width: 1.5),
-                          right: BorderSide(color: Colors.orange.withOpacity(0.3), width: 1.5),
-                          bottom: BorderSide(color: Colors.grey.withOpacity(0.3), width: 1),
-                        ),
-                      ),
-                      lineBarsData: [
-                        // IPG Line
-                        LineChartBarData(
-                          spots: ipgSpots,
-                          isCurved: true,
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF7B1FA2), Color(0xFF9C27B0)],
-                          ),
-                          barWidth: 3.5,
-                          isStrokeCapRound: true,
-                          dotData: FlDotData(
-                            show: true,
-                            getDotPainter: (spot, percent, barData, index) {
-                              bool isSelected = availableYears[index] == selectedYear;
-                              return FlDotCirclePainter(
-                                radius: isSelected ? 6 : 4,
-                                color: Colors.white,
-                                strokeWidth: isSelected ? 3 : 2,
-                                strokeColor: const Color(0xFF7B1FA2),
-                              );
-                            },
-                          ),
-                          belowBarData: BarAreaData(
-                            show: true,
-                            gradient: LinearGradient(
-                              colors: [
-                                const Color(0xFF7B1FA2).withOpacity(0.15),
-                                const Color(0xFF9C27B0).withOpacity(0.05),
-                              ],
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                            ),
-                          ),
-                        ),
-                        // IKG Line (scaled to fit IPG range)
-                        LineChartBarData(
-                          spots: ikgSpots.map((spot) {
-                            // Map IKG (3-6%) to IPG scale (94-97)
-                            double ikgPercent = spot.y; // This is already scaled to 3-6 range
-                            double scaledY = 94.0 + ((ikgPercent - 3.0) / 3.0) * 3.0;
-                            return FlSpot(spot.x, scaledY);
-                          }).toList(),
-                          isCurved: true,
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFFFF9800), Color(0xFFFFB74D)],
-                          ),
-                          barWidth: 3.5,
-                          isStrokeCapRound: true,
-                          dotData: FlDotData(
-                            show: true,
-                            getDotPainter: (spot, percent, barData, index) {
-                              bool isSelected = availableYears[index] == selectedYear;
-                              return FlDotCirclePainter(
-                                radius: isSelected ? 6 : 4,
-                                color: Colors.white,
-                                strokeWidth: isSelected ? 3 : 2,
-                                strokeColor: const Color(0xFFFF9800),
-                              );
-                            },
-                          ),
-                          belowBarData: BarAreaData(
-                            show: true,
-                            gradient: LinearGradient(
-                              colors: [
-                                const Color(0xFFFF9800).withOpacity(0.15),
-                                const Color(0xFFFFB74D).withOpacity(0.05),
-                              ],
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                            ),
-                          ),
-                        ),
-                      ],
-                      lineTouchData: LineTouchData(
-                        enabled: true,
-                        touchTooltipData: LineTouchTooltipData(
-                          getTooltipColor: (touchedSpot) => Colors.grey[850]!,
-                          tooltipRoundedRadius: 8,
-                          tooltipPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                          getTooltipItems: (List<LineBarSpot> touchedBarSpots) {
-                            return touchedBarSpots.map((barSpot) {
-                              final int index = barSpot.x.toInt();
-                              if (index < 0 || index >= availableYears.length) return null;
-
-                              final year = availableYears[index];
-                              final yearData = ipgDataByYear[year];
-
-                              if (barSpot.barIndex == 0) {
-                                // IPG
-                                return LineTooltipItem(
-                                  '${year}\nIPG: ${yearData?.ipgFormatted ?? 'N/A'}',
-                                  const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 11,
-                                  ),
-                                );
-                              } else {
-                                // IKG
-                                return LineTooltipItem(
-                                  '${year}\nIKG: ${yearData?.ikgFormatted ?? 'N/A'}%',
-                                  const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 11,
-                                  ),
-                                );
-                              }
-                            }).toList();
-                          },
-                        ),
-                      ),
+                            ]
+                          : null,
                     ),
-                  )
-                : Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.show_chart, size: 48, color: Colors.grey[400]),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Data tren tidak tersedia',
-                          style: TextStyle(color: Colors.grey[600], fontSize: 14),
-                        ),
-                      ],
+                    child: Text(
+                      year.toString(),
+                      style: TextStyle(
+                        fontSize: isSmallScreen ? 14 : 16,
+                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                        color: isSelected ? Colors.white : _bpsTextSecondary,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
                   ),
+                ),
+              );
+            }).toList(),
           ),
-          const SizedBox(height: 20),
-          // Insight summary
-          if (hasValidData && ipgDataByYear.isNotEmpty)
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Colors.purple.withOpacity(0.05),
-                    Colors.orange.withOpacity(0.05),
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.purple.withOpacity(0.2)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(Icons.insights, size: 16, color: Colors.purple[700]),
-                      const SizedBox(width: 6),
-                      Text(
-                        'Analisis Tren 5 Tahun',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey[800],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  _buildTrendInsight(),
-                ],
-              ),
-            ),
         ],
       ),
     );
   }
 
-  Widget _buildTrendInsight() {
-    if (availableYears.length < 2) {
-      return Text(
-        'Belum cukup data untuk analisis tren',
-        style: TextStyle(fontSize: 10, color: Colors.grey[600]),
-      );
-    }
+  Widget _buildMainIndicators(ResponsiveSizing sizing, bool isSmallScreen) {
+    final data = currentIPGData;
 
-    final firstYear = availableYears.first;
-    final lastYear = availableYears.last;
-    final firstData = ipgDataByYear[firstYear];
-    final lastData = ipgDataByYear[lastYear];
-
-    if (firstData == null || lastData == null) {
-      return Text(
-        'Data tidak lengkap',
-        style: TextStyle(fontSize: 10, color: Colors.grey[600]),
-      );
-    }
-
-    final ipgChange = (lastData.ipg ?? 0) - (firstData.ipg ?? 0);
-    final ikgChange = ((lastData.ikg ?? 0) - (firstData.ikg ?? 0)) * 100;
-
-    String ipgTrend = ipgChange > 0 ? '↑ naik' : ipgChange < 0 ? '↓ turun' : '→ stabil';
-    String ikgTrend = ikgChange > 0 ? '↑ naik' : ikgChange < 0 ? '↓ turun' : '→ stabil';
-
-    Color ipgColor = ipgChange > 0 ? Colors.green : ipgChange < 0 ? Colors.red : Colors.grey;
-    Color ikgColor = ikgChange < 0 ? Colors.green : ikgChange > 0 ? Colors.red : Colors.grey;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: RichText(
-                text: TextSpan(
-                  style: TextStyle(fontSize: 10, color: Colors.grey[700]),
-                  children: [
-                    const TextSpan(text: 'IPG ', style: TextStyle(fontWeight: FontWeight.bold)),
-                    TextSpan(
-                      text: ipgTrend,
-                      style: TextStyle(color: ipgColor, fontWeight: FontWeight.bold),
-                    ),
-                    TextSpan(text: ' ${ipgChange.toStringAsFixed(2)} poin (${firstYear}-${lastYear})'),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 4),
-        Row(
-          children: [
-            Expanded(
-              child: RichText(
-                text: TextSpan(
-                  style: TextStyle(fontSize: 10, color: Colors.grey[700]),
-                  children: [
-                    const TextSpan(text: 'IKG ', style: TextStyle(fontWeight: FontWeight.bold)),
-                    TextSpan(
-                      text: ikgTrend,
-                      style: TextStyle(color: ikgColor, fontWeight: FontWeight.bold),
-                    ),
-                    TextSpan(text: ' ${ikgChange.toStringAsFixed(2)}% (${firstYear}-${lastYear})'),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 6),
-        Container(
-          padding: const EdgeInsets.all(6),
-          decoration: BoxDecoration(
-            color: Colors.blue.withOpacity(0.08),
-            borderRadius: BorderRadius.circular(4),
-          ),
-          child: Text(
-            'Grafik menggunakan dua skala berbeda: IPG (kiri) dan IKG % (kanan) untuk memudahkan perbandingan tren.',
-            style: TextStyle(
-              fontSize: 9,
-              color: Colors.blue[800],
-              fontStyle: FontStyle.italic,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildIPGDescription() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(isSmallScreen
+          ? sizing.statsCardPadding - 4
+          : sizing.statsCardPadding),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        color: _bpsCardBg,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _bpsBorder, width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            blurRadius: 5,
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 6,
             offset: const Offset(0, 2),
           ),
         ],
@@ -1162,40 +467,1006 @@ class _IPGScreenState extends State<IPGScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 12),
-          RichText(
-            textAlign: TextAlign.justify,
-            textHeightBehavior: const TextHeightBehavior(
-              applyHeightToFirstAscent: false,
-              applyHeightToLastDescent: false,
-            ),
-            text: TextSpan(
-              style: TextStyle(
-                fontSize: 13,
-                color: Colors.grey[800],
-                height: 1.6,
-              ),
-              children: const [
-                TextSpan(
-                  text: 'Indeks Pembangunan Gender (IPG) ',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+          Row(
+            children: [
+              Container(
+                padding: EdgeInsets.all(isSmallScreen ? 8 : 10),
+                decoration: BoxDecoration(
+                  color: _bpsBlue.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                TextSpan(
-                  text:
-                      'Perhitungan IPG (Indeks Pembangunan Gender) adalah indikator penting '
-                      'yang mengukur kesenjangan pencapaian pembangunan manusia antara '
-                      'perempuan dan laki-laki. Semakin tinggi nilai IPG (mendekati 100), '
-                      'maka semakin kecil kesenjangan antara perempuan dan laki-laki. '
-                      'Berikut adalah tiga dimensi utama IPG beserta indikator-indikatornya: '
-                      '\n\n• Dimensi Kesehatan: Diukur melalui Angka Harapan Hidup (UHH) saat lahir '
-                      '\n• Dimensi Pendidikan: Diukur melalui Harapan Lama Sekolah (HLS) dan Rata-rata Lama Sekolah (RLS) '
-                      '\n• Dimensi Standar Hidup Layak: Diukur melalui Pendapatan per Kapita yang disesuaikan.'
+                child: Icon(
+                  Icons.analytics_rounded,
+                  color: _bpsBlue,
+                  size: isSmallScreen ? 16 : 20,
+                ),
+              ),
+              SizedBox(width: sizing.itemSpacing),
+              Expanded(
+                child: Text(
+                  'Indikator Utama IPG',
+                  style: TextStyle(
+                    fontSize: isSmallScreen
+                        ? sizing.groupTitleSize - 2
+                        : sizing.groupTitleSize,
+                    fontWeight: FontWeight.w700,
+                    color: _bpsTextPrimary,
+                  ),
+                ),
+              ),
+              if (!isSmallScreen) ...[
+                Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: sizing.itemSpacing,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: _bpsBlue.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.touch_app_rounded,
+                        color: _bpsBlue,
+                        size: 14,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Tap untuk detail',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: _bpsBlue,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
+            ],
+          ),
+          SizedBox(height: isSmallScreen ? 12 : 16),
+          Column(
+            children: [
+              _buildCompactIndicatorRow(
+                context: context,
+                value: data.ipgFormatted,
+                label: 'IPG',
+                color: _bpsPurple,
+                icon: Icons.balance,
+                description: 'Indeks Pembangunan Gender (IPG) mengukur pencapaian dalam dimensi dan variabel yang sama dengan IPM, dengan memperhatikan disparitas antara laki-laki dan perempuan.',
+                isFirst: true,
+                isSmallScreen: isSmallScreen,
+              ),
+              _buildIndicatorDivider(isSmallScreen),
+              _buildCompactIndicatorRow(
+                context: context,
+                value: '${data.ikgFormatted}%',
+                label: 'IKG',
+                color: _bpsBlue,
+                icon: Icons.equalizer,
+                description: 'Indeks Ketimpangan Gender (IKG) mengukur kerugian akibat ketidaksetaraan gender dari 3 dimensi: kesehatan reproduksi, pemberdayaan, dan pasar tenaga kerja.',
+                isSmallScreen: isSmallScreen,
+              ),
+              _buildIndicatorDivider(isSmallScreen),
+              _buildCompactIndicatorRow(
+                context: context,
+                value: '${data.ipmMale?.toStringAsFixed(2) ?? 'N/A'}',
+                label: 'IPM Laki-laki',
+                color: Colors.indigo,
+                icon: Icons.male,
+                description: 'Indeks Pembangunan Manusia (IPM) untuk penduduk laki-laki mengukur capaian pembangunan manusia berbasis sejumlah komponen dasar kualitas hidup.',
+                isSmallScreen: isSmallScreen,
+              ),
+              _buildIndicatorDivider(isSmallScreen),
+              _buildCompactIndicatorRow(
+                context: context,
+                value: '${data.ipmFemale?.toStringAsFixed(2) ?? 'N/A'}',
+                label: 'IPM Perempuan',
+                color: Colors.pink,
+                icon: Icons.female,
+                description: 'Indeks Pembangunan Manusia (IPM) untuk penduduk perempuan mengukur capaian pembangunan manusia berbasis sejumlah komponen dasar kualitas hidup.',
+                isLast: true,
+                isSmallScreen: isSmallScreen,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGenderComparison(ResponsiveSizing sizing, bool isSmallScreen) {
+    final data = currentIPGData;
+
+    return Container(
+      padding: EdgeInsets.all(isSmallScreen
+          ? sizing.statsCardPadding - 4
+          : sizing.statsCardPadding),
+      decoration: BoxDecoration(
+        color: _bpsCardBg,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _bpsBorder, width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: EdgeInsets.all(isSmallScreen ? 8 : 10),
+                decoration: BoxDecoration(
+                  color: _bpsBlue.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.analytics_rounded,
+                  color: _bpsBlue,
+                  size: isSmallScreen ? 16 : 20,
+                ),
+              ),
+              SizedBox(width: sizing.itemSpacing),
+              Expanded(
+                child: Text(
+                  'Perbandingan Komponen Gender',
+                  style: TextStyle(
+                    fontSize: isSmallScreen
+                        ? sizing.groupTitleSize - 2
+                        : sizing.groupTitleSize,
+                    fontWeight: FontWeight.w700,
+                    color: _bpsTextPrimary,
+                  ),
+                ),
+              ),
+              if (!isSmallScreen) ...[
+                Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: sizing.itemSpacing,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: _bpsBlue.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.touch_app_rounded,
+                        color: _bpsBlue,
+                        size: 14,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Tap untuk detail',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: _bpsBlue,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ],
+          ),
+          SizedBox(height: isSmallScreen ? 12 : 16),
+          Column(
+            children: [
+              _buildCompactIndicatorRow(
+                context: context,
+                value: '${data.uhhMaleFormatted} thn',
+                label: 'UHH Laki-laki',
+                color: Colors.indigo,
+                icon: Icons.male,
+                description: 'Umur Harapan Hidup (UHH) laki-laki menunjukkan rata-rata perkiraan banyak tahun yang dapat ditempuh oleh penduduk laki-laki sejak lahir.',
+                isFirst: true,
+                isSmallScreen: isSmallScreen,
+              ),
+              _buildIndicatorDivider(isSmallScreen),
+              _buildCompactIndicatorRow(
+                context: context,
+                value: '${data.uhhFemaleFormatted} thn',
+                label: 'UHH Perempuan',
+                color: Colors.pink,
+                icon: Icons.female,
+                description: 'Umur Harapan Hidup (UHH) perempuan menunjukkan rata-rata perkiraan banyak tahun yang dapat ditempuh oleh penduduk perempuan sejak lahir.',
+                isSmallScreen: isSmallScreen,
+              ),
+              _buildIndicatorDivider(isSmallScreen),
+              _buildCompactIndicatorRow(
+                context: context,
+                value: '${data.hlsMaleFormatted} thn',
+                label: 'HLS Laki-laki',
+                color: Colors.indigo,
+                icon: Icons.male,
+                description: 'Harapan Lama Sekolah (HLS) laki-laki menunjukkan lamanya sekolah (dalam tahun) yang diharapkan akan dirasakan oleh anak laki-laki pada umur tertentu di masa mendatang.',
+                isSmallScreen: isSmallScreen,
+              ),
+              _buildIndicatorDivider(isSmallScreen),
+              _buildCompactIndicatorRow(
+                context: context,
+                value: '${data.hlsFemaleFormatted} thn',
+                label: 'HLS Perempuan',
+                color: Colors.pink,
+                icon: Icons.female,
+                description: 'Harapan Lama Sekolah (HLS) perempuan menunjukkan lamanya sekolah (dalam tahun) yang diharapkan akan dirasakan oleh anak perempuan pada umur tertentu di masa mendatang.',
+                isSmallScreen: isSmallScreen,
+              ),
+              _buildIndicatorDivider(isSmallScreen),
+              _buildCompactIndicatorRow(
+                context: context,
+                value: '${data.rlsMaleFormatted} thn',
+                label: 'RLS Laki-laki',
+                color: Colors.indigo,
+                icon: Icons.male,
+                description: 'Rata-rata Lama Sekolah (RLS) laki-laki menunjukkan jumlah tahun yang digunakan oleh penduduk laki-laki dalam menjalani pendidikan formal.',
+                isSmallScreen: isSmallScreen,
+              ),
+              _buildIndicatorDivider(isSmallScreen),
+              _buildCompactIndicatorRow(
+                context: context,
+                value: '${data.rlsFemaleFormatted} thn',
+                label: 'RLS Perempuan',
+                color: Colors.pink,
+                icon: Icons.female,
+                description: 'Rata-rata Lama Sekolah (RLS) perempuan menunjukkan jumlah tahun yang digunakan oleh penduduk perempuan dalam menjalani pendidikan formal.',
+                isSmallScreen: isSmallScreen,
+              ),
+              _buildIndicatorDivider(isSmallScreen),
+              _buildCompactIndicatorRow(
+                context: context,
+                value: '${data.pppMaleFormatted} rb',
+                label: 'PPP Laki-laki',
+                color: Colors.indigo,
+                icon: Icons.male,
+                description: 'Pengeluaran per Kapita Disesuaikan (PPP) laki-laki menunjukkan daya beli penduduk laki-laki terhadap sejumlah kebutuhan pokok yang dilihat dari rata-rata besarnya pengeluaran per kapita.',
+                isSmallScreen: isSmallScreen,
+              ),
+              _buildIndicatorDivider(isSmallScreen),
+              _buildCompactIndicatorRow(
+                context: context,
+                value: '${data.pppFemaleFormatted} rb',
+                label: 'PPP Perempuan',
+                color: Colors.pink,
+                icon: Icons.female,
+                description: 'Pengeluaran per Kapita Disesuaikan (PPP) perempuan menunjukkan daya beli penduduk perempuan terhadap sejumlah kebutuhan pokok yang dilihat dari rata-rata besarnya pengeluaran per kapita.',
+                isLast: true,
+                isSmallScreen: isSmallScreen,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildIPGChart(ResponsiveSizing sizing, bool isSmallScreen) {
+    List<FlSpot> ipgSpots = [];
+    List<String> yearLabels = [];
+
+    for (int i = 0; i < availableYears.length; i++) {
+      final year = availableYears[i];
+      final yearData = ipgDataByYear[year];
+      if (yearData?.ipg != null) {
+        ipgSpots.add(FlSpot(i.toDouble(), yearData!.ipg!));
+        yearLabels.add(year.toString());
+      }
+    }
+
+    bool hasValidData = ipgSpots.isNotEmpty;
+
+    return Container(
+      padding: EdgeInsets.all(isSmallScreen
+          ? sizing.statsCardPadding - 4
+          : sizing.statsCardPadding),
+      decoration: BoxDecoration(
+        color: _bpsCardBg,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _bpsBorder, width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: EdgeInsets.all(isSmallScreen ? 8 : 10),
+                decoration: BoxDecoration(
+                  color: _bpsPurple.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.show_chart_rounded,
+                  color: _bpsPurple,
+                  size: isSmallScreen ? 16 : 20,
+                ),
+              ),
+              SizedBox(width: sizing.itemSpacing),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Tren IPG (${availableYears.isNotEmpty ? availableYears.first : ""}-${availableYears.isNotEmpty ? availableYears.last : ""})',
+                      style: TextStyle(
+                        fontSize: isSmallScreen
+                            ? sizing.groupTitleSize - 2
+                            : sizing.groupTitleSize,
+                        fontWeight: FontWeight.w700,
+                        color: _bpsTextPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Indeks Pembangunan Gender per tahun',
+                      style: TextStyle(
+                        fontSize: isSmallScreen ? 12 : 13,
+                        color: _bpsTextSecondary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: isSmallScreen ? 12 : 16),
+          if (hasValidData)
+            Wrap(
+              spacing: isSmallScreen ? 8 : 12,
+              runSpacing: isSmallScreen ? 8 : 12,
+              alignment: WrapAlignment.center,
+              children: [
+                _buildLegendItem('IPG', _bpsPurple, isSmallScreen),
+              ],
+            ),
+          SizedBox(height: isSmallScreen ? 12 : 16),
+          RepaintBoundary(
+            child: SizedBox(
+              height: isSmallScreen ? 220 : 240,
+              child: hasValidData
+                  ? LineChart(
+                      LineChartData(
+                        minY: 94,
+                        maxY: 97,
+                        gridData: FlGridData(
+                          show: true,
+                          drawVerticalLine: false,
+                          horizontalInterval: 0.5,
+                          getDrawingHorizontalLine: (value) => FlLine(
+                            color: _bpsBorder,
+                            strokeWidth: 0.5,
+                          ),
+                        ),
+                        titlesData: FlTitlesData(
+                          leftTitles: AxisTitles(
+                            sideTitles: SideTitles(
+                              showTitles: true,
+                              reservedSize: isSmallScreen ? 38 : 45,
+                              interval: 1,
+                              getTitlesWidget: (value, meta) => Text(
+                                value.toStringAsFixed(1),
+                                style: TextStyle(
+                                  fontSize: isSmallScreen ? 10 : 12,
+                                  color: _bpsTextSecondary,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ),
+                          bottomTitles: AxisTitles(
+                            sideTitles: SideTitles(
+                              showTitles: true,
+                              reservedSize: 30,
+                              interval: 1,
+                              getTitlesWidget: (value, meta) {
+                                final index = value.toInt();
+                                if (index >= 0 && index < yearLabels.length) {
+                                  return Padding(
+                                    padding: EdgeInsets.only(top: isSmallScreen ? 6 : 8),
+                                    child: Text(
+                                      yearLabels[index],
+                                      style: TextStyle(
+                                        fontSize: isSmallScreen ? 10 : 12,
+                                        color: _bpsTextPrimary,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  );
+                                }
+                                return const Text('');
+                              },
+                            ),
+                          ),
+                          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                        ),
+                        borderData: FlBorderData(show: false),
+                        lineBarsData: [
+                          LineChartBarData(
+                            spots: ipgSpots,
+                            isCurved: true,
+                            color: _bpsPurple,
+                            barWidth: isSmallScreen ? 2.5 : 3.5,
+                            isStrokeCapRound: true,
+                            dotData: FlDotData(
+                              show: !isSmallScreen,
+                              getDotPainter: (spot, percent, barData, index) {
+                                return FlDotCirclePainter(
+                                  radius: isSmallScreen ? 3 : 5,
+                                  color: _bpsPurple,
+                                  strokeWidth: isSmallScreen ? 1.5 : 2.5,
+                                  strokeColor: _bpsCardBg,
+                                );
+                              },
+                            ),
+                            belowBarData: BarAreaData(
+                              show: true,
+                              gradient: LinearGradient(
+                                colors: [
+                                  _bpsPurple.withOpacity(0.2),
+                                  _bpsPurple.withOpacity(0.02),
+                                ],
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                              ),
+                            ),
+                          ),
+                        ],
+                        lineTouchData: LineTouchData(
+                          enabled: true,
+                          touchTooltipData: LineTouchTooltipData(
+                            getTooltipColor: (spot) => _bpsCardBg,
+                            tooltipRoundedRadius: 8,
+                            tooltipBorder: BorderSide(color: Colors.grey[300]!, width: 1),
+                            tooltipPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            getTooltipItems: (touchedSpots) {
+                              return touchedSpots.map((barSpot) {
+                                final index = barSpot.x.toInt();
+                                if (index >= 0 && index < yearLabels.length) {
+                                  return LineTooltipItem(
+                                    '${yearLabels[index]}\nIPG: ${barSpot.y.toStringAsFixed(2)}',
+                                    TextStyle(
+                                      color: _bpsPurple,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 11,
+                                    ),
+                                  );
+                                }
+                                return null;
+                              }).whereType<LineTooltipItem>().toList();
+                            },
+                          ),
+                        ),
+                      ),
+                    )
+                  : Center(
+                      child: Text(
+                        'Data tidak tersedia',
+                        style: TextStyle(color: _bpsTextSecondary),
+                      ),
+                    ),
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildInfoCard(ResponsiveSizing sizing, bool isSmallScreen) {
+    return Container(
+      padding: EdgeInsets.all(isSmallScreen
+          ? sizing.statsCardPadding - 4
+          : sizing.statsCardPadding),
+      decoration: BoxDecoration(
+        color: _bpsBackground,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _bpsBorder, width: 1.5),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: EdgeInsets.all(isSmallScreen ? 8 : 10),
+                decoration: BoxDecoration(
+                  color: _bpsBlue.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.info_outline_rounded,
+                  color: _bpsBlue,
+                  size: isSmallScreen ? 16 : 20,
+                ),
+              ),
+              SizedBox(width: sizing.itemSpacing),
+              Expanded(
+                child: Text(
+                  'Tentang IPG & IKG',
+                  style: TextStyle(
+                    fontSize: isSmallScreen
+                        ? sizing.groupTitleSize - 2
+                        : sizing.groupTitleSize,
+                    fontWeight: FontWeight.w800,
+                    color: _bpsTextPrimary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: isSmallScreen ? 12 : 16),
+          Text(
+            'Indeks Pembangunan Gender (IPG) dan Indeks Ketimpangan Gender (IKG) merupakan indikator yang digunakan untuk mengukur kesetaraan gender dalam pembangunan manusia.',
+            style: TextStyle(
+              fontSize: sizing.categoryLabelFontSize,
+              color: _bpsTextPrimary,
+              height: 1.5,
+            ),
+          ),
+          SizedBox(height: isSmallScreen ? 12 : 16),
+          Container(
+            padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
+            decoration: BoxDecoration(
+              color: _bpsCardBg,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.balance_rounded,
+                      color: _bpsPurple,
+                      size: isSmallScreen ? 18 : 20,
+                    ),
+                    SizedBox(width: sizing.itemSpacing - 4),
+                    Expanded(
+                      child: Text(
+                        'Indeks Pembangunan Gender (IPG)',
+                        style: TextStyle(
+                          fontSize: isSmallScreen ? 13 : 14,
+                          fontWeight: FontWeight.w700,
+                          color: _bpsPurple,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Mengukur pencapaian dalam dimensi dan variabel yang sama dengan IPM, dengan memperhatikan disparitas antara laki-laki dan perempuan.',
+                  style: TextStyle(
+                    fontSize: isSmallScreen ? 12 : 13,
+                    color: _bpsTextSecondary,
+                    height: 1.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: sizing.itemSpacing),
+          Container(
+            padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
+            decoration: BoxDecoration(
+              color: _bpsCardBg,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.equalizer_rounded,
+                      color: _bpsBlue,
+                      size: isSmallScreen ? 18 : 20,
+                    ),
+                    SizedBox(width: sizing.itemSpacing - 4),
+                    Expanded(
+                      child: Text(
+                        'Indeks Ketimpangan Gender (IKG)',
+                        style: TextStyle(
+                          fontSize: isSmallScreen ? 13 : 14,
+                          fontWeight: FontWeight.w700,
+                          color: _bpsBlue,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Mengukur kerugian akibat ketidaksetaraan gender dari 3 dimensi: kesehatan reproduksi, pemberdayaan, dan pasar tenaga kerja.',
+                  style: TextStyle(
+                    fontSize: isSmallScreen ? 12 : 13,
+                    color: _bpsTextSecondary,
+                    height: 1.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: isSmallScreen ? 12 : 16),
+          _buildBulletPoint(
+            'IPG mendekati 100 menunjukkan semakin kecil kesenjangan pembangunan antara laki-laki dan perempuan.',
+            sizing,
+          ),
+          SizedBox(height: sizing.itemSpacing - 2),
+          _buildBulletPoint(
+            'IKG mendekati 0 menunjukkan semakin rendah ketimpangan gender di suatu wilayah.',
+            sizing,
+          ),
+          SizedBox(height: sizing.itemSpacing - 2),
+          _buildBulletPoint(
+            'Komponen IPG meliputi Umur Harapan Hidup (UHH), Harapan Lama Sekolah (HLS), Rata-rata Lama Sekolah (RLS), dan Pengeluaran per Kapita (PPP).',
+            sizing,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBulletPoint(String text, ResponsiveSizing sizing) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '• ',
+          style: TextStyle(
+            fontSize: sizing.categoryLabelFontSize,
+            color: _bpsBlue,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        Expanded(
+          child: Text(
+            text,
+            style: TextStyle(
+              fontSize: sizing.categoryLabelFontSize,
+              color: _bpsTextPrimary,
+              height: 1.5,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCompactIndicatorRow({
+    required BuildContext context,
+    required String value,
+    required String label,
+    required Color color,
+    required IconData icon,
+    required String description,
+    required bool isSmallScreen,
+    bool isFirst = false,
+    bool isLast = false,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => _showDetailDialog(context, label, value, icon, color, description),
+        splashColor: color.withOpacity(0.1),
+        highlightColor: color.withOpacity(0.05),
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: isSmallScreen ? 12 : 16,
+            vertical: isSmallScreen ? 8 : 10,
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: isSmallScreen ? 10 : 12,
+                height: isSmallScreen ? 10 : 12,
+                decoration: BoxDecoration(
+                  color: color,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              SizedBox(width: isSmallScreen ? 8 : 10),
+              Expanded(
+                flex: 3,
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: isSmallScreen ? 13 : 14,
+                    fontWeight: FontWeight.w600,
+                    color: _bpsTextPrimary,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                flex: 2,
+                child: Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: isSmallScreen ? 15 : 17,
+                    fontWeight: FontWeight.w800,
+                    color: color,
+                    letterSpacing: -0.3,
+                  ),
+                  textAlign: TextAlign.right,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Icon(
+                Icons.chevron_right_rounded,
+                color: color.withOpacity(0.5),
+                size: isSmallScreen ? 18 : 20,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildIndicatorDivider(bool isSmallScreen) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: isSmallScreen ? 12 : 16),
+      child: Divider(
+        height: 1,
+        thickness: 1,
+        color: _bpsBorder.withOpacity(0.5),
+      ),
+    );
+  }
+
+  Widget _buildLegendItem(String label, Color color, bool isSmallScreen) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: isSmallScreen ? 10 : 12,
+        vertical: isSmallScreen ? 6 : 8,
+      ),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: color.withOpacity(0.3),
+          width: 1.5,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: isSmallScreen ? 8 : 10,
+            height: isSmallScreen ? 8 : 10,
+            decoration: BoxDecoration(
+              color: color,
+              shape: BoxShape.circle,
+            ),
+          ),
+          SizedBox(width: isSmallScreen ? 4 : 6),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: isSmallScreen ? 12 : 14,
+              color: color,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDetailDialog(
+    BuildContext context,
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+    String description,
+  ) {
+    final sizing = ResponsiveSizing(context);
+    final isSmallScreen = sizing.isVerySmall || sizing.isSmall;
+
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (dialogContext) {
+        return Dialog(
+          insetPadding: EdgeInsets.all(isSmallScreen ? 12 : 20),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(dialogContext).size.height * 0.7,
+              maxWidth: isSmallScreen
+                  ? MediaQuery.of(dialogContext).size.width - 24
+                  : 500,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
+                  decoration: BoxDecoration(
+                    color: color,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(20),
+                      topRight: Radius.circular(20),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: EdgeInsets.all(isSmallScreen ? 8 : 10),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(
+                          icon,
+                          color: Colors.white,
+                          size: isSmallScreen ? 20 : 24,
+                        ),
+                      ),
+                      SizedBox(width: isSmallScreen ? 8 : 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              title,
+                              style: TextStyle(
+                                fontSize: isSmallScreen ? 16 : 18,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Tahun $selectedYear',
+                              style: TextStyle(
+                                fontSize: isSmallScreen ? 12 : 14,
+                                color: Colors.white70,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Material(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(8),
+                        child: InkWell(
+                          onTap: () => Navigator.pop(dialogContext),
+                          borderRadius: BorderRadius.circular(8),
+                          child: Padding(
+                            padding: const EdgeInsets.all(6),
+                            child: Icon(
+                              Icons.close_rounded,
+                              color: Colors.white,
+                              size: isSmallScreen ? 18 : 20,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Flexible(
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: double.infinity,
+                          padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
+                          decoration: BoxDecoration(
+                            color: color.withOpacity(0.08),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: color.withOpacity(0.2),
+                              width: 2,
+                            ),
+                          ),
+                          child: Column(
+                            children: [
+                              Text(
+                                'Nilai Indikator',
+                                style: TextStyle(
+                                  fontSize: isSmallScreen ? 13 : 14,
+                                  color: _bpsTextSecondary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              SizedBox(height: isSmallScreen ? 8 : 12),
+                              Text(
+                                value,
+                                style: TextStyle(
+                                  fontSize: isSmallScreen ? 28 : 32,
+                                  fontWeight: FontWeight.w800,
+                                  color: color,
+                                  letterSpacing: -1,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(height: isSmallScreen ? 12 : 16),
+                        Container(
+                          padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
+                          decoration: BoxDecoration(
+                            color: _bpsBackground,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(
+                                Icons.lightbulb_outline_rounded,
+                                color: color,
+                                size: isSmallScreen ? 18 : 20,
+                              ),
+                              SizedBox(width: isSmallScreen ? 8 : 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Penjelasan',
+                                      style: TextStyle(
+                                        fontSize: isSmallScreen ? 14 : 16,
+                                        fontWeight: FontWeight.w700,
+                                        color: color,
+                                      ),
+                                    ),
+                                    SizedBox(height: isSmallScreen ? 4 : 6),
+                                    Text(
+                                      description,
+                                      style: TextStyle(
+                                        fontSize: isSmallScreen ? 13 : 14,
+                                        color: _bpsTextSecondary,
+                                        height: 1.5,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

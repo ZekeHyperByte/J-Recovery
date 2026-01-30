@@ -1,6 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'responsive_sizing.dart';
+import 'home_screen.dart';
+
+// BPS Color Palette - Aligned with home_screen.dart
+const Color _bpsBlue = Color(0xFF2E99D6);
+const Color _bpsOrange = Color(0xFFE88D34);
+const Color _bpsGreen = Color(0xFF7DBD42);
+const Color _bpsRed = Color(0xFFEF4444);
+const Color _bpsBackground = Color(0xFFF5F5F5);
+const Color _bpsCardBg = Color(0xFFFFFFFF);
+const Color _bpsTextPrimary = Color(0xFF333333);
+const Color _bpsTextSecondary = Color(0xFF808080);
+const Color _bpsTextLabel = Color(0xFFA0A0A0);
+const Color _bpsBorder = Color(0xFFE0E0E0);
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -9,11 +24,13 @@ class ProfileScreen extends StatefulWidget {
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProviderStateMixin {
+class _ProfileScreenState extends State<ProfileScreen>
+    with SingleTickerProviderStateMixin {
   String appVersion = '1.1.0';
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   int _tapCount = 0;
+  bool _isRefreshing = false;
 
   @override
   void initState() {
@@ -39,270 +56,260 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
   Future<void> _loadAppInfo() async {
     try {
       PackageInfo packageInfo = await PackageInfo.fromPlatform();
-      setState(() {
-        appVersion = '${packageInfo.version} (${packageInfo.buildNumber})';
-      });
+      if (mounted) {
+        setState(() {
+          appVersion = '${packageInfo.version} (${packageInfo.buildNumber})';
+        });
+      }
     } catch (e) {
       // Keep default version if package info fails
     }
   }
 
-  void _handleLogoTap() {
-    setState(() {
-      _tapCount++;
-    });
+  Future<void> _handleRefresh() async {
+    setState(() => _isRefreshing = true);
+    HapticFeedback.mediumImpact();
+    await _loadAppInfo();
+    await Future.delayed(const Duration(milliseconds: 800));
+    if (mounted) {
+      setState(() => _isRefreshing = false);
+    }
+  }
 
-    // Reset counter setelah 3 detik
+  void _handleLogoTap() {
+    setState(() => _tapCount++);
+
+    // Reset counter after 3 seconds
     Future.delayed(const Duration(seconds: 3), () {
       if (mounted) {
-        setState(() {
-          _tapCount = 0;
-        });
+        setState(() => _tapCount = 0);
       }
     });
 
-    // Jika tap 7 kali dalam 3 detik, buka admin login
+    // If tap 7 times within 3 seconds, open admin login
     if (_tapCount >= 7) {
       _tapCount = 0;
       Navigator.pushNamed(context, '/login');
     }
   }
 
+  void _navigateToHome() {
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => const HomeScreen()),
+      (route) => false,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isTablet = screenWidth > 600;
-    final horizontalPadding = isTablet ? 40.0 : 24.0;
+    final sizing = ResponsiveSizing(context);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(),
-        slivers: [
-          _buildModernAppBar(isTablet),
-          SliverPadding(
-            padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-            sliver: SliverToBoxAdapter(
-              child: FadeTransition(
-                opacity: _fadeAnimation,
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 800),
-                    child: Column(
-                      children: [
-                        const SizedBox(height: 32),
-                        _buildInfoCards(isTablet),
-                        const SizedBox(height: 24),
-                        _buildContactCards(isTablet),
-                        const SizedBox(height: 32),
-                        _buildFooter(),
-                        const SizedBox(height: 32),
-                      ],
+      backgroundColor: _bpsBackground,
+      body: RefreshIndicator(
+        onRefresh: _handleRefresh,
+        color: _bpsBlue,
+        backgroundColor: _bpsCardBg,
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(
+            parent: BouncingScrollPhysics(),
+          ),
+          slivers: [
+            _buildAppBar(sizing),
+            SliverPadding(
+              padding: EdgeInsets.symmetric(horizontal: sizing.horizontalPadding),
+              sliver: SliverToBoxAdapter(
+                child: FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 800),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(height: sizing.sectionSpacing - 8),
+                          _buildSectionHeader(
+                            sizing: sizing,
+                            icon: Icons.apps_rounded,
+                            title: 'Menu',
+                          ),
+                          SizedBox(height: sizing.itemSpacing),
+                          _buildInfoCards(sizing),
+                          SizedBox(height: sizing.sectionSpacing),
+                          _buildSectionHeader(
+                            sizing: sizing,
+                            icon: Icons.contact_mail_rounded,
+                            title: 'Kontak Kami',
+                          ),
+                          SizedBox(height: sizing.itemSpacing),
+                          _buildContactCards(sizing),
+                          SizedBox(height: sizing.sectionSpacing + 8),
+                          _buildFooter(sizing),
+                          SizedBox(height: sizing.sectionSpacing),
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
+      bottomNavigationBar: _buildBottomNav(sizing),
     );
   }
 
-  Widget _buildModernAppBar(bool isTablet) {
+  Widget _buildAppBar(ResponsiveSizing sizing) {
     return SliverAppBar(
-      expandedHeight: isTablet ? 300.0 : 260.0,
+      expandedHeight: sizing.isVerySmall ? 200.0 : 240.0,
       pinned: true,
       stretch: true,
-      backgroundColor: Colors.white,
+      backgroundColor: _bpsBlue,
       elevation: 0,
       flexibleSpace: FlexibleSpaceBar(
         background: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Color(0xFF1976D2),
-                Color(0xFF1565C0),
-                Color(0xFF0D47A1),
-              ],
-            ),
-          ),
-          child: Stack(
-            children: [
-              // Animated circles background
-              Positioned(
-                top: -50,
-                right: -50,
-                child: Container(
-                  width: 200,
-                  height: 200,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white.withOpacity(0.05),
-                  ),
-                ),
-              ),
-              Positioned(
-                bottom: -80,
-                left: -80,
-                child: Container(
-                  width: 250,
-                  height: 250,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white.withOpacity(0.05),
-                  ),
-                ),
-              ),
-              // Decorative elements
-              Positioned(
-                top: 100,
-                left: -30,
-                child: Container(
-                  width: 100,
-                  height: 100,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white.withOpacity(0.03),
-                  ),
-                ),
-              ),
-              Positioned(
-                bottom: 50,
-                right: 30,
-                child: Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white.withOpacity(0.04),
-                  ),
-                ),
-              ),
-              // Content
-              SafeArea(
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const SizedBox(height: 40),
-                      // Logo simetris dengan shadow dan glassmorphism
-                      // Tap 7 kali untuk membuka admin login (tersembunyi)
-                      GestureDetector(
-                        onTap: _handleLogoTap,
-                        child: Container(
-                          width: isTablet ? 120 : 100,
-                          height: isTablet ? 120 : 100,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.2),
-                                blurRadius: 25,
-                                offset: const Offset(0, 10),
-                              ),
-                              BoxShadow(
-                                color: const Color(0xFF1976D2).withOpacity(0.3),
-                                blurRadius: 40,
-                                offset: const Offset(0, 15),
-                              ),
-                            ],
-                          ),
-                          padding: const EdgeInsets.all(16),
-                          child: Center(
-                            child: Image.asset(
-                              'assets/images/logo.png',
-                              width: isTablet ? 88 : 68,
-                              height: isTablet ? 88 : 68,
-                              fit: BoxFit.contain,
-                              errorBuilder: (context, error, stackTrace) {
-                                // Debug: Print error
-                                print('Error loading logo: $error');
-                                // Fallback - coba load dari network dulu
-                                return Image.network(
-                                  'https://semarangkota.bps.go.id/images/logo-bps.png',
-                                  width: isTablet ? 76 : 56,
-                                  height: isTablet ? 76 : 56,
-                                  fit: BoxFit.contain,
-                                  errorBuilder: (_, __, ___) {
-                                    return const Icon(
-                                      Icons.account_balance_rounded,
-                                      size: 45,
-                                      color: Color(0xFF1976D2),
-                                    );
-                                  },
-                                );
-                              },
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      Text(
-                        'BPS KOTA SEMARANG',
-                        style: TextStyle(
-                          fontSize: isTablet ? 24 : 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                          letterSpacing: 1.5,
-                          shadows: [
-                            Shadow(
-                              color: Colors.black.withOpacity(0.2),
-                              offset: const Offset(0, 2),
-                              blurRadius: 4,
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: Colors.white.withOpacity(0.3),
-                            width: 1,
-                          ),
-                        ),
-                        child: Text(
-                          'Badan Pusat Statistik',
-                          style: TextStyle(
-                            fontSize: isTablet ? 15 : 14,
-                            color: Colors.white.withOpacity(0.95),
-                            fontWeight: FontWeight.w500,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+          decoration: BoxDecoration(
+            color: _bpsBlue,
+            boxShadow: [
+              BoxShadow(
+                color: _bpsBlue.withOpacity(0.2),
+                blurRadius: 30,
+                offset: const Offset(0, 10),
               ),
             ],
+          ),
+          child: SafeArea(
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(height: sizing.isVerySmall ? 16 : 24),
+                  // Logo with hidden admin access (tap 7 times)
+                  GestureDetector(
+                    onTap: _handleLogoTap,
+                    child: Container(
+                      width: sizing.isVerySmall ? 80 : 100,
+                      height: sizing.isVerySmall ? 80 : 100,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.15),
+                            blurRadius: 20,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
+                      ),
+                      padding: EdgeInsets.all(sizing.isVerySmall ? 14 : 16),
+                      child: Center(
+                        child: Image.asset(
+                          'assets/images/jelly.jpg',
+                          width: sizing.isVerySmall ? 60 : 72,
+                          height: sizing.isVerySmall ? 60 : 72,
+                          fit: BoxFit.contain,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Image.network(
+                              'https://semarangkota.bps.go.id/images/logo-bps.png',
+                              width: sizing.isVerySmall ? 52 : 64,
+                              height: sizing.isVerySmall ? 52 : 64,
+                              fit: BoxFit.contain,
+                              errorBuilder: (_, __, ___) {
+                                return Icon(
+                                  Icons.account_balance_rounded,
+                                  size: sizing.isVerySmall ? 40 : 48,
+                                  color: _bpsBlue,
+                                );
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: sizing.isVerySmall ? 16 : 20),
+                  Text(
+                    'BPS KOTA SEMARANG',
+                    style: TextStyle(
+                      fontSize: sizing.isVerySmall ? 16 : 20,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                      letterSpacing: 1.0,
+                    ),
+                  ),
+                  SizedBox(height: sizing.isVerySmall ? 4 : 8),
+                  Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: sizing.isVerySmall ? 12 : 16,
+                      vertical: sizing.isVerySmall ? 4 : 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.2),
+                        width: 1,
+                      ),
+                    ),
+                    child: Text(
+                      'Badan Pusat Statistik',
+                      style: TextStyle(
+                        fontSize: sizing.isVerySmall ? 12 : 14,
+                        color: Colors.white.withOpacity(0.95),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildInfoCards(bool isTablet) {
+  Widget _buildSectionHeader({
+    required ResponsiveSizing sizing,
+    required IconData icon,
+    required String title,
+  }) {
+    return Row(
+      children: [
+        Icon(
+          icon,
+          color: _bpsBlue,
+          size: sizing.sectionIconSize,
+        ),
+        SizedBox(width: sizing.itemSpacing - 2),
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: sizing.sectionTitleSize,
+            fontWeight: FontWeight.w700,
+            color: _bpsTextPrimary,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildInfoCards(ResponsiveSizing sizing) {
     final cards = [
       {
         'icon': Icons.help_outline_rounded,
         'title': 'Bantuan',
         'subtitle': 'Panduan aplikasi',
-        'color': const Color(0xFF2196F3),
+        'color': _bpsBlue,
         'onTap': _showHelpDialog,
       },
       {
         'icon': Icons.info_outline_rounded,
         'title': 'Tentang',
         'subtitle': 'Versi aplikasi',
-        'color': const Color(0xFF4CAF50),
+        'color': _bpsGreen,
         'onTap': _showAboutDialog,
       },
     ];
@@ -311,8 +318,9 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
       children: cards.map((card) {
         return Expanded(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 6),
-            child: _buildSimpleCard(
+            padding: EdgeInsets.symmetric(horizontal: sizing.gridSpacing / 2),
+            child: _buildActionCard(
+              sizing: sizing,
               icon: card['icon'] as IconData,
               title: card['title'] as String,
               subtitle: card['subtitle'] as String,
@@ -325,7 +333,8 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
     );
   }
 
-  Widget _buildSimpleCard({
+  Widget _buildActionCard({
+    required ResponsiveSizing sizing,
     required IconData icon,
     required String title,
     required String subtitle,
@@ -333,58 +342,65 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
     required VoidCallback onTap,
   }) {
     return Material(
-      color: Colors.transparent,
+      color: _bpsCardBg,
+      borderRadius: BorderRadius.circular(16),
       child: InkWell(
-        onTap: onTap,
+        onTap: () {
+          HapticFeedback.lightImpact();
+          onTap();
+        },
         borderRadius: BorderRadius.circular(16),
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+          padding: EdgeInsets.all(sizing.categoryCardPadding),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: _bpsCardBg,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: Colors.grey.withOpacity(0.1),
-              width: 1,
+              color: _bpsBorder,
+              width: 1.5,
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.grey.withOpacity(0.08),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
+                color: Colors.black.withOpacity(0.04),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
               ),
             ],
           ),
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                padding: const EdgeInsets.all(14),
+                padding: EdgeInsets.all(sizing.categoryIconContainerPadding + 2),
                 decoration: BoxDecoration(
                   color: color.withOpacity(0.1),
-                  shape: BoxShape.circle,
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
                   icon,
                   color: color,
-                  size: 28,
+                  size: sizing.categoryIconSize + 4,
                 ),
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: sizing.itemSpacing),
               Text(
                 title,
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1E3A5F),
+                style: TextStyle(
+                  fontSize: sizing.categoryLabelFontSize,
+                  fontWeight: FontWeight.w700,
+                  color: _bpsTextPrimary,
                 ),
               ),
-              const SizedBox(height: 4),
+              SizedBox(height: sizing.itemSpacing - 6),
               Text(
                 subtitle,
                 style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey[600],
+                  fontSize: sizing.categorySubLabelFontSize,
+                  color: _bpsTextLabel,
                 ),
                 textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
@@ -393,39 +409,40 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
     );
   }
 
-  Widget _buildContactCards(bool isTablet) {
+  Widget _buildContactCards(ResponsiveSizing sizing) {
     final contacts = [
       {
         'icon': Icons.language_rounded,
         'title': 'Website',
         'value': 'semarangkota.bps.go.id',
-        'color': const Color(0xFF2196F3),
+        'color': _bpsBlue,
       },
       {
         'icon': Icons.email_rounded,
         'title': 'Email',
         'value': 'bps3374@bps.go.id',
-        'color': const Color(0xFFFF5722),
+        'color': _bpsOrange,
       },
       {
         'icon': Icons.phone_rounded,
         'title': 'Telepon',
         'value': '(024) 3546713',
-        'color': const Color(0xFF009688),
+        'color': _bpsGreen,
       },
       {
         'icon': Icons.location_on_rounded,
         'title': 'Alamat',
-        'value': 'Jalan Inspeksi Kali Semarang No.1, Sekayu',
-        'color': const Color(0xFFE91E63),
+        'value': 'Jl. Inspeksi Kali Semarang No.1, Sekayu',
+        'color': _bpsRed,
       },
     ];
 
     return Column(
       children: contacts.map((contact) {
         return Padding(
-          padding: const EdgeInsets.only(bottom: 12),
+          padding: EdgeInsets.only(bottom: sizing.gridSpacing),
           child: _buildContactCard(
+            sizing: sizing,
             icon: contact['icon'] as IconData,
             title: contact['title'] as String,
             value: contact['value'] as String,
@@ -437,59 +454,33 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
   }
 
   Widget _buildContactCard({
+    required ResponsiveSizing sizing,
     required IconData icon,
     required String title,
     required String value,
     required Color color,
   }) {
     return Material(
-      color: Colors.transparent,
+      color: _bpsCardBg,
+      borderRadius: BorderRadius.circular(12),
       child: InkWell(
         onTap: () async {
-          try {
-            if (title == 'Website') {
-              // Buka website
-              final url = Uri.parse('https://$value');
-              await launchUrl(url, mode: LaunchMode.externalApplication);
-            } else if (title == 'Email') {
-              // Buka email
-              final emailUrl = Uri.parse('mailto:$value');
-              await launchUrl(emailUrl, mode: LaunchMode.externalApplication);
-            } else if (title == 'Telepon') {
-              // Buka telepon
-              final telUrl = Uri.parse('tel:${value.replaceAll(RegExp(r'[^\d+]'), '')}');
-              await launchUrl(telUrl);
-            } else if (title == 'Alamat') {
-              // Buka Google Maps dengan query alamat
-              final address = Uri.encodeComponent('Jalan Inspeksi Kali Semarang No.1, Sekayu, Kec. Semarang Tengah, Kota Semarang, Jawa Tengah 50132');
-              final mapsUrl = Uri.parse('https://www.google.com/maps/search/?api=1&query=$address');
-              await launchUrl(mapsUrl, mode: LaunchMode.externalApplication);
-            }
-          } catch (e) {
-            if (context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Tidak dapat membuka $title'),
-                  backgroundColor: Colors.red,
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
-            }
-          }
+          HapticFeedback.lightImpact();
+          await _handleContactTap(title, value);
         },
         borderRadius: BorderRadius.circular(12),
         child: Container(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(sizing.categoryCardPadding),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: _bpsCardBg,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: Colors.grey.withOpacity(0.1),
+              color: _bpsBorder,
               width: 1,
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.grey.withOpacity(0.05),
+                color: Colors.black.withOpacity(0.04),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
@@ -498,14 +489,18 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
           child: Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(10),
+                padding: EdgeInsets.all(sizing.categoryIconContainerPadding - 2),
                 decoration: BoxDecoration(
                   color: color.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(icon, color: color, size: 22),
+                child: Icon(
+                  icon,
+                  color: color,
+                  size: sizing.categoryIconSize,
+                ),
               ),
-              const SizedBox(width: 14),
+              SizedBox(width: sizing.itemSpacing + 2),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -513,22 +508,29 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                     Text(
                       title,
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: sizing.categorySubLabelFontSize,
                         fontWeight: FontWeight.w500,
-                        color: Colors.grey[600],
+                        color: _bpsTextSecondary,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    SizedBox(height: sizing.itemSpacing - 6),
                     Text(
                       value,
-                      style: const TextStyle(
-                        fontSize: 14,
+                      style: TextStyle(
+                        fontSize: sizing.categoryLabelFontSize - 1,
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFF1E3A5F),
+                        color: _bpsTextPrimary,
                       ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
+              ),
+              Icon(
+                Icons.arrow_forward_ios_rounded,
+                color: _bpsTextLabel,
+                size: sizing.categoryArrowSize,
               ),
             ],
           ),
@@ -537,29 +539,165 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
     );
   }
 
-  Widget _buildFooter() {
+  Future<void> _handleContactTap(String title, String value) async {
+    try {
+      if (title == 'Website') {
+        final url = Uri.parse('https://$value');
+        await launchUrl(url, mode: LaunchMode.externalApplication);
+      } else if (title == 'Email') {
+        final emailUrl = Uri.parse('mailto:$value');
+        await launchUrl(emailUrl, mode: LaunchMode.externalApplication);
+      } else if (title == 'Telepon') {
+        final telUrl = Uri.parse('tel:${value.replaceAll(RegExp(r'[^\d+]'), '')}');
+        await launchUrl(telUrl);
+      } else if (title == 'Alamat') {
+        final address = Uri.encodeComponent(
+            'Jalan Inspeksi Kali Semarang No.1, Sekayu, Kec. Semarang Tengah, Kota Semarang, Jawa Tengah 50132');
+        final mapsUrl = Uri.parse(
+            'https://www.google.com/maps/search/?api=1&query=$address');
+        await launchUrl(mapsUrl, mode: LaunchMode.externalApplication);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Tidak dapat membuka $title'),
+            backgroundColor: _bpsRed,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+      }
+    }
+  }
+
+  Widget _buildFooter(ResponsiveSizing sizing) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(sizing.categoryCardPadding),
+      decoration: BoxDecoration(
+        color: _bpsCardBg,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: _bpsBorder,
+          width: 1,
+        ),
+      ),
       child: Column(
         children: [
+          if (_isRefreshing)
+            Padding(
+              padding: EdgeInsets.only(bottom: sizing.itemSpacing),
+              child: SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(_bpsBlue),
+                ),
+              ),
+            ),
           Text(
             'Versi $appVersion',
             style: TextStyle(
-              fontSize: 13,
-              color: Colors.grey[600],
+              fontSize: sizing.categorySubLabelFontSize,
+              color: _bpsTextSecondary,
               fontWeight: FontWeight.w500,
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: sizing.itemSpacing - 4),
           Text(
             '© Badan Pusat Statistik Kota Semarang',
             style: TextStyle(
-              fontSize: 11,
-              color: Colors.grey[500],
+              fontSize: sizing.categorySubLabelFontSize - 1,
+              color: _bpsTextLabel,
             ),
             textAlign: TextAlign.center,
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildBottomNav(ResponsiveSizing sizing) {
+    return Container(
+      decoration: BoxDecoration(
+        color: _bpsCardBg,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 20,
+            offset: const Offset(0, -4),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: Container(
+          height: sizing.bottomNavHeight,
+          padding: EdgeInsets.symmetric(
+            horizontal: sizing.bottomNavPadding,
+            vertical: 8,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildNavItem(
+                icon: Icons.home_rounded,
+                label: 'Home',
+                isSelected: false,
+                sizing: sizing,
+                onTap: _navigateToHome,
+              ),
+              _buildNavItem(
+                icon: Icons.person_rounded,
+                label: 'Profile',
+                isSelected: true,
+                sizing: sizing,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNavItem({
+    required IconData icon,
+    required String label,
+    required bool isSelected,
+    required ResponsiveSizing sizing,
+    VoidCallback? onTap,
+  }) {
+    return Expanded(
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          highlightColor: _bpsBlue.withOpacity(0.1),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                color: isSelected ? _bpsBlue : _bpsTextLabel,
+                size: sizing.bottomNavIconSize,
+              ),
+              SizedBox(height: 4),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: sizing.bottomNavLabelSize,
+                  color: isSelected ? _bpsBlue : _bpsTextLabel,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -577,36 +715,36 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF4CAF50).withOpacity(0.1),
+                  color: _bpsGreen.withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.info_rounded,
                   size: 40,
-                  color: Color(0xFF4CAF50),
+                  color: _bpsGreen,
                 ),
               ),
               const SizedBox(height: 20),
-              const Text(
+              Text(
                 'Tentang Aplikasi',
                 style: TextStyle(
                   fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1E3A5F),
+                  fontWeight: FontWeight.w700,
+                  color: _bpsTextPrimary,
                 ),
               ),
               const SizedBox(height: 12),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF4CAF50).withOpacity(0.1),
+                  color: _bpsGreen.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
                   'Versi $appVersion',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
-                    color: Color(0xFF4CAF50),
+                    color: _bpsGreen,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -617,7 +755,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 14,
-                  color: Colors.grey[700],
+                  color: _bpsTextSecondary,
                   height: 1.5,
                 ),
               ),
@@ -627,7 +765,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                 child: ElevatedButton(
                   onPressed: () => Navigator.pop(context),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF4CAF50),
+                    backgroundColor: _bpsGreen,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
@@ -664,22 +802,22 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF2196F3).withOpacity(0.1),
+                  color: _bpsBlue.withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.help_center_rounded,
                   size: 40,
-                  color: Color(0xFF2196F3),
+                  color: _bpsBlue,
                 ),
               ),
               const SizedBox(height: 20),
-              const Text(
+              Text(
                 'Panduan Aplikasi',
                 style: TextStyle(
                   fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1E3A5F),
+                  fontWeight: FontWeight.w700,
+                  color: _bpsTextPrimary,
                 ),
               ),
               const SizedBox(height: 20),
@@ -690,7 +828,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                 child: ElevatedButton(
                   onPressed: () => Navigator.pop(context),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2196F3),
+                    backgroundColor: _bpsBlue,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
@@ -732,7 +870,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
               width: 28,
               height: 28,
               decoration: BoxDecoration(
-                color: const Color(0xFF2196F3),
+                color: _bpsBlue,
                 shape: BoxShape.circle,
               ),
               child: Center(
@@ -740,7 +878,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                   '${entry.key + 1}',
                   style: const TextStyle(
                     color: Colors.white,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w700,
                     fontSize: 14,
                   ),
                 ),
@@ -754,7 +892,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                   entry.value,
                   style: TextStyle(
                     fontSize: 14,
-                    color: Colors.grey[700],
+                    color: _bpsTextSecondary,
                     height: 1.4,
                   ),
                 ),

@@ -218,8 +218,6 @@ class _TenagaKerjaScreenState extends State<TenagaKerjaScreen> {
                   padding: EdgeInsets.all(sizing.horizontalPadding),
                   sliver: SliverList(
                     delegate: SliverChildListDelegate([
-                      _buildHeroSummaryCard(sizing, isSmallScreen),
-                      SizedBox(height: sizing.sectionSpacing),
                       _buildYearSelector(sizing, isSmallScreen),
                       SizedBox(height: sizing.sectionSpacing),
                       _buildMainIndicators(sizing, isSmallScreen),
@@ -322,86 +320,6 @@ class _TenagaKerjaScreenState extends State<TenagaKerjaScreen> {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildHeroSummaryCard(ResponsiveSizing sizing, bool isSmallScreen) {
-    final data = yearData[selectedYear];
-    if (data == null) return const SizedBox.shrink();
-
-    final tpt = data['tpt'] ?? 0.0;
-
-    return Container(
-      padding: EdgeInsets.all(isSmallScreen ? 20 : 24),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            _bpsBlue,
-            _bpsBlue.withOpacity(0.85),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: _bpsBlue.withOpacity(0.3),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: EdgeInsets.all(isSmallScreen ? 10 : 12),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  Icons.analytics_rounded,
-                  color: Colors.white,
-                  size: isSmallScreen ? 24 : 28,
-                ),
-              ),
-              SizedBox(width: sizing.itemSpacing),
-              Expanded(
-                child: Text(
-                  'Ringkasan Tenaga Kerja',
-                  style: TextStyle(
-                    fontSize: isSmallScreen ? 16 : 18,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: isSmallScreen ? 16 : 20),
-          Text(
-            'Tingkat Pengangguran Terbuka',
-            style: TextStyle(
-              fontSize: isSmallScreen ? 14 : 16,
-              color: Colors.white.withOpacity(0.9),
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          SizedBox(height: isSmallScreen ? 8 : 12),
-          Text(
-            '${tpt.toStringAsFixed(2)}%',
-            style: TextStyle(
-              fontSize: isSmallScreen ? 48 : 56,
-              fontWeight: FontWeight.w900,
-              color: Colors.white,
-              height: 1,
-              letterSpacing: -2,
-            ),
-          ),
-        ],
       ),
     );
   }

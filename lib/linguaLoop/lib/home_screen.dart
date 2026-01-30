@@ -176,7 +176,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       duration: const Duration(milliseconds: 800), // Reduced duration
     )..forward();
     
-    _statsPageController = PageController(viewportFraction: 0.9);
+    _statsPageController = PageController();
     
     // Use a more efficient listener
     _statsPageController.addListener(_handlePageChange);
@@ -184,13 +184,9 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
   void _handlePageChange() {
     final page = _statsPageController.page?.round() ?? 0;
-    if (_currentStatsPage != page) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          setState(() {
-            _currentStatsPage = page;
-          });
-        }
+    if (_currentStatsPage != page && mounted) {
+      setState(() {
+        _currentStatsPage = page;
       });
     }
   }
@@ -599,14 +595,17 @@ class _HomeScreenContent extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(4, (index) {
-                return Container(
+                final isActive = currentStatsPage == index;
+                return AnimatedContainer(
+                  duration: const Duration(milliseconds: 250),
+                  curve: Curves.easeInOut,
                   margin: const EdgeInsets.symmetric(horizontal: 4),
-                  width: currentStatsPage == index
+                  width: isActive
                       ? sizing.pageIndicatorActiveWidth
                       : sizing.pageIndicatorHeight,
                   height: sizing.pageIndicatorHeight,
                   decoration: BoxDecoration(
-                    color: currentStatsPage == index
+                    color: isActive
                         ? _bpsBlue
                         : _bpsBorder,
                     borderRadius: BorderRadius.circular(4),
@@ -911,7 +910,7 @@ class _StatsCard extends StatelessWidget {
     final sizing = ResponsiveSizing(context);
     
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: sizing.itemSpacing),
+      padding: EdgeInsets.symmetric(horizontal: sizing.horizontalPadding),
       child: Material(
         color: _bpsCardBg,
         borderRadius: BorderRadius.circular(20),
