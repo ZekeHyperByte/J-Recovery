@@ -87,12 +87,15 @@ class KemiskinanScreen extends StatefulWidget {
   State<KemiskinanScreen> createState() => _KemiskinanScreenState();
 }
 
-class _KemiskinanScreenState extends State<KemiskinanScreen> {
+class _KemiskinanScreenState extends State<KemiskinanScreen> with AutomaticKeepAliveClientMixin {
   int selectedYear = 2024;
   Map<int, PovertyData> yearlyData = {};
   bool isLoading = true;
   String? errorMessage;
   List<int> _cachedSortedYears = [];
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -1289,7 +1292,7 @@ class _PovertyTrendChart extends StatelessWidget {
                       barWidth: isSmallScreen ? 2.5 : 3.5,
                       isStrokeCapRound: true,
                       dotData: FlDotData(
-                        show: !isSmallScreen,
+                        show: true,
                         getDotPainter: (spot, percent, barData, index) {
                           return FlDotCirclePainter(
                             radius: isSmallScreen ? 3 : 5,

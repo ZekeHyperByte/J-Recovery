@@ -43,6 +43,17 @@ class CategoryItem {
     required this.group,
   });
 
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CategoryItem &&
+          runtimeType == other.runtimeType &&
+          label == other.label &&
+          group == other.group;
+
+  @override
+  int get hashCode => label.hashCode ^ group.hashCode;
+
   CategoryItem copyWith({
     String? label,
     String? shortLabel,
@@ -173,10 +184,13 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     super.initState();
     _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 800), // Reduced duration
+      duration: const Duration(milliseconds: 600), // Optimized duration for 60fps
     )..forward();
     
-    _statsPageController = PageController();
+    _statsPageController = PageController(
+      viewportFraction: 1.0,
+      keepPage: true,
+    );
     
     // Use a more efficient listener
     _statsPageController.addListener(_handlePageChange);
@@ -579,39 +593,43 @@ class _HomeScreenContent extends StatelessWidget {
             ),
             SizedBox(
               height: sizing.statsCardHeight,
-              child: PageView(
-                controller: statsPageController,
-                padEnds: false,
-                children: const [
-                  _StatsCard1(),
-                  _StatsCard2(),
-                  _StatsCard3(),
-                  _StatsCard4(),
-                ],
+              child: RepaintBoundary(
+                child: PageView(
+                  controller: statsPageController,
+                  padEnds: false,
+                  children: const [
+                    _StatsCard1(),
+                    _StatsCard2(),
+                    _StatsCard3(),
+                    _StatsCard4(),
+                  ],
+                ),
               ),
             ),
             SizedBox(height: sizing.itemSpacing),
-            // Page indicators
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(4, (index) {
-                final isActive = currentStatsPage == index;
-                return AnimatedContainer(
-                  duration: const Duration(milliseconds: 250),
-                  curve: Curves.easeInOut,
-                  margin: const EdgeInsets.symmetric(horizontal: 4),
-                  width: isActive
-                      ? sizing.pageIndicatorActiveWidth
-                      : sizing.pageIndicatorHeight,
-                  height: sizing.pageIndicatorHeight,
-                  decoration: BoxDecoration(
-                    color: isActive
-                        ? _bpsBlue
-                        : _bpsBorder,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                );
-              }),
+            // Page indicators - wrapped in RepaintBoundary for performance
+            RepaintBoundary(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(4, (index) {
+                  final isActive = currentStatsPage == index;
+                  return AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    curve: Curves.easeInOut,
+                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                    width: isActive
+                        ? sizing.pageIndicatorActiveWidth
+                        : sizing.pageIndicatorHeight,
+                    height: sizing.pageIndicatorHeight,
+                    decoration: BoxDecoration(
+                      color: isActive
+                          ? _bpsBlue
+                          : _bpsBorder,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  );
+                }),
+              ),
             ),
           ],
         ),

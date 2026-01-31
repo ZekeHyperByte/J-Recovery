@@ -70,9 +70,7 @@ flutter:
     - assets/images/statistik.png
     - assets/images/logo.png
     - assets/images/logo_white.png
-    - assets/icons/Sad man walking in rain.mp4
     - assets/animations/ringan.mp4
-    - assets/maps/wired-outline-18-location-pin-hover-jump.mp4
   
   # Konfigurasi Font
   fonts:

@@ -86,11 +86,14 @@ class IPGScreen extends StatefulWidget {
   State<IPGScreen> createState() => _IPGScreenState();
 }
 
-class _IPGScreenState extends State<IPGScreen> {
+class _IPGScreenState extends State<IPGScreen> with AutomaticKeepAliveClientMixin {
   Map<int, IPGData> ipgDataByYear = {};
   List<int> availableYears = [];
   int selectedYear = 2024;
   bool isLoading = true;
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -244,6 +247,8 @@ class _IPGScreenState extends State<IPGScreen> {
                                 _buildGenderComparison(sizing, isSmallScreen),
                                 SizedBox(height: sizing.sectionSpacing),
                                 _buildIPGChart(sizing, isSmallScreen),
+                                SizedBox(height: sizing.sectionSpacing),
+                                _buildIKGChart(sizing, isSmallScreen),
                                 SizedBox(height: sizing.sectionSpacing),
                                 _buildInfoCard(sizing, isSmallScreen),
                                 SizedBox(height: sizing.sectionSpacing),
@@ -908,7 +913,7 @@ class _IPGScreenState extends State<IPGScreen> {
                             barWidth: isSmallScreen ? 2.5 : 3.5,
                             isStrokeCapRound: true,
                             dotData: FlDotData(
-                              show: !isSmallScreen,
+                              show: true,
                               getDotPainter: (spot, percent, barData, index) {
                                 return FlDotCirclePainter(
                                   radius: isSmallScreen ? 3 : 5,
@@ -953,6 +958,213 @@ class _IPGScreenState extends State<IPGScreen> {
                                 }
                                 return null;
                               }).whereType<LineTooltipItem>().toList();
+                            },
+                          ),
+                        ),
+                      ),
+                    )
+                  : Center(
+                      child: Text(
+                        'Data tidak tersedia',
+                        style: TextStyle(color: _bpsTextSecondary),
+                      ),
+                    ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildIKGChart(ResponsiveSizing sizing, bool isSmallScreen) {
+    List<BarChartGroupData> barGroups = [];
+    List<String> yearLabels = [];
+
+    for (int i = 0; i < availableYears.length; i++) {
+      final year = availableYears[i];
+      final yearData = ipgDataByYear[year];
+      if (yearData?.ikg != null) {
+        barGroups.add(
+          BarChartGroupData(
+            x: i,
+            barRods: [
+              BarChartRodData(
+                toY: yearData!.ikg!,
+                color: _bpsBlue,
+                width: isSmallScreen ? 28 : 36,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(6),
+                  topRight: Radius.circular(6),
+                ),
+                backDrawRodData: BackgroundBarChartRodData(
+                  show: true,
+                  toY: 0.06,
+                  color: _bpsBlue.withOpacity(0.06),
+                ),
+              ),
+            ],
+          ),
+        );
+        yearLabels.add(year.toString());
+      }
+    }
+
+    bool hasValidData = barGroups.isNotEmpty;
+
+    return Container(
+      padding: EdgeInsets.all(isSmallScreen
+          ? sizing.statsCardPadding - 4
+          : sizing.statsCardPadding),
+      decoration: BoxDecoration(
+        color: _bpsCardBg,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _bpsBorder, width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: EdgeInsets.all(isSmallScreen ? 8 : 10),
+                decoration: BoxDecoration(
+                  color: _bpsBlue.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.bar_chart_rounded,
+                  color: _bpsBlue,
+                  size: isSmallScreen ? 16 : 20,
+                ),
+              ),
+              SizedBox(width: sizing.itemSpacing),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Tren IKG (${availableYears.isNotEmpty ? availableYears.first : ""}-${availableYears.isNotEmpty ? availableYears.last : ""})',
+                      style: TextStyle(
+                        fontSize: isSmallScreen
+                            ? sizing.groupTitleSize - 2
+                            : sizing.groupTitleSize,
+                        fontWeight: FontWeight.w700,
+                        color: _bpsTextPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Indeks Ketimpangan Gender — nilai lebih rendah = lebih baik',
+                      style: TextStyle(
+                        fontSize: isSmallScreen ? 12 : 13,
+                        color: _bpsBlue,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: isSmallScreen ? 12 : 16),
+          if (hasValidData)
+            Wrap(
+              spacing: isSmallScreen ? 8 : 12,
+              runSpacing: isSmallScreen ? 8 : 12,
+              alignment: WrapAlignment.center,
+              children: [
+                _buildLegendItem('IKG', _bpsBlue, isSmallScreen),
+              ],
+            ),
+          SizedBox(height: isSmallScreen ? 12 : 16),
+          RepaintBoundary(
+            child: SizedBox(
+              height: isSmallScreen ? 220 : 240,
+              child: hasValidData
+                  ? BarChart(
+                      BarChartData(
+                        maxY: 0.06,
+                        minY: 0,
+                        gridData: FlGridData(
+                          show: true,
+                          drawVerticalLine: false,
+                          horizontalInterval: 0.01,
+                          getDrawingHorizontalLine: (value) => FlLine(
+                            color: _bpsBorder,
+                            strokeWidth: 0.5,
+                          ),
+                        ),
+                        titlesData: FlTitlesData(
+                          leftTitles: AxisTitles(
+                            sideTitles: SideTitles(
+                              showTitles: true,
+                              reservedSize: isSmallScreen ? 42 : 48,
+                              interval: 0.01,
+                              getTitlesWidget: (value, meta) => Text(
+                                value.toStringAsFixed(3),
+                                style: TextStyle(
+                                  fontSize: isSmallScreen ? 10 : 12,
+                                  color: _bpsTextSecondary,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ),
+                          bottomTitles: AxisTitles(
+                            sideTitles: SideTitles(
+                              showTitles: true,
+                              reservedSize: 30,
+                              getTitlesWidget: (value, meta) {
+                                final index = value.toInt();
+                                if (index >= 0 && index < yearLabels.length) {
+                                  return Padding(
+                                    padding: EdgeInsets.only(top: isSmallScreen ? 6 : 8),
+                                    child: Text(
+                                      yearLabels[index],
+                                      style: TextStyle(
+                                        fontSize: isSmallScreen ? 10 : 12,
+                                        color: _bpsTextPrimary,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  );
+                                }
+                                return const Text('');
+                              },
+                            ),
+                          ),
+                          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                        ),
+                        borderData: FlBorderData(show: false),
+                        barGroups: barGroups,
+                        barTouchData: BarTouchData(
+                          enabled: true,
+                          touchTooltipData: BarTouchTooltipData(
+                            tooltipRoundedRadius: 8,
+                            tooltipBorder: BorderSide(color: Colors.grey[300]!, width: 1),
+                            tooltipPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            getTooltipColor: (group) => _bpsCardBg,
+                            getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                              final index = group.x;
+                              if (index >= 0 && index < yearLabels.length) {
+                                return BarTooltipItem(
+                                  '${yearLabels[index]}\nIKG: ${rod.toY.toStringAsFixed(3)}',
+                                  TextStyle(
+                                    color: _bpsBlue,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 11,
+                                  ),
+                                );
+                              }
+                              return null;
                             },
                           ),
                         ),

@@ -10,11 +10,13 @@ const Color _bpsBlue = Color(0xFF2E99D6);
 const Color _bpsOrange = Color(0xFFE88D34);
 const Color _bpsGreen = Color(0xFF7DBD42);
 const Color _bpsRed = Color(0xFFEF4444);
+const Color _bpsPurple = Color(0xFF7B1FA2);
 const Color _bpsBackground = Color(0xFFF5F5F5);
 const Color _bpsCardBg = Color(0xFFFFFFFF);
 const Color _bpsTextPrimary = Color(0xFF333333);
 const Color _bpsTextSecondary = Color(0xFF808080);
 const Color _bpsBorder = Color(0xFFE0E0E0);
+const Color _bpsTeal = Color(0xFF1ABC9C);
 
 class IDGData {
   final int year;
@@ -47,11 +49,14 @@ class IDGScreen extends StatefulWidget {
   State<IDGScreen> createState() => _IDGScreenState();
 }
 
-class _IDGScreenState extends State<IDGScreen> {
+class _IDGScreenState extends State<IDGScreen> with AutomaticKeepAliveClientMixin {
   Map<int, IDGData> idgDataByYear = {};
   List<int> availableYears = [];
   int selectedYear = 2024;
   bool isLoading = true;
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -138,7 +143,7 @@ class _IDGScreenState extends State<IDGScreen> {
             _buildHeader(context, sizing, isSmallScreen),
             const Expanded(
               child: Center(
-                child: CircularProgressIndicator(color: _bpsOrange),
+                child: CircularProgressIndicator(color: _bpsBlue),
               ),
             ),
           ],
@@ -163,8 +168,6 @@ class _IDGScreenState extends State<IDGScreen> {
                       SizedBox(height: sizing.sectionSpacing),
                       _buildIDGMainCard(sizing, isSmallScreen),
                       SizedBox(height: sizing.sectionSpacing),
-                      _buildIDGStats(sizing, isSmallScreen),
-                      SizedBox(height: sizing.sectionSpacing),
                       _buildIDGOnlyChart(sizing, isSmallScreen),
                       SizedBox(height: sizing.sectionSpacing),
                       _buildIKGOnlyChart(sizing, isSmallScreen),
@@ -185,8 +188,8 @@ class _IDGScreenState extends State<IDGScreen> {
   Widget _buildHeader(BuildContext context, ResponsiveSizing sizing, bool isSmallScreen) {
     return Container(
       decoration: BoxDecoration(
-        color: _bpsOrange,
-        boxShadow: [BoxShadow(color: _bpsOrange.withOpacity(0.2), blurRadius: 20, offset: const Offset(0, 4))],
+        color: _bpsBlue,
+        boxShadow: [BoxShadow(color: _bpsBlue.withOpacity(0.2), blurRadius: 20, offset: const Offset(0, 4))],
       ),
       child: SafeArea(
         bottom: false,
@@ -231,46 +234,100 @@ class _IDGScreenState extends State<IDGScreen> {
 
   Widget _buildYearSelector(ResponsiveSizing sizing, bool isSmallScreen) {
     return Container(
-      padding: EdgeInsets.all(isSmallScreen ? sizing.statsCardPadding - 4 : sizing.statsCardPadding),
+      padding: EdgeInsets.all(isSmallScreen
+          ? sizing.statsCardPadding - 4
+          : sizing.statsCardPadding),
       decoration: BoxDecoration(
         color: _bpsCardBg,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
+        border: Border.all(color: _bpsBorder, width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Container(padding: EdgeInsets.all(isSmallScreen ? 8 : 10), decoration: BoxDecoration(color: _bpsOrange.withOpacity(0.1), borderRadius: BorderRadius.circular(10)), child: Icon(Icons.calendar_today_rounded, color: _bpsOrange, size: isSmallScreen ? 16 : 18)),
+              Container(
+                padding: EdgeInsets.all(isSmallScreen ? 8 : 10),
+                decoration: BoxDecoration(
+                  color: _bpsBlue.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.calendar_today_rounded,
+                  color: _bpsBlue,
+                  size: isSmallScreen ? 16 : 20,
+                ),
+              ),
               SizedBox(width: sizing.itemSpacing),
-              Text('Pilih Tahun Data', style: TextStyle(fontSize: isSmallScreen ? 14 : 16, fontWeight: FontWeight.w700, color: _bpsTextPrimary)),
+              Text(
+                'Pilih Tahun Data',
+                style: TextStyle(
+                  fontSize: isSmallScreen
+                      ? sizing.groupTitleSize - 2
+                      : sizing.groupTitleSize,
+                  fontWeight: FontWeight.w700,
+                  color: _bpsTextPrimary,
+                ),
+              ),
             ],
           ),
           SizedBox(height: isSmallScreen ? 12 : 16),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: availableYears.map((year) {
-                final isSelected = year == selectedYear;
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: GestureDetector(
-                    onTap: () => setState(() => selectedYear = year),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      padding: EdgeInsets.symmetric(horizontal: isSmallScreen ? 16 : 20, vertical: isSmallScreen ? 10 : 12),
-                      decoration: BoxDecoration(
-                        color: isSelected ? _bpsOrange : _bpsBackground,
-                        borderRadius: BorderRadius.circular(25),
-                        boxShadow: isSelected ? [BoxShadow(color: _bpsOrange.withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 2))] : null,
+          Wrap(
+            spacing: isSmallScreen ? 8 : 12,
+            runSpacing: isSmallScreen ? 8 : 12,
+            children: availableYears.map((year) {
+              final isSelected = year == selectedYear;
+              return Material(
+                color: isSelected ? _bpsBlue : _bpsBackground,
+                borderRadius: BorderRadius.circular(10),
+                child: InkWell(
+                  onTap: () => setState(() => selectedYear = year),
+                  borderRadius: BorderRadius.circular(10),
+                  child: Container(
+                    constraints: BoxConstraints(
+                      minWidth: isSmallScreen ? 60 : 70,
+                    ),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isSmallScreen ? 12 : 16,
+                      vertical: isSmallScreen ? 8 : 10,
+                    ),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: isSelected ? _bpsBlue : _bpsBorder,
+                        width: isSelected ? 2 : 1.5,
                       ),
-                      child: Text(year.toString(), style: TextStyle(color: isSelected ? Colors.white : _bpsTextSecondary, fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500, fontSize: isSmallScreen ? 13 : 14)),
+                      boxShadow: isSelected
+                          ? [
+                              BoxShadow(
+                                color: _bpsBlue.withOpacity(0.3),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ]
+                          : null,
+                    ),
+                    child: Text(
+                      year.toString(),
+                      style: TextStyle(
+                        fontSize: isSmallScreen ? 14 : 16,
+                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                        color: isSelected ? Colors.white : _bpsTextSecondary,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
                   ),
-                );
-              }).toList(),
-            ),
+                ),
+              );
+            }).toList(),
           ),
         ],
       ),
@@ -284,24 +341,132 @@ class _IDGScreenState extends State<IDGScreen> {
       decoration: BoxDecoration(
         color: _bpsCardBg,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
+        border: Border.all(color: _bpsBorder, width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Container(padding: EdgeInsets.all(isSmallScreen ? 8 : 10), decoration: BoxDecoration(color: _bpsGreen.withOpacity(0.1), borderRadius: BorderRadius.circular(10)), child: Icon(Icons.bar_chart_rounded, color: _bpsGreen, size: isSmallScreen ? 16 : 18)),
+              Container(
+                padding: EdgeInsets.all(isSmallScreen ? 8 : 10),
+                decoration: BoxDecoration(
+                  color: _bpsBlue.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.analytics_rounded,
+                  color: _bpsBlue,
+                  size: isSmallScreen ? 16 : 20,
+                ),
+              ),
               SizedBox(width: sizing.itemSpacing),
-              Text('Indeks Utama', style: TextStyle(fontSize: isSmallScreen ? 14 : 16, fontWeight: FontWeight.w700, color: _bpsTextPrimary)),
+              Expanded(
+                child: Text(
+                  'Indikator Utama IDG',
+                  style: TextStyle(
+                    fontSize: isSmallScreen
+                        ? sizing.groupTitleSize - 2
+                        : sizing.groupTitleSize,
+                    fontWeight: FontWeight.w700,
+                    color: _bpsTextPrimary,
+                  ),
+                ),
+              ),
+              if (!isSmallScreen) ...[
+                Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: sizing.itemSpacing,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: _bpsBlue.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.touch_app_rounded,
+                        color: _bpsBlue,
+                        size: 14,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Tap untuk detail',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: _bpsBlue,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ],
           ),
           SizedBox(height: isSmallScreen ? 12 : 16),
-          Row(
+          Column(
             children: [
-              Expanded(child: _buildMainIndexCard('IDG', data.idgFormatted, 'Pemberdayaan Gender', Icons.groups, _bpsOrange, isSmallScreen)),
-              const SizedBox(width: 12),
-              Expanded(child: _buildMainIndexCard('IKG', data.ikgFormatted, 'Ketimpangan Gender', Icons.balance, _bpsBlue, isSmallScreen)),
+              _buildCompactIndicatorRow(
+                context: context,
+                value: data.idgFormatted,
+                label: 'IDG',
+                color: _bpsPurple,
+                icon: Icons.groups,
+                description: 'Indeks Pemberdayaan Gender (IDG) mengukur kesetaraan peran antara laki-laki dan perempuan dalam bidang ekonomi, politik, dan pengambilan keputusan.',
+                isFirst: true,
+                isSmallScreen: isSmallScreen,
+              ),
+              _buildIndicatorDivider(isSmallScreen),
+              _buildCompactIndicatorRow(
+                context: context,
+                value: data.ikgFormatted,
+                label: 'IKG',
+                color: _bpsBlue,
+                icon: Icons.balance,
+                description: 'Indeks Ketimpangan Gender (IKG) mengukur ketidaksetaraan pencapaian antara laki-laki dan perempuan dalam kesehatan reproduksi, pemberdayaan, dan pasar tenaga kerja.',
+                isSmallScreen: isSmallScreen,
+              ),
+              _buildIndicatorDivider(isSmallScreen),
+              _buildCompactIndicatorRow(
+                context: context,
+                value: '${data.sumbanganFormatted}%',
+                label: 'Sumbangan Pendapatan',
+                color: _bpsGreen,
+                icon: Icons.attach_money,
+                description: 'Sumbangan pendapatan perempuan menunjukkan kontribusi ekonomi perempuan terhadap total pendapatan rumah tangga.',
+                isSmallScreen: isSmallScreen,
+              ),
+              _buildIndicatorDivider(isSmallScreen),
+              _buildCompactIndicatorRow(
+                context: context,
+                value: '${data.tenagaFormatted}%',
+                label: 'Tenaga Profesional',
+                color: _bpsOrange,
+                icon: Icons.business_center,
+                description: 'Persentase perempuan sebagai tenaga profesional menunjukkan partisipasi perempuan dalam pekerjaan profesional dan teknis.',
+                isSmallScreen: isSmallScreen,
+              ),
+              _buildIndicatorDivider(isSmallScreen),
+              _buildCompactIndicatorRow(
+                context: context,
+                value: '${data.parlemenFormatted}%',
+                label: 'Keterlibatan Parlemen',
+                color: _bpsRed,
+                icon: Icons.account_balance,
+                description: 'Keterlibatan perempuan di parlemen menunjukkan partisipasi politik perempuan dalam lembaga legislatif.',
+                isLast: true,
+                isSmallScreen: isSmallScreen,
+              ),
             ],
           ),
         ],
@@ -309,74 +474,282 @@ class _IDGScreenState extends State<IDGScreen> {
     );
   }
 
-  Widget _buildMainIndexCard(String title, String value, String subtitle, IconData icon, Color color, bool isSmallScreen) {
-    return Container(
-      padding: EdgeInsets.all(isSmallScreen ? 12 : 14),
-      decoration: BoxDecoration(color: color.withOpacity(0.08), borderRadius: BorderRadius.circular(12), border: Border.all(color: color.withOpacity(0.2))),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: color.withOpacity(0.15), borderRadius: BorderRadius.circular(8)), child: Icon(icon, color: color, size: isSmallScreen ? 18 : 20)),
-          const SizedBox(height: 10),
-          Text(value, style: TextStyle(fontSize: isSmallScreen ? 18 : 22, fontWeight: FontWeight.bold, color: color)),
-          const SizedBox(height: 2),
-          Text(title, style: TextStyle(fontSize: isSmallScreen ? 12 : 13, color: _bpsTextPrimary, fontWeight: FontWeight.w600)),
-          Text(subtitle, style: TextStyle(fontSize: isSmallScreen ? 9 : 10, color: _bpsTextSecondary)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildIDGStats(ResponsiveSizing sizing, bool isSmallScreen) {
-    final data = currentIDGData;
-    return Container(
-      padding: EdgeInsets.all(isSmallScreen ? sizing.statsCardPadding - 4 : sizing.statsCardPadding),
-      decoration: BoxDecoration(
-        color: _bpsCardBg,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+  Widget _buildCompactIndicatorRow({
+    required BuildContext context,
+    required String value,
+    required String label,
+    required Color color,
+    required IconData icon,
+    required String description,
+    required bool isSmallScreen,
+    bool isFirst = false,
+    bool isLast = false,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => _showDetailDialog(context, label, value, icon, color, description),
+        splashColor: color.withOpacity(0.1),
+        highlightColor: color.withOpacity(0.05),
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: isSmallScreen ? 12 : 16,
+            vertical: isSmallScreen ? 8 : 10,
+          ),
+          child: Row(
             children: [
-              Container(padding: EdgeInsets.all(isSmallScreen ? 8 : 10), decoration: BoxDecoration(color: _bpsBlue.withOpacity(0.1), borderRadius: BorderRadius.circular(10)), child: Icon(Icons.analytics_outlined, color: _bpsBlue, size: isSmallScreen ? 16 : 18)),
-              SizedBox(width: sizing.itemSpacing),
-              Text('Komponen IDG', style: TextStyle(fontSize: isSmallScreen ? 14 : 16, fontWeight: FontWeight.w700, color: _bpsTextPrimary)),
+              Container(
+                width: isSmallScreen ? 10 : 12,
+                height: isSmallScreen ? 10 : 12,
+                decoration: BoxDecoration(
+                  color: color,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              SizedBox(width: isSmallScreen ? 8 : 10),
+              Expanded(
+                flex: 3,
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: isSmallScreen ? 13 : 14,
+                    fontWeight: FontWeight.w600,
+                    color: _bpsTextPrimary,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                flex: 2,
+                child: Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: isSmallScreen ? 15 : 17,
+                    fontWeight: FontWeight.w800,
+                    color: color,
+                    letterSpacing: -0.3,
+                  ),
+                  textAlign: TextAlign.right,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Icon(
+                Icons.chevron_right_rounded,
+                color: color.withOpacity(0.5),
+                size: isSmallScreen ? 18 : 20,
+              ),
             ],
           ),
-          SizedBox(height: isSmallScreen ? 12 : 16),
-          _buildStatItem('Sumbangan Pendapatan Perempuan', '${data.sumbanganFormatted}%', 'Kontribusi Ekonomi Perempuan', Icons.attach_money, _bpsOrange, isSmallScreen),
-          const SizedBox(height: 12),
-          _buildStatItem('Perempuan sebagai Tenaga Profesional', '${data.tenagaFormatted}%', 'Profesional dan Teknis', Icons.business_center, _bpsBlue, isSmallScreen),
-          const SizedBox(height: 12),
-          _buildStatItem('Keterlibatan Perempuan di Parlemen', '${data.parlemenFormatted}%', 'Partisipasi Politik', Icons.account_balance, _bpsGreen, isSmallScreen),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _buildStatItem(String title, String value, String subtitle, IconData icon, Color color, bool isSmallScreen) {
-    return Container(
-      padding: EdgeInsets.all(isSmallScreen ? 12 : 14),
-      decoration: BoxDecoration(color: color.withOpacity(0.05), borderRadius: BorderRadius.circular(12), border: Border.all(color: color.withOpacity(0.15))),
-      child: Row(
-        children: [
-          Container(padding: EdgeInsets.all(isSmallScreen ? 8 : 10), decoration: BoxDecoration(color: color.withOpacity(0.15), borderRadius: BorderRadius.circular(10)), child: Icon(icon, color: color, size: isSmallScreen ? 20 : 24)),
-          const SizedBox(width: 12),
-          Expanded(
+  Widget _buildIndicatorDivider(bool isSmallScreen) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: isSmallScreen ? 12 : 16),
+      child: Divider(
+        height: 1,
+        thickness: 1,
+        color: _bpsBorder.withOpacity(0.5),
+      ),
+    );
+  }
+
+  void _showDetailDialog(
+    BuildContext context,
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+    String description,
+  ) {
+    final sizing = ResponsiveSizing(context);
+    final isSmallScreen = sizing.isVerySmall || sizing.isSmall;
+
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (dialogContext) {
+        return Dialog(
+          insetPadding: EdgeInsets.all(isSmallScreen ? 12 : 20),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(dialogContext).size.height * 0.7,
+              maxWidth: isSmallScreen
+                  ? MediaQuery.of(dialogContext).size.width - 24
+                  : 500,
+            ),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Text(value, style: TextStyle(fontSize: isSmallScreen ? 18 : 20, fontWeight: FontWeight.bold, color: color)),
-                Text(title, style: TextStyle(fontSize: isSmallScreen ? 11 : 12, fontWeight: FontWeight.w600, color: _bpsTextPrimary)),
-                Text(subtitle, style: TextStyle(fontSize: isSmallScreen ? 9 : 10, color: _bpsTextSecondary)),
+                Container(
+                  padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
+                  decoration: BoxDecoration(
+                    color: color,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(20),
+                      topRight: Radius.circular(20),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: EdgeInsets.all(isSmallScreen ? 8 : 10),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(
+                          icon,
+                          color: Colors.white,
+                          size: isSmallScreen ? 20 : 24,
+                        ),
+                      ),
+                      SizedBox(width: isSmallScreen ? 8 : 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              title,
+                              style: TextStyle(
+                                fontSize: isSmallScreen ? 16 : 18,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Tahun $selectedYear',
+                              style: TextStyle(
+                                fontSize: isSmallScreen ? 12 : 14,
+                                color: Colors.white70,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Material(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(8),
+                        child: InkWell(
+                          onTap: () => Navigator.pop(dialogContext),
+                          borderRadius: BorderRadius.circular(8),
+                          child: Padding(
+                            padding: const EdgeInsets.all(6),
+                            child: Icon(
+                              Icons.close_rounded,
+                              color: Colors.white,
+                              size: isSmallScreen ? 18 : 20,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Flexible(
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: double.infinity,
+                          padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
+                          decoration: BoxDecoration(
+                            color: color.withOpacity(0.08),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: color.withOpacity(0.2),
+                              width: 2,
+                            ),
+                          ),
+                          child: Column(
+                            children: [
+                              Text(
+                                'Nilai Indikator',
+                                style: TextStyle(
+                                  fontSize: isSmallScreen ? 13 : 14,
+                                  color: _bpsTextSecondary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              SizedBox(height: isSmallScreen ? 8 : 12),
+                              Text(
+                                value,
+                                style: TextStyle(
+                                  fontSize: isSmallScreen ? 28 : 32,
+                                  fontWeight: FontWeight.w800,
+                                  color: color,
+                                  letterSpacing: -1,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(height: isSmallScreen ? 12 : 16),
+                        Container(
+                          padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
+                          decoration: BoxDecoration(
+                            color: _bpsBackground,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(
+                                Icons.lightbulb_outline_rounded,
+                                color: color,
+                                size: isSmallScreen ? 18 : 20,
+                              ),
+                              SizedBox(width: isSmallScreen ? 8 : 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Penjelasan',
+                                      style: TextStyle(
+                                        fontSize: isSmallScreen ? 14 : 16,
+                                        fontWeight: FontWeight.w700,
+                                        color: color,
+                                      ),
+                                    ),
+                                    SizedBox(height: isSmallScreen ? 4 : 6),
+                                    Text(
+                                      description,
+                                      style: TextStyle(
+                                        fontSize: isSmallScreen ? 13 : 14,
+                                        color: _bpsTextSecondary,
+                                        height: 1.5,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -401,9 +774,9 @@ class _IDGScreenState extends State<IDGScreen> {
         children: [
           Row(
             children: [
-              Container(padding: EdgeInsets.all(isSmallScreen ? 8 : 10), decoration: BoxDecoration(color: _bpsOrange.withOpacity(0.1), borderRadius: BorderRadius.circular(10)), child: Icon(Icons.trending_up, color: _bpsOrange, size: isSmallScreen ? 16 : 18)),
+              Container(padding: EdgeInsets.all(isSmallScreen ? 8 : 10), decoration: BoxDecoration(color: _bpsPurple.withOpacity(0.1), borderRadius: BorderRadius.circular(10)), child: Icon(Icons.trending_up, color: _bpsPurple, size: isSmallScreen ? 16 : 18)),
               SizedBox(width: sizing.itemSpacing),
-              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('Tren IDG', style: TextStyle(fontSize: isSmallScreen ? 14 : 16, fontWeight: FontWeight.w700, color: _bpsTextPrimary)), Text('Nilai lebih tinggi = lebih baik', style: TextStyle(fontSize: isSmallScreen ? 10 : 11, color: _bpsOrange))])),
+              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('Tren IDG', style: TextStyle(fontSize: isSmallScreen ? 14 : 16, fontWeight: FontWeight.w700, color: _bpsTextPrimary)), Text('Nilai lebih tinggi = lebih baik', style: TextStyle(fontSize: isSmallScreen ? 10 : 11, color: _bpsPurple))])),
             ],
           ),
           SizedBox(height: isSmallScreen ? 16 : 20),
@@ -422,7 +795,7 @@ class _IDGScreenState extends State<IDGScreen> {
                       ),
                       borderData: FlBorderData(show: false),
                       lineBarsData: [
-                        LineChartBarData(spots: idgSpots, isCurved: true, color: _bpsOrange, barWidth: 3, dotData: const FlDotData(show: true), belowBarData: BarAreaData(show: true, color: _bpsOrange.withOpacity(0.15))),
+                        LineChartBarData(spots: idgSpots, isCurved: true, color: _bpsPurple, barWidth: 3, dotData: const FlDotData(show: true), belowBarData: BarAreaData(show: true, color: _bpsPurple.withOpacity(0.15))),
                       ],
                       lineTouchData: LineTouchData(
                         enabled: true,
@@ -446,14 +819,34 @@ class _IDGScreenState extends State<IDGScreen> {
   }
 
   Widget _buildIKGOnlyChart(ResponsiveSizing sizing, bool isSmallScreen) {
-    List<FlSpot> ikgSpots = [];
+    List<BarChartGroupData> barGroups = [];
     List<String> yearLabels = [];
 
     for (int i = 0; i < availableYears.length; i++) {
       final year = availableYears[i];
       final data = idgDataByYear[year];
       if (data?.ikg != null) {
-        ikgSpots.add(FlSpot(i.toDouble(), data!.ikg!));
+        barGroups.add(
+          BarChartGroupData(
+            x: i,
+            barRods: [
+              BarChartRodData(
+                toY: data!.ikg!,
+                color: _bpsBlue,
+                width: isSmallScreen ? 28 : 36,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(6),
+                  topRight: Radius.circular(6),
+                ),
+                backDrawRodData: BackgroundBarChartRodData(
+                  show: true,
+                  toY: 0.30,
+                  color: _bpsBlue.withOpacity(0.06),
+                ),
+              ),
+            ],
+          ),
+        );
         yearLabels.add(year.toString());
       }
     }
@@ -474,31 +867,65 @@ class _IDGScreenState extends State<IDGScreen> {
           SizedBox(height: isSmallScreen ? 16 : 20),
           SizedBox(
             height: 220,
-            child: ikgSpots.isNotEmpty
-                ? LineChart(
-                    LineChartData(
-                      minY: 0, maxY: 0.35,
-                      gridData: FlGridData(show: true, drawVerticalLine: false, horizontalInterval: 0.05, getDrawingHorizontalLine: (value) => FlLine(color: _bpsBorder, strokeWidth: 0.5)),
+            child: barGroups.isNotEmpty
+                ? BarChart(
+                    BarChartData(
+                      maxY: 0.30,
+                      minY: 0,
+                      gridData: FlGridData(
+                        show: true,
+                        drawVerticalLine: false,
+                        horizontalInterval: 0.05,
+                        getDrawingHorizontalLine: (value) => FlLine(color: _bpsBorder, strokeWidth: 0.5),
+                      ),
                       titlesData: FlTitlesData(
-                        leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: true, reservedSize: 35, interval: 0.1, getTitlesWidget: (value, meta) => Text(value.toStringAsFixed(2), style: TextStyle(fontSize: isSmallScreen ? 9 : 10, color: _bpsTextSecondary)))),
-                        bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: true, reservedSize: 30, interval: 1, getTitlesWidget: (value, meta) { final index = value.toInt(); if (index >= 0 && index < yearLabels.length) { return Padding(padding: const EdgeInsets.only(top: 8), child: Text(yearLabels[index], style: TextStyle(fontSize: isSmallScreen ? 9 : 10, color: _bpsTextSecondary))); } return const Text(''); })),
+                        leftTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            reservedSize: 40,
+                            interval: 0.05,
+                            getTitlesWidget: (value, meta) => Text(
+                              value.toStringAsFixed(2),
+                              style: TextStyle(fontSize: isSmallScreen ? 9 : 10, color: _bpsTextSecondary),
+                            ),
+                          ),
+                        ),
+                        bottomTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            reservedSize: 30,
+                            getTitlesWidget: (value, meta) {
+                              final index = value.toInt();
+                              if (index >= 0 && index < yearLabels.length) {
+                                return Padding(
+                                  padding: const EdgeInsets.only(top: 8),
+                                  child: Text(yearLabels[index], style: TextStyle(fontSize: isSmallScreen ? 9 : 10, color: _bpsTextSecondary)),
+                                );
+                              }
+                              return const Text('');
+                            },
+                          ),
+                        ),
                         rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
                         topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
                       ),
                       borderData: FlBorderData(show: false),
-                      lineBarsData: [
-                        LineChartBarData(spots: ikgSpots, isCurved: true, color: _bpsBlue, barWidth: 3, dotData: const FlDotData(show: true), belowBarData: BarAreaData(show: true, color: _bpsBlue.withOpacity(0.15))),
-                      ],
-                      lineTouchData: LineTouchData(
+                      barGroups: barGroups,
+                      barTouchData: BarTouchData(
                         enabled: true,
-                        touchTooltipData: LineTouchTooltipData(
-                          getTooltipItems: (touchedSpots) => touchedSpots.map((barSpot) {
-                            final index = barSpot.x.toInt();
+                        touchTooltipData: BarTouchTooltipData(
+                          tooltipRoundedRadius: 8,
+                          tooltipPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                            final index = group.x;
                             if (index >= 0 && index < yearLabels.length) {
-                              return LineTooltipItem('${yearLabels[index]}\nIKG: ${barSpot.y.toStringAsFixed(3)}', const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11));
+                              return BarTooltipItem(
+                                '${yearLabels[index]}\nIKG: ${rod.toY.toStringAsFixed(3)}',
+                                const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11),
+                              );
                             }
                             return null;
-                          }).whereType<LineTooltipItem>().toList(),
+                          },
                         ),
                       ),
                     ),
@@ -525,7 +952,7 @@ class _IDGScreenState extends State<IDGScreen> {
             ],
           ),
           SizedBox(height: isSmallScreen ? 12 : 16),
-          _buildDescriptionItem('IDG (Indeks Pemberdayaan Gender)', 'Mengukur kesetaraan peran antara laki-laki dan perempuan dalam bidang ekonomi, politik, dan pengambilan keputusan.', _bpsOrange, isSmallScreen),
+          _buildDescriptionItem('IDG (Indeks Pemberdayaan Gender)', 'Mengukur kesetaraan peran antara laki-laki dan perempuan dalam bidang ekonomi, politik, dan pengambilan keputusan.', _bpsPurple, isSmallScreen),
           const SizedBox(height: 12),
           _buildDescriptionItem('IKG (Indeks Ketimpangan Gender)', 'Mengukur ketidaksetaraan pencapaian antara laki-laki dan perempuan dalam kesehatan reproduksi, pemberdayaan, dan pasar tenaga kerja.', _bpsBlue, isSmallScreen),
         ],

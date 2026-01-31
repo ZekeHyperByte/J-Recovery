@@ -23,11 +23,14 @@ class PertumbuhanEkonomiScreen extends StatefulWidget {
   State<PertumbuhanEkonomiScreen> createState() => _PertumbuhanEkonomiScreenState();
 }
 
-class _PertumbuhanEkonomiScreenState extends State<PertumbuhanEkonomiScreen> {
+class _PertumbuhanEkonomiScreenState extends State<PertumbuhanEkonomiScreen> with AutomaticKeepAliveClientMixin {
   final dataManager = EkonomiDataManager();
   late int selectedYear;
   late List<int> availableYears;
   late Timer _debounceTimer;
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -1098,7 +1101,7 @@ class _PertumbuhanEkonomiScreenState extends State<PertumbuhanEkonomiScreen> {
                     barWidth: isSmallScreen ? 2.5 : 3.5,
                     isStrokeCapRound: true,
                     dotData: FlDotData(
-                      show: !isSmallScreen,
+                      show: true,
                       getDotPainter: (spot, percent, barData, index) {
                         return FlDotCirclePainter(
                           radius: isSmallScreen ? 3 : 4,
@@ -1129,7 +1132,7 @@ class _PertumbuhanEkonomiScreenState extends State<PertumbuhanEkonomiScreen> {
                     barWidth: isSmallScreen ? 2.5 : 3.5,
                     isStrokeCapRound: true,
                     dotData: FlDotData(
-                      show: !isSmallScreen,
+                      show: true,
                       getDotPainter: (spot, percent, barData, index) {
                         return FlDotCirclePainter(
                           radius: isSmallScreen ? 3 : 4,

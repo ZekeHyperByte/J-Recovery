@@ -23,7 +23,7 @@ class UserSDGsScreen extends StatefulWidget {
   State<UserSDGsScreen> createState() => _UserSDGsScreenState();
 }
 
-class _UserSDGsScreenState extends State<UserSDGsScreen> with TickerProviderStateMixin {
+class _UserSDGsScreenState extends State<UserSDGsScreen> with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   late AnimationController _cardController;
   late Animation<double> _cardAnimation;
 
@@ -36,6 +36,9 @@ class _UserSDGsScreenState extends State<UserSDGsScreen> with TickerProviderStat
   bool isLoading = true;
 
   final List<int> availableYears = [2024, 2023, 2022, 2021, 2020, 2019];
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -216,27 +219,107 @@ class _UserSDGsScreenState extends State<UserSDGsScreen> with TickerProviderStat
 
   Widget _buildYearSelector(ResponsiveSizing sizing, bool isSmallScreen) {
     return Container(
-      padding: EdgeInsets.all(isSmallScreen ? sizing.statsCardPadding - 4 : sizing.statsCardPadding),
-      decoration: BoxDecoration(color: _bpsCardBg, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))]),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [Container(padding: EdgeInsets.all(isSmallScreen ? 8 : 10), decoration: BoxDecoration(color: _bpsBlue.withOpacity(0.1), borderRadius: BorderRadius.circular(10)), child: Icon(Icons.calendar_today_rounded, color: _bpsBlue, size: isSmallScreen ? 16 : 18)), SizedBox(width: sizing.itemSpacing), Text('Pilih Tahun Data', style: TextStyle(fontSize: isSmallScreen ? 14 : 16, fontWeight: FontWeight.w700, color: _bpsTextPrimary))]),
-        SizedBox(height: isSmallScreen ? 12 : 16),
-        Wrap(
-          spacing: 8, runSpacing: 8,
-          children: availableYears.map((year) {
-            final isSelected = year == selectedYear;
-            return GestureDetector(
-              onTap: () { setState(() => selectedYear = year); _cardController.reset(); _cardController.forward(); },
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: EdgeInsets.symmetric(horizontal: isSmallScreen ? 14 : 18, vertical: isSmallScreen ? 8 : 10),
-                decoration: BoxDecoration(color: isSelected ? _bpsBlue : _bpsBackground, borderRadius: BorderRadius.circular(20), boxShadow: isSelected ? [BoxShadow(color: _bpsBlue.withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 2))] : null),
-                child: Text(year.toString(), style: TextStyle(color: isSelected ? Colors.white : _bpsTextSecondary, fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500, fontSize: isSmallScreen ? 12 : 13)),
+      padding: EdgeInsets.all(isSmallScreen
+          ? sizing.statsCardPadding - 4
+          : sizing.statsCardPadding),
+      decoration: BoxDecoration(
+        color: _bpsCardBg,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _bpsBorder, width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: EdgeInsets.all(isSmallScreen ? 8 : 10),
+                decoration: BoxDecoration(
+                  color: _bpsBlue.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.calendar_today_rounded,
+                  color: _bpsBlue,
+                  size: isSmallScreen ? 16 : 20,
+                ),
               ),
-            );
-          }).toList(),
-        ),
-      ]),
+              SizedBox(width: sizing.itemSpacing),
+              Text(
+                'Pilih Tahun Data',
+                style: TextStyle(
+                  fontSize: isSmallScreen
+                      ? sizing.groupTitleSize - 2
+                      : sizing.groupTitleSize,
+                  fontWeight: FontWeight.w700,
+                  color: _bpsTextPrimary,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: isSmallScreen ? 12 : 16),
+          Wrap(
+            spacing: isSmallScreen ? 8 : 12,
+            runSpacing: isSmallScreen ? 8 : 12,
+            children: availableYears.map((year) {
+              final isSelected = year == selectedYear;
+              return Material(
+                color: isSelected ? _bpsBlue : _bpsBackground,
+                borderRadius: BorderRadius.circular(10),
+                child: InkWell(
+                  onTap: () {
+                    setState(() => selectedYear = year);
+                    _cardController.reset();
+                    _cardController.forward();
+                  },
+                  borderRadius: BorderRadius.circular(10),
+                  child: Container(
+                    constraints: BoxConstraints(
+                      minWidth: isSmallScreen ? 60 : 70,
+                    ),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isSmallScreen ? 12 : 16,
+                      vertical: isSmallScreen ? 8 : 10,
+                    ),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: isSelected ? _bpsBlue : _bpsBorder,
+                        width: isSelected ? 2 : 1.5,
+                      ),
+                      boxShadow: isSelected
+                          ? [
+                              BoxShadow(
+                                color: _bpsBlue.withOpacity(0.3),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ]
+                          : null,
+                    ),
+                    child: Text(
+                      year.toString(),
+                      style: TextStyle(
+                        fontSize: isSmallScreen ? 14 : 16,
+                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                        color: isSelected ? Colors.white : _bpsTextSecondary,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
     );
   }
 

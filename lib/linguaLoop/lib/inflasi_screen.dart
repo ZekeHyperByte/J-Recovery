@@ -23,9 +23,12 @@ class InflasiScreen extends StatefulWidget {
   State<InflasiScreen> createState() => _InflasiScreenState();
 }
 
-class _InflasiScreenState extends State<InflasiScreen> {
+class _InflasiScreenState extends State<InflasiScreen> with AutomaticKeepAliveClientMixin {
   int selectedYear = 2023;
   int? selectedMonth;
+
+  @override
+  bool get wantKeepAlive => true;
 
   final List<String> months = [
     'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
@@ -1081,12 +1084,12 @@ class _InflasiScreenState extends State<InflasiScreen> {
                     barWidth: isSmallScreen ? 2.5 : 3.5,
                     isStrokeCapRound: true,
                     dotData: FlDotData(
-                      show: !isSmallScreen,
+                      show: true,
                       getDotPainter: (spot, percent, barData, index) {
                         return FlDotCirclePainter(
-                          radius: 5,
+                          radius: isSmallScreen ? 3 : 5,
                           color: _bpsBlue,
-                          strokeWidth: 2.5,
+                          strokeWidth: isSmallScreen ? 1.5 : 2.5,
                           strokeColor: Colors.white,
                         );
                       },

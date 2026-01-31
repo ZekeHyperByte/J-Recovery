@@ -9,12 +9,14 @@ const Color _bpsBlue = Color(0xFF2E99D6);
 const Color _bpsOrange = Color(0xFFE88D34);
 const Color _bpsGreen = Color(0xFF7DBD42);
 const Color _bpsRed = Color(0xFFEF4444);
+const Color _bpsPurple = Color(0xFF7B1FA2);
 const Color _bpsBackground = Color(0xFFF5F5F5);
 const Color _bpsCardBg = Color(0xFFFFFFFF);
 const Color _bpsTextPrimary = Color(0xFF333333);
 const Color _bpsTextSecondary = Color(0xFF808080);
 const Color _bpsTextLabel = Color(0xFFA0A0A0);
 const Color _bpsBorder = Color(0xFFE0E0E0);
+const Color _bpsTeal = Color(0xFF1ABC9C);
 
 class IpmScreen extends StatefulWidget {
   const IpmScreen({super.key});
@@ -23,13 +25,16 @@ class IpmScreen extends StatefulWidget {
   State<IpmScreen> createState() => _IpmScreenState();
 }
 
-class _IpmScreenState extends State<IpmScreen> {
+class _IpmScreenState extends State<IpmScreen> with AutomaticKeepAliveClientMixin {
   int selectedYear = 2024;
   Map<int, Map<String, dynamic>> ipmData = {};
   Map<int, Map<String, dynamic>> komponenData = {};
   bool isLoading = true;
   String? errorMessage;
   List<int> _cachedSortedYears = [];
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -206,10 +211,10 @@ class _IpmScreenState extends State<IpmScreen> {
   Widget _buildHeader(BuildContext context, ResponsiveSizing sizing, bool isSmallScreen) {
     return Container(
       decoration: BoxDecoration(
-        color: _bpsGreen,
+        color: _bpsBlue,
         boxShadow: [
           BoxShadow(
-            color: _bpsGreen.withOpacity(0.2),
+            color: _bpsBlue.withOpacity(0.2),
             blurRadius: 20,
             offset: const Offset(0, 4),
           ),
@@ -1152,7 +1157,7 @@ class _IpmComparisonChart extends StatelessWidget {
       barWidth: isSmallScreen ? 2.5 : 3.5,
       isStrokeCapRound: true,
       dotData: FlDotData(
-        show: !isSmallScreen,
+        show: true,
         getDotPainter: (spot, percent, barData, index) {
           return FlDotCirclePainter(
             radius: isSmallScreen ? 3 : 5,

@@ -108,11 +108,22 @@ class SDGsDataService {
   static const String _storageKey = 'sdgs_kota_data_v2';
   static late SharedPreferences _prefs;
   static bool _initialized = false;
+  
+  // In-memory cache for better performance
+  static List<KotaData>? _cachedData;
+  static DateTime? _cacheTimestamp;
+  static const Duration _cacheValidity = Duration(minutes: 5);
 
   static Future<void> init() async {
     if (_initialized) return;
     _prefs = await SharedPreferences.getInstance();
     _initialized = true;
+  }
+  
+  // Check if cache is valid
+  static bool get _isCacheValid {
+    if (_cachedData == null || _cacheTimestamp == null) return false;
+    return DateTime.now().difference(_cacheTimestamp!) < _cacheValidity;
   }
 
   // Inisialisasi dengan data default jika storage kosong
@@ -1216,9 +1227,15 @@ class SDGsDataService {
     }
   }
 
-  // READ - Ambil semua data
+  // READ - Ambil semua data dengan caching
   static Future<List<KotaData>> getAllKota() async {
     try {
+      // Return cached data if valid
+      if (_isCacheValid && _cachedData != null) {
+        if (kDebugMode) print('Returning cached data: ${_cachedData!.length} kota');
+        return _cachedData!;
+      }
+      
       await init();
       final jsonList = _prefs.getStringList(_storageKey) ?? [];
 
@@ -1229,6 +1246,10 @@ class SDGsDataService {
 
       final data =
           jsonList.map((json) => KotaData.fromJson(jsonDecode(json))).toList();
+      
+      // Update cache
+      _cachedData = data;
+      _cacheTimestamp = DateTime.now();
 
       if (kDebugMode) print('Loaded ${data.length} kota from storage');
       return data;
@@ -1368,12 +1389,17 @@ class SDGsDataService {
     }
   }
 
-  // UTILITY - Simpan semua data
+  // UTILITY - Simpan semua data dengan cache invalidation
   static Future<bool> _saveAllData(List<KotaData> data) async {
     try {
       await init();
       final jsonList = data.map((k) => jsonEncode(k.toJson())).toList();
       await _prefs.setStringList(_storageKey, jsonList);
+      
+      // Update cache after save
+      _cachedData = data;
+      _cacheTimestamp = DateTime.now();
+      
       if (kDebugMode) print('Data saved successfully: ${data.length} items');
       return true;
     } catch (e) {
@@ -1382,6 +1408,13 @@ class SDGsDataService {
       }
       return false;
     }
+  }
+  
+  // UTILITY - Clear cache (call this when data is modified externally)
+  static void clearCache() {
+    _cachedData = null;
+    _cacheTimestamp = null;
+    if (kDebugMode) print('Cache cleared');
   }
 
   // UTILITY - Ambil statistik

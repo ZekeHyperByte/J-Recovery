@@ -93,9 +93,6 @@ class _SplashScreenState extends State<SplashScreen>
   void _checkVideoCompletion() {
     if (_videoController == null || !mounted) return;
 
-    // Force UI update to show progress
-    setState(() {});
-
     final position = _videoController!.value.position;
     final duration = _videoController!.value.duration;
 
@@ -211,39 +208,41 @@ class _SplashScreenState extends State<SplashScreen>
                   ),
                 ),
 
-              // Progress indicator untuk video
+              // Progress indicator untuk video - using RepaintBoundary to optimize
               if (_isVideoInitialized && _videoController != null)
                 Positioned(
                   bottom: 60,
                   left: 50,
                   right: 50,
-                  child: FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: ValueListenableBuilder(
-                      valueListenable: _videoController!,
-                      builder: (context, VideoPlayerValue value, child) {
-                        final progress = value.duration.inMilliseconds > 0
-                            ? value.position.inMilliseconds / value.duration.inMilliseconds
-                            : 0.0;
-                        return Container(
-                          height: 6,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFD1D5DB), // Darker gray background
-                            borderRadius: BorderRadius.circular(3),
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(3),
-                            child: LinearProgressIndicator(
-                              value: progress,
-                              backgroundColor: Colors.transparent,
-                              valueColor: const AlwaysStoppedAnimation<Color>(
-                                Color(0xFF84CC16), // Lime green
-                              ),
-                              minHeight: 6,
+                  child: RepaintBoundary(
+                    child: FadeTransition(
+                      opacity: _fadeAnimation,
+                      child: ValueListenableBuilder(
+                        valueListenable: _videoController!,
+                        builder: (context, VideoPlayerValue value, child) {
+                          final progress = value.duration.inMilliseconds > 0
+                              ? value.position.inMilliseconds / value.duration.inMilliseconds
+                              : 0.0;
+                          return Container(
+                            height: 6,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFD1D5DB), // Darker gray background
+                              borderRadius: BorderRadius.circular(3),
                             ),
-                          ),
-                        );
-                      },
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(3),
+                              child: LinearProgressIndicator(
+                                value: progress,
+                                backgroundColor: Colors.transparent,
+                                valueColor: const AlwaysStoppedAnimation<Color>(
+                                  Color(0xFF84CC16), // Lime green
+                                ),
+                                minHeight: 6,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
                     ),
                   ),
                 ),

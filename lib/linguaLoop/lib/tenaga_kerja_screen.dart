@@ -25,7 +25,7 @@ class TenagaKerjaScreen extends StatefulWidget {
   _TenagaKerjaScreenState createState() => _TenagaKerjaScreenState();
 }
 
-class _TenagaKerjaScreenState extends State<TenagaKerjaScreen> {
+class _TenagaKerjaScreenState extends State<TenagaKerjaScreen> with AutomaticKeepAliveClientMixin {
   int selectedYear = 2024;
   List<int> availableYears = [2020, 2021, 2022, 2023, 2024];
   int touchedIndex = -1;
@@ -35,6 +35,9 @@ class _TenagaKerjaScreenState extends State<TenagaKerjaScreen> {
   Map<int, Map<String, dynamic>> indikatorData = {};
   Map<int, Map<String, double>> distribusiData = {};
   Map<int, Map<String, dynamic>> jatengData = {};
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -1135,7 +1138,7 @@ class _TenagaKerjaScreenState extends State<TenagaKerjaScreen> {
                     barWidth: isSmallScreen ? 2.5 : 3.5,
                     isStrokeCapRound: true,
                     dotData: FlDotData(
-                      show: !isSmallScreen,
+                      show: true,
                       getDotPainter: (spot, percent, barData, index) {
                         return FlDotCirclePainter(
                           radius: isSmallScreen ? 3 : 4,
@@ -1166,7 +1169,7 @@ class _TenagaKerjaScreenState extends State<TenagaKerjaScreen> {
                     barWidth: isSmallScreen ? 2.5 : 3.5,
                     isStrokeCapRound: true,
                     dotData: FlDotData(
-                      show: !isSmallScreen,
+                      show: true,
                       getDotPainter: (spot, percent, barData, index) {
                         return FlDotCirclePainter(
                           radius: isSmallScreen ? 3 : 4,

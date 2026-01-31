@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'splash_screen.dart';
 import 'onboarding_screen.dart';
 import 'home_screen.dart';
@@ -6,7 +7,16 @@ import 'login_admin.dart';
 import 'admin_home_screen.dart' as admin_home_screen;
 
 void main() {
-  runApp(const MyApp());
+  // Performance optimizations for Flutter rendering
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Optimize for smooth animations
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]).then((_) {
+    runApp(const MyApp());
+  });
 }
 
 class MyApp extends StatelessWidget {
@@ -22,6 +32,13 @@ class MyApp extends StatelessWidget {
         primaryColor: const Color(0xFF1976D2),
         visualDensity: VisualDensity.adaptivePlatformDensity,
         fontFamily: 'Roboto',
+        // Performance: Use platform-specific page transitions
+        pageTransitionsTheme: const PageTransitionsTheme(
+          builders: {
+            TargetPlatform.android: CupertinoPageTransitionsBuilder(),
+            TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+          },
+        ),
       ),
 
       // Halaman awal

@@ -25,8 +25,8 @@ class PendidikanScreen extends StatefulWidget {
   _PendidikanScreenState createState() => _PendidikanScreenState();
 }
 
-class _PendidikanScreenState extends State<PendidikanScreen> {
-  int selectedYear = 2022;
+class _PendidikanScreenState extends State<PendidikanScreen> with AutomaticKeepAliveClientMixin {
+  int selectedYear = 2024;
   bool isLoading = true;
 
   final List<int> years = [2020, 2021, 2022, 2023, 2024];
@@ -35,6 +35,9 @@ class _PendidikanScreenState extends State<PendidikanScreen> {
   Map<int, Map<String, dynamic>> educationData = {};
 
   Map<String, dynamic> get currentData => educationData[selectedYear]!;
+
+  @override
+  bool get wantKeepAlive => true;
 
   int getTotalMurid(int year) {
     final jenjangData = educationData[year]!['jenjangPendidikan'] as List;
@@ -1133,200 +1136,321 @@ class _PendidikanScreenState extends State<PendidikanScreen> {
   Widget _buildRasioChart(ResponsiveSizing sizing, bool isSmallScreen) {
     final rasioData = currentData['rasioData'] as List;
 
-    return Container(
-      padding: EdgeInsets.all(isSmallScreen
-          ? sizing.statsCardPadding - 4
-          : sizing.statsCardPadding),
-      decoration: BoxDecoration(
-        color: _bpsCardBg,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: _bpsBorder, width: 1.5),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: EdgeInsets.all(isSmallScreen ? 8 : 10),
-                decoration: BoxDecoration(
-                  color: _bpsOrange.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(
-                  Icons.bar_chart,
-                  color: _bpsOrange,
-                  size: isSmallScreen ? 16 : 20,
-                ),
-              ),
-              SizedBox(width: sizing.itemSpacing),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Rasio Sekolah-Murid & Guru-Murid',
-                      style: TextStyle(
-                        fontSize: isSmallScreen
-                            ? sizing.groupTitleSize - 2
-                            : sizing.groupTitleSize,
-                        fontWeight: FontWeight.w700,
-                        color: _bpsTextPrimary,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'Tahun $selectedYear',
-                      style: TextStyle(
-                        fontSize: isSmallScreen ? 12 : 13,
-                        color: _bpsTextSecondary,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
+    // Find max school-to-student ratio for appropriate Y-axis
+    double maxRasioSekolah = 0;
+    for (var item in rasioData) {
+      final val = item['rasioSekolahMurid'];
+      if (val is num && val.toDouble() > maxRasioSekolah) {
+        maxRasioSekolah = val.toDouble();
+      }
+    }
+    final chartMaxY = ((maxRasioSekolah / 100).ceil() * 100).toDouble() + 50;
+
+    return Column(
+      children: [
+        // Bar chart for School-to-Student ratio
+        Container(
+          padding: EdgeInsets.all(isSmallScreen
+              ? sizing.statsCardPadding - 4
+              : sizing.statsCardPadding),
+          decoration: BoxDecoration(
+            color: _bpsCardBg,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: _bpsBorder, width: 1.5),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.04),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
               ),
             ],
           ),
-          SizedBox(height: isSmallScreen ? 12 : 16),
-          Wrap(
-            spacing: isSmallScreen ? 8 : 12,
-            runSpacing: isSmallScreen ? 8 : 12,
-            alignment: WrapAlignment.center,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildLegendItem('Sekolah-Murid', _bpsOrange, isSmallScreen),
-              _buildLegendItem('Guru-Murid', _bpsBlue, isSmallScreen),
-            ],
-          ),
-          SizedBox(height: isSmallScreen ? 16 : 20),
-          SizedBox(
-            height: 240,
-            child: BarChart(
-              BarChartData(
-                alignment: BarChartAlignment.spaceAround,
-                maxY: 450,
-                minY: 0,
-                barTouchData: BarTouchData(
-                  enabled: true,
-                  touchTooltipData: BarTouchTooltipData(
-                    tooltipRoundedRadius: 8,
-                    getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                      if (groupIndex >= rasioData.length) return null;
-                      String jenjang = rasioData[groupIndex]['jenjang']?.toString() ?? '';
-                      String label = rodIndex == 0 ? 'Sekolah' : 'Guru';
-                      String rasio = rod.toY.toStringAsFixed(2);
-                      return BarTooltipItem(
-                        '$jenjang\n1 $label : $rasio murid',
-                        const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 10,
-                        ),
-                      );
-                    },
+              Row(
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(isSmallScreen ? 8 : 10),
+                    decoration: BoxDecoration(
+                      color: _bpsOrange.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      Icons.bar_chart,
+                      color: _bpsOrange,
+                      size: isSmallScreen ? 16 : 20,
+                    ),
                   ),
-                ),
-                titlesData: FlTitlesData(
-                  show: true,
-                  bottomTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      getTitlesWidget: (value, meta) {
-                        final index = value.toInt();
-                        if (index >= 0 && index < rasioData.length) {
-                          return Padding(
-                            padding: const EdgeInsets.only(top: 8),
-                            child: Text(
-                              rasioData[index]['jenjang']?.toString() ?? '',
+                  SizedBox(width: sizing.itemSpacing),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Rasio Murid per Sekolah',
+                          style: TextStyle(
+                            fontSize: isSmallScreen
+                                ? sizing.groupTitleSize - 2
+                                : sizing.groupTitleSize,
+                            fontWeight: FontWeight.w700,
+                            color: _bpsTextPrimary,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Tahun $selectedYear',
+                          style: TextStyle(
+                            fontSize: isSmallScreen ? 12 : 13,
+                            color: _bpsTextSecondary,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: isSmallScreen ? 16 : 20),
+              SizedBox(
+                height: 240,
+                child: BarChart(
+                  BarChartData(
+                    alignment: BarChartAlignment.spaceAround,
+                    maxY: chartMaxY,
+                    minY: 0,
+                    barTouchData: BarTouchData(
+                      enabled: true,
+                      touchTooltipData: BarTouchTooltipData(
+                        tooltipRoundedRadius: 8,
+                        getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                          if (groupIndex >= rasioData.length) return null;
+                          String jenjang = rasioData[groupIndex]['jenjang']?.toString() ?? '';
+                          String rasio = rod.toY.toStringAsFixed(1);
+                          return BarTooltipItem(
+                            '$jenjang\n$rasio murid/sekolah',
+                            const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 11,
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    titlesData: FlTitlesData(
+                      show: true,
+                      bottomTitles: AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          getTitlesWidget: (value, meta) {
+                            final index = value.toInt();
+                            if (index >= 0 && index < rasioData.length) {
+                              return Padding(
+                                padding: const EdgeInsets.only(top: 8),
+                                child: Text(
+                                  rasioData[index]['jenjang']?.toString() ?? '',
+                                  style: TextStyle(
+                                    fontSize: isSmallScreen ? 9 : 10,
+                                    fontWeight: FontWeight.w600,
+                                    color: _bpsTextPrimary,
+                                  ),
+                                ),
+                              );
+                            }
+                            return const SizedBox.shrink();
+                          },
+                        ),
+                      ),
+                      leftTitles: AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          reservedSize: 45,
+                          interval: 100,
+                          getTitlesWidget: (value, meta) {
+                            return Text(
+                              '${value.toInt()}',
                               style: TextStyle(
                                 fontSize: isSmallScreen ? 9 : 10,
+                                color: _bpsTextSecondary,
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                      rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    ),
+                    gridData: FlGridData(
+                      show: true,
+                      drawVerticalLine: false,
+                      horizontalInterval: 100,
+                      getDrawingHorizontalLine: (value) {
+                        return FlLine(color: _bpsBorder, strokeWidth: 1);
+                      },
+                    ),
+                    borderData: FlBorderData(show: false),
+                    barGroups: rasioData.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final data = entry.value;
+
+                      final rasioSekolahValue = data['rasioSekolahMurid'];
+                      double rasioSekolah = 0.0;
+                      if (rasioSekolahValue is num) {
+                        rasioSekolah = rasioSekolahValue.toDouble();
+                      }
+
+                      return BarChartGroupData(
+                        x: index,
+                        barRods: [
+                          BarChartRodData(
+                            toY: rasioSekolah,
+                            color: _bpsOrange,
+                            width: isSmallScreen ? 20 : 28,
+                            borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+                          ),
+                        ],
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        SizedBox(height: sizing.sectionSpacing),
+        // Compact indicators for Teacher-to-Student ratio
+        Container(
+          padding: EdgeInsets.all(isSmallScreen
+              ? sizing.statsCardPadding - 4
+              : sizing.statsCardPadding),
+          decoration: BoxDecoration(
+            color: _bpsCardBg,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: _bpsBorder, width: 1.5),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.04),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(isSmallScreen ? 8 : 10),
+                    decoration: BoxDecoration(
+                      color: _bpsBlue.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      Icons.people,
+                      color: _bpsBlue,
+                      size: isSmallScreen ? 16 : 20,
+                    ),
+                  ),
+                  SizedBox(width: sizing.itemSpacing),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Rasio Murid per Guru',
+                          style: TextStyle(
+                            fontSize: isSmallScreen
+                                ? sizing.groupTitleSize - 2
+                                : sizing.groupTitleSize,
+                            fontWeight: FontWeight.w700,
+                            color: _bpsTextPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Tahun $selectedYear',
+                          style: TextStyle(
+                            fontSize: isSmallScreen ? 12 : 13,
+                            color: _bpsTextSecondary,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: isSmallScreen ? 12 : 16),
+              ...rasioData.asMap().entries.map((entry) {
+                final index = entry.key;
+                final data = entry.value;
+                final jenjang = data['jenjang']?.toString() ?? '';
+                final rasioGuruValue = data['rasioGuruMurid'];
+                double rasioGuru = 0.0;
+                if (rasioGuruValue is num) {
+                  rasioGuru = rasioGuruValue.toDouble();
+                }
+
+                return Column(
+                  children: [
+                    if (index > 0)
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: isSmallScreen ? 12 : 16),
+                        child: Divider(
+                          height: 1,
+                          thickness: 1,
+                          color: _bpsBorder.withOpacity(0.5),
+                        ),
+                      ),
+                    Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: isSmallScreen ? 12 : 16,
+                        vertical: isSmallScreen ? 10 : 12,
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: isSmallScreen ? 10 : 12,
+                            height: isSmallScreen ? 10 : 12,
+                            decoration: const BoxDecoration(
+                              color: _bpsBlue,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          SizedBox(width: isSmallScreen ? 8 : 10),
+                          Expanded(
+                            child: Text(
+                              jenjang,
+                              style: TextStyle(
+                                fontSize: isSmallScreen ? 13 : 14,
                                 fontWeight: FontWeight.w600,
                                 color: _bpsTextPrimary,
                               ),
                             ),
-                          );
-                        }
-                        return const SizedBox.shrink();
-                      },
-                    ),
-                  ),
-                  leftTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      reservedSize: 45,
-                      interval: 100,
-                      getTitlesWidget: (value, meta) {
-                        return Text(
-                          '${value.toInt()}',
-                          style: TextStyle(
-                            fontSize: isSmallScreen ? 9 : 10,
-                            color: _bpsTextSecondary,
                           ),
-                        );
-                      },
+                          Text(
+                            '1 : ${rasioGuru.toStringAsFixed(1)}',
+                            style: TextStyle(
+                              fontSize: isSmallScreen ? 15 : 17,
+                              fontWeight: FontWeight.w800,
+                              color: _bpsBlue,
+                              letterSpacing: -0.3,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                ),
-                gridData: FlGridData(
-                  show: true,
-                  drawVerticalLine: false,
-                  horizontalInterval: 100,
-                  getDrawingHorizontalLine: (value) {
-                    return FlLine(color: _bpsBorder, strokeWidth: 1);
-                  },
-                ),
-                borderData: FlBorderData(show: false),
-                barGroups: rasioData.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final data = entry.value;
-
-                  final rasioSekolahValue = data['rasioSekolahMurid'];
-                  double rasioSekolah = 0.0;
-                  if (rasioSekolahValue is num) {
-                    rasioSekolah = rasioSekolahValue.toDouble();
-                  }
-
-                  final rasioGuruValue = data['rasioGuruMurid'];
-                  double rasioGuru = 0.0;
-                  if (rasioGuruValue is num) {
-                    rasioGuru = rasioGuruValue.toDouble();
-                  }
-
-                  return BarChartGroupData(
-                    x: index,
-                    barsSpace: 4,
-                    barRods: [
-                      BarChartRodData(
-                        toY: rasioSekolah,
-                        color: _bpsOrange,
-                        width: isSmallScreen ? 14 : 18,
-                        borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
-                      ),
-                      BarChartRodData(
-                        toY: rasioGuru,
-                        color: _bpsBlue,
-                        width: isSmallScreen ? 14 : 18,
-                        borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
-                      ),
-                    ],
-                  );
-                }).toList(),
-              ),
-            ),
+                  ],
+                );
+              }),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
